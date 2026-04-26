@@ -1,0 +1,211 @@
+"use client";
+
+import { useEffect, useId, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { useInvestments } from "@/hooks/use-investments";
+import { useInitialPositions } from "@/hooks/use-initial-positions";
+import { useQuotes, useFxRates, useSp500Series } from "@/hooks/use-prices";
+import {
+  computeHoldings,
+  valueHoldings,
+  portfolioTotals,
+  txCashflowUsd,
+  type ValuedHolding,
+} from "@/lib/portfolio/holdings";
+import {
+  computeTwr,
+  sp500Returns,
+  mergeReturnSeries,
+  type SnapshotPoint,
+  type ReturnPoint,
+} from "@/lib/portfolio/twr";
+
+export type PortfolioSnapshot = {
+  user_id: string;
+  date: string;
+  total_usd: number;
+  cashflow_usd: number;
+  sp500_close: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const SNAPSHOTS_KEY = ["portfolio_snapshots"] as const;
+
+function useSnapshots() {
+  const supabase = useMemo(() => createClient(), []);
+  const queryClient = useQueryClient();
+  const channelId = useId();
+
+  const query = useQuery<PortfolioSnapshot[]>({
+    queryKey: SNAPSHOTS_KEY,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portfolio_snapshots")
+        .select("*")
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return data as PortfolioSnapshot[];
+    },
+  });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`portfolio-snapshots-${channelId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "portfolio_snapshots" },
+        () => queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, queryClient, channelId]);
+
+  return query;
+}
+
+/**
+ * Hook principal del módulo Portfolio.
+ * Combina investments + initial_positions + quotes + fx → holdings valuados.
+ * Además actualiza el snapshot del día y compone la serie TWR vs SP500.
+ */
+export function usePortfolio() {
+  const supabase = useMemo(() => createClient(), []);
+  const investmentsQ = useInvestments();
+  const initialQ = useInitialPositions();
+  const fxQ = useFxRates();
+  const snapshotsQ = useSnapshots();
+
+  const investments = investmentsQ.data ?? [];
+  const initialPositions = initialQ.data ?? [];
+
+  // Holdings derivados (sin precios todavía — solo qty, avg_cost).
+  const holdings = useMemo(
+    () => computeHoldings(initialPositions, investments),
+    [initialPositions, investments],
+  );
+
+  // Agrupación de tickers por asset_type (para fetch de quotes eficiente).
+  const quoteGroups = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const h of holdings) {
+      if (!h.ticker) continue;
+      if (h.asset_type === "time_deposit" || h.asset_type === "usd_cash") continue;
+      const set = map.get(h.asset_type) ?? new Set<string>();
+      set.add(h.ticker.toUpperCase());
+      map.set(h.asset_type, set);
+    }
+    return Array.from(map.entries()).map(([asset_type, tickers]) => ({
+      asset_type: asset_type as Parameters<typeof useQuotes>[0][number]["asset_type"],
+      tickers: Array.from(tickers),
+    }));
+  }, [holdings]);
+
+  const quotesQ = useQuotes(quoteGroups);
+  const quotes = quotesQ.data ?? {};
+  const fxMep = fxQ.data?.mep ?? 0;
+
+  // Holdings valuados con precios actuales.
+  const valued: ValuedHolding[] = useMemo(
+    () => valueHoldings(holdings, quotes, fxMep),
+    [holdings, quotes, fxMep],
+  );
+
+  const totals = useMemo(() => portfolioTotals(valued), [valued]);
+
+  // Snapshots + TWR + SP500.
+  const snapshots = snapshotsQ.data ?? [];
+  const baseDate = snapshots[0]?.date ?? null;
+  const sp500Q = useSp500Series(baseDate);
+
+  const returnSeries: ReturnPoint[] = useMemo(() => {
+    if (snapshots.length === 0) return [];
+    const snapPoints: SnapshotPoint[] = snapshots.map((s) => ({
+      date: s.date,
+      total_usd: s.total_usd,
+      cashflow_usd: s.cashflow_usd,
+    }));
+    const twr = computeTwr(snapPoints);
+    const sp = sp500Q.data?.points ?? [];
+    const spReturns = sp500Returns(sp, snapshots[0]?.date ?? "");
+    return mergeReturnSeries(twr, spReturns);
+  }, [snapshots, sp500Q.data]);
+
+  // Upsert del snapshot de hoy (forward-looking, sin backfill).
+  //
+  // Guardas: (1) todas las queries base deben haber cargado, (2) si hay
+  // posiciones, los quotes también (sino el total sería 0/inválido y
+  // poluciona la serie), (3) no guardamos totales <= 0.
+  useEffect(() => {
+    if (!investmentsQ.isSuccess || !initialQ.isSuccess || !fxQ.isSuccess) return;
+    const hasPositions = investments.length > 0 || initialPositions.length > 0;
+    if (!hasPositions) return;
+    if (!quotesQ.isSuccess) return;
+    if (!(totals.total_usd > 0)) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCashflow = investments
+      .filter((tx) => tx.date === today)
+      .reduce((s, tx) => s + txCashflowUsd(tx), 0);
+
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from("portfolio_snapshots").upsert(
+        {
+          user_id: user.id,
+          date: today,
+          total_usd: totals.total_usd,
+          cashflow_usd: todayCashflow,
+        },
+        { onConflict: "user_id,date" },
+      );
+    })();
+  }, [
+    supabase,
+    totals.total_usd,
+    investments,
+    initialPositions.length,
+    investmentsQ.isSuccess,
+    initialQ.isSuccess,
+    fxQ.isSuccess,
+    quotesQ.isSuccess,
+  ]);
+
+  // Reset: borra todo el historial de snapshots del usuario. Útil para
+  // limpiar datos polucionados por bugs previos (ej. parseNumber ×100).
+  const queryClient = useQueryClient();
+  async function resetHistory() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("portfolio_snapshots")
+      .delete()
+      .eq("user_id", user.id);
+    await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
+  }
+
+  return {
+    holdings: valued,
+    totals,
+    returnSeries,
+    snapshots,
+    fxMep,
+    isLoading:
+      investmentsQ.isLoading ||
+      initialQ.isLoading ||
+      fxQ.isLoading ||
+      quotesQ.isLoading,
+    isFetchingPrices: quotesQ.isFetching,
+    refetchPrices: () => quotesQ.refetch(),
+    hasPriceErrors: quotesQ.isError,
+    resetHistory,
+  };
+}
