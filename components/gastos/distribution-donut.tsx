@@ -7,6 +7,7 @@ import { PieChart as PieIcon } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { formatARS } from "@/lib/format";
 import type { Expense } from "@/hooks/use-expenses";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = { expenses: Expense[] };
 
@@ -122,10 +123,10 @@ export function DistributionDonut({ expenses }: Props) {
                   {active.short}
                 </span>
                 <span className="font-mono text-3xl font-bold leading-none tabular-nums">
-                  {activePct.toFixed(1)}%
+                  <PrivateAmount>{activePct.toFixed(1)}%</PrivateAmount>
                 </span>
                 <span className="font-mono text-[10px] leading-none tabular-nums text-muted-foreground">
-                  {formatARS(active.value)}
+                  <PrivateAmount>{formatARS(active.value)}</PrivateAmount>
                 </span>
               </motion.div>
             ) : (
@@ -141,7 +142,7 @@ export function DistributionDonut({ expenses }: Props) {
                   Total
                 </span>
                 <span className="bg-gradient-to-br from-white to-white/70 bg-clip-text font-mono text-sm font-bold tabular-nums text-transparent">
-                  {formatARS(total)}
+                  <PrivateAmount>{formatARS(total)}</PrivateAmount>
                 </span>
               </motion.div>
             )}
@@ -172,7 +173,7 @@ export function DistributionDonut({ expenses }: Props) {
               />
               <span className="text-muted-foreground">{d.name}</span>
               <span className="font-mono font-semibold tabular-nums text-foreground/80">
-                {pct.toFixed(0)}%
+                <PrivateAmount>{pct.toFixed(0)}%</PrivateAmount>
               </span>
             </button>
           );

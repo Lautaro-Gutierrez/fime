@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Goal } from "@/hooks/use-goals";
 import type { GoalProgress } from "@/lib/goals/progress";
 import { ProgressRing } from "./progress-ring";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   goal: Goal;
@@ -162,13 +163,13 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
         <div className="flex items-baseline justify-between text-sm">
           <span className="text-muted-foreground">Actual</span>
           <span className="font-mono font-semibold tabular-nums text-foreground">
-            {formatAmount(progress.current, currency, cfg.isPercentage)}
+            <PrivateAmount>{formatAmount(progress.current, currency, cfg.isPercentage)}</PrivateAmount>
           </span>
         </div>
         <div className="flex items-baseline justify-between text-sm">
           <span className="text-muted-foreground">Objetivo</span>
           <span className="font-mono font-semibold tabular-nums text-foreground/70">
-            {formatAmount(progress.target, currency, cfg.isPercentage)}
+            <PrivateAmount>{formatAmount(progress.target, currency, cfg.isPercentage)}</PrivateAmount>
           </span>
         </div>
       </div>

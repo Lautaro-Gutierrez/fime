@@ -20,6 +20,7 @@ export type Expense = {
   type: ExpenseType;
   date: string;
   note: string | null;
+  card_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -30,6 +31,7 @@ export type ExpenseInsert = {
   type: ExpenseType;
   date: string;
   note?: string | null;
+  card_id?: string | null;
 };
 
 export type ExpenseUpdate = Partial<ExpenseInsert>;

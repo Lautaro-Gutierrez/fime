@@ -1,6 +1,8 @@
+"use client";
+
 import { Shell } from "@/components/layout/shell";
 import { ConfigHeader } from "@/components/config/header";
-import { Placeholder } from "@/components/config/placeholder";
+import { ProfileForm } from "@/components/config/perfil/profile-form";
 
 export default function ConfigPerfilPage() {
   return (
@@ -12,10 +14,7 @@ export default function ConfigPerfilPage() {
           description="Tu identidad en FiMe. Avatar, nombre, email y seguridad."
           backHref="/config"
         />
-        <Placeholder
-          title="Próximamente"
-          description="Avatar Boxer, gestión de email/password y placeholder de Passkeys."
-        />
+        <ProfileForm />
       </div>
     </Shell>
   );

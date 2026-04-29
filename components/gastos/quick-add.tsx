@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Plus, CalendarDays, StickyNote, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Plus, CalendarDays, StickyNote, Sparkles, CreditCard as CreditCardIcon, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -21,6 +21,8 @@ import {
   toISODate,
 } from "@/lib/format";
 import { useCreateExpense } from "@/hooks/use-expenses";
+import { useCreditCards } from "@/hooks/use-credit-cards";
+import { colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
 
 // Gradient de fondo por categoría en las cards del grid.
@@ -68,8 +70,12 @@ export function QuickAdd() {
   const [date, setDate] = useState(toISODate(new Date()));
   const [note, setNote] = useState("");
   const [showExtras, setShowExtras] = useState(false);
+  // Segundo paso: selección de tarjeta
+  const [pickingCard, setPickingCard] = useState(false);
+  const [cardId, setCardId] = useState<string | null>(null);
 
   const createExpense = useCreateExpense();
+  const { data: cards = [] } = useCreditCards();
 
   useEffect(() => {
     if (!open) {
@@ -78,6 +84,8 @@ export function QuickAdd() {
       setDate(toISODate(new Date()));
       setNote("");
       setShowExtras(false);
+      setPickingCard(false);
+      setCardId(null);
     }
   }, [open]);
 
@@ -94,7 +102,7 @@ export function QuickAdd() {
     setDate(value);
   }
 
-  async function submit(category: ExpenseCategory) {
+  async function submit(category: ExpenseCategory, selectedCardId?: string | null) {
     const value = parseAmount(amount);
     if (value === null) {
       toast.error("Ingresá un monto válido.");
@@ -108,12 +116,30 @@ export function QuickAdd() {
         type,
         date,
         note: note.trim() || null,
+        card_id: category === "tarjeta_credito" ? (selectedCardId ?? null) : null,
       });
       toast.success("Gasto registrado");
       setOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al guardar");
     }
+  }
+
+  function handleCategoryClick(category: ExpenseCategory) {
+    if (category === "tarjeta_credito" && cards.length > 0) {
+      // Abrir segundo paso de selección de tarjeta
+      setPickingCard(true);
+      return;
+    }
+    if (category === "tarjeta_credito" && cards.length === 0) {
+      toast.info("Podés agregar tarjetas en Configuración → Tarjetas");
+    }
+    submit(category);
+  }
+
+  function handleCardSelect(selectedCardId: string) {
+    setCardId(selectedCardId);
+    submit("tarjeta_credito", selectedCardId);
   }
 
   const isToday = date === toISODate(new Date());
@@ -278,58 +304,126 @@ export function QuickAdd() {
             </div>
           </div>
 
-          <div className="relative flex flex-col gap-2">
-            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Categoría
-            </Label>
-            <div className="grid grid-cols-4 gap-2">
-              {CATEGORIES.map((cat, idx) => {
-                const Icon = cat.icon;
-                const disabled = createExpense.isPending || !amount;
-                return (
-                  <motion.button
-                    key={cat.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: idx * 0.02 }}
-                    whileHover={disabled ? undefined : { y: -2 }}
-                    whileTap={disabled ? undefined : { scale: 0.96 }}
-                    onClick={() => submit(cat.id)}
-                    disabled={disabled}
-                    className={cn(
-                      "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-1.5 text-center transition-all hover:border-white/10",
-                      CATEGORY_CARD_GRADIENT[cat.id],
-                      disabled && "cursor-not-allowed opacity-40",
-                    )}
-                    aria-label={cat.label}
-                  >
-                    {/* Icon con glow */}
-                    <div className="relative">
-                      <div
+          <AnimatePresence mode="wait">
+            {!pickingCard ? (
+              <motion.div
+                key="categories"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="relative flex flex-col gap-2"
+              >
+                <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Categoría
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {CATEGORIES.map((cat, idx) => {
+                    const Icon = cat.icon;
+                    const disabled = createExpense.isPending || !amount;
+                    return (
+                      <motion.button
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: idx * 0.02 }}
+                        whileHover={disabled ? undefined : { y: -2 }}
+                        whileTap={disabled ? undefined : { scale: 0.96 }}
+                        onClick={() => handleCategoryClick(cat.id)}
+                        disabled={disabled}
                         className={cn(
-                          "absolute inset-0 rounded-lg opacity-60 blur-md",
-                          cat.bgClass,
+                          "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-1.5 text-center transition-all hover:border-white/10",
+                          CATEGORY_CARD_GRADIENT[cat.id],
+                          disabled && "cursor-not-allowed opacity-40",
                         )}
-                      />
-                      <div
+                        aria-label={cat.label}
+                      >
+                        {/* Icon con glow */}
+                        <div className="relative">
+                          <div
+                            className={cn(
+                              "absolute inset-0 rounded-lg opacity-60 blur-md",
+                              cat.bgClass,
+                            )}
+                          />
+                          <div
+                            className={cn(
+                              "relative flex size-8 items-center justify-center rounded-lg ring-1",
+                              cat.bgClass,
+                              cat.textClass,
+                              cat.borderClass,
+                            )}
+                          >
+                            <Icon className="size-4" />
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-semibold leading-tight tracking-tight text-foreground/90">
+                          {cat.short}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="card-picker"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+                className="relative flex flex-col gap-3"
+              >
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPickingCard(false)}
+                    className="flex size-7 items-center justify-center rounded-lg border border-white/5 bg-card/40 text-muted-foreground transition-colors hover:border-white/10 hover:text-foreground"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                  </button>
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    ¿Con qué tarjeta?
+                  </Label>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {cards.map((card, idx) => {
+                    const cardColor = colorFromHex(card.color);
+                    return (
+                      <motion.button
+                        key={card.id}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15, delay: idx * 0.03 }}
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleCardSelect(card.id)}
+                        disabled={createExpense.isPending}
                         className={cn(
-                          "relative flex size-8 items-center justify-center rounded-lg ring-1",
-                          cat.bgClass,
-                          cat.textClass,
-                          cat.borderClass,
+                          "flex items-center gap-3 rounded-xl border border-white/5 bg-card/50 px-4 py-3 text-left transition-all hover:border-white/10",
+                          createExpense.isPending && "cursor-not-allowed opacity-40",
                         )}
                       >
-                        <Icon className="size-4" />
-                      </div>
-                    </div>
-                    <span className="text-[9px] font-semibold leading-tight tracking-tight text-foreground/90">
-                      {cat.short}
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
+                        <div
+                          className="size-3 shrink-0 rounded-full ring-2"
+                          style={{ backgroundColor: cardColor.hex, boxShadow: `0 0 8px ${cardColor.hex}40` }}
+                        />
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+                            {card.name}
+                          </span>
+                          {card.last_four && (
+                            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+                              •••• {card.last_four}
+                            </span>
+                          )}
+                        </div>
+                        <CreditCardIcon className={cn("size-4", cardColor.textClass)} />
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </DialogContent>
     </Dialog>

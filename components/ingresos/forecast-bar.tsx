@@ -6,6 +6,7 @@ import Link from "next/link";
 import { TrendingUp, TrendingDown, Wallet, ArrowRight } from "lucide-react";
 import { useExpenses } from "@/hooks/use-expenses";
 import { formatARS } from "@/lib/format";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   month: Date;
@@ -69,7 +70,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
             Ingresos
           </span>
           <span className="font-mono text-xl font-bold tabular-nums text-lime-300">
-            {formatARS(incomesTotal)}
+            <PrivateAmount>{formatARS(incomesTotal)}</PrivateAmount>
           </span>
         </div>
 
@@ -79,7 +80,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
             Gastos
           </span>
           <span className="font-mono text-xl font-bold tabular-nums text-rose-300">
-            {isLoading ? "—" : formatARS(expensesTotal)}
+            <PrivateAmount>{isLoading ? "—" : formatARS(expensesTotal)}</PrivateAmount>
           </span>
         </div>
 
@@ -111,7 +112,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
                 : "from-white via-white to-rose-200/70"
             } bg-clip-text font-mono text-xl font-bold tabular-nums text-transparent`}
           >
-            {formatARS(freeCash)}
+            <PrivateAmount>{formatARS(freeCash)}</PrivateAmount>
           </span>
         </div>
       </div>
@@ -143,7 +144,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
             <span>
               Disponible:{" "}
               <span className="font-mono tabular-nums text-foreground/80">
-                {formatARS(Math.max(freeCash, 0))}
+                <PrivateAmount>{formatARS(Math.max(freeCash, 0))}</PrivateAmount>
               </span>
             </span>
           )}

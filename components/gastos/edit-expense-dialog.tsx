@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, CreditCard as CreditCardIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,8 @@ import {
 import { CATEGORIES, CATEGORIES_BY_ID } from "@/lib/categories";
 import { isFutureMonth, lastOfMonth, toISODate } from "@/lib/format";
 import { type Expense, useUpdateExpense } from "@/hooks/use-expenses";
+import { useCreditCards } from "@/hooks/use-credit-cards";
+import { colorFromHex } from "@/lib/credit-cards";
 import type { ExpenseCategory, ExpenseType } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -75,8 +78,10 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
   const [type, setType] = useState<ExpenseType>(expense.type);
   const [date, setDate] = useState(expense.date);
   const [note, setNote] = useState(expense.note ?? "");
+  const [cardId, setCardId] = useState<string | null>(expense.card_id);
 
   const update = useUpdateExpense();
+  const { data: cards = [] } = useCreditCards();
 
   useEffect(() => {
     setAmount(String(expense.amount));
@@ -84,7 +89,16 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
     setType(expense.type);
     setDate(expense.date);
     setNote(expense.note ?? "");
+    setCardId(expense.card_id);
   }, [expense]);
+
+  // Auto-clear card_id when switching away from tarjeta_credito
+  function handleCategoryChange(newCat: ExpenseCategory) {
+    setCategory(newCat);
+    if (newCat !== "tarjeta_credito") {
+      setCardId(null);
+    }
+  }
 
   const maxDate = toISODate(lastOfMonth(new Date()));
   const cat = CATEGORIES_BY_ID[category];
@@ -109,6 +123,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
           type,
           date,
           note: note.trim() || null,
+          card_id: category === "tarjeta_credito" ? cardId : null,
         },
       });
       toast.success("Gasto actualizado");
@@ -120,7 +135,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md border-white/5 bg-card/95 p-0 backdrop-blur-xl">
         <div className="flex flex-col">
           {/* Header con glow de categoría */}
           <div
@@ -158,7 +173,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-5">
+          <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto p-5">
             {/* Monto */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="edit-amount" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -186,10 +201,13 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
               </Label>
               <Select
                 value={category}
-                onValueChange={(v) => setCategory(v as ExpenseCategory)}
+                onValueChange={(v) => handleCategoryChange(v as ExpenseCategory)}
               >
                 <SelectTrigger className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20">
-                  <SelectValue />
+                  <span className="flex items-center gap-2 text-sm">
+                    <Icon className={cn("size-3.5", cat.textClass)} />
+                    {cat.label}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((c) => {
@@ -246,6 +264,76 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                 </button>
               </div>
             </div>
+
+            {/* Card selector — visible solo con categoría tarjeta_credito */}
+            <AnimatePresence>
+              {category === "tarjeta_credito" && cards.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-1.5 overflow-hidden"
+                >
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Tarjeta
+                  </Label>
+                  {(() => {
+                    const selectedCard = cardId ? cards.find((c) => c.id === cardId) : null;
+                    const selectedColor = selectedCard ? colorFromHex(selectedCard.color) : null;
+                    return (
+                      <Select
+                        value={cardId ?? "__none__"}
+                        onValueChange={(v) => setCardId(v === "__none__" ? null : v)}
+                      >
+                        <SelectTrigger className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20">
+                          <span className="flex items-center gap-2 text-sm">
+                            {selectedCard && selectedColor ? (
+                              <>
+                                <span
+                                  className="size-2.5 shrink-0 rounded-full"
+                                  style={{ backgroundColor: selectedColor.hex }}
+                                />
+                                {selectedCard.name}
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground">Sin tarjeta</span>
+                            )}
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <CreditCardIcon className="size-3.5" />
+                              Sin tarjeta
+                            </div>
+                          </SelectItem>
+                          {cards.map((card) => {
+                            const cardColor = colorFromHex(card.color);
+                            return (
+                              <SelectItem key={card.id} value={card.id}>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="size-2.5 rounded-full"
+                                    style={{ backgroundColor: cardColor.hex }}
+                                  />
+                                  {card.name}
+                                  {card.last_four && (
+                                    <span className="font-mono text-[10px] text-muted-foreground">
+                                      {card.last_four}
+                                    </span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })()}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">

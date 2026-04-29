@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { formatARS } from "@/lib/format";
 import type { Expense } from "@/hooks/use-expenses";
 import { toISODate } from "@/lib/format";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   expenses: Expense[];
@@ -75,7 +76,9 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
           transition={{ duration: 0.4 }}
           className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-5xl font-bold leading-none tracking-tight tabular-nums text-transparent sm:text-7xl lg:text-8xl"
         >
-          <AnimatedNumber value={total} />
+          <PrivateAmount>
+            <AnimatedNumber value={total} />
+          </PrivateAmount>
         </motion.div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -103,14 +106,14 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
               <span className="text-muted-foreground">
                 pagado{" "}
                 <span className="font-mono font-semibold tabular-nums text-foreground">
-                  {formatARS(yaPagado)}
+                  <PrivateAmount>{formatARS(yaPagado)}</PrivateAmount>
                 </span>
               </span>
               <span className="text-muted-foreground/40">·</span>
               <span className="text-muted-foreground">
                 programado{" "}
                 <span className="font-mono font-semibold tabular-nums text-amber-300">
-                  {formatARS(programado)}
+                  <PrivateAmount>{formatARS(programado)}</PrivateAmount>
                 </span>
               </span>
             </div>

@@ -189,27 +189,27 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Marca">
-                <div className="flex gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur">
-                  {CARD_BRANDS.map((b) => (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => setForm((f) => ({ ...f, brand: b.id }))}
-                      className={cn(
-                        "flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition",
-                        form.brand === b.id
-                          ? "bg-amber-500/20 text-amber-300"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {b.label}
-                    </button>
-                  ))}
-                </div>
-              </Field>
+            <Field label="Marca">
+              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur">
+                {CARD_BRANDS.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, brand: b.id }))}
+                    className={cn(
+                      "rounded-lg px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition",
+                      form.brand === b.id
+                        ? "bg-amber-500/20 text-amber-300"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
 
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Últimos 4 (opcional)">
                 <Input
                   value={form.last_four}
@@ -224,6 +224,26 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   maxLength={4}
                   className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
+              </Field>
+
+              <Field label="Moneda">
+                <div className="flex h-11 gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur">
+                  {(["ARS", "USD"] as const).map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, currency: c }))}
+                      className={cn(
+                        "flex-1 rounded-lg px-3 text-[11px] font-semibold uppercase tracking-wider transition",
+                        form.currency === c
+                          ? "bg-amber-500/20 text-amber-300"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
               </Field>
             </div>
 
@@ -294,25 +314,6 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
               </div>
             </Field>
 
-            <Field label="Moneda">
-              <div className="flex gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur w-fit">
-                {(["ARS", "USD"] as const).map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, currency: c }))}
-                    className={cn(
-                      "rounded-lg px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition",
-                      form.currency === c
-                        ? "bg-amber-500/20 text-amber-300"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </Field>
           </div>
 
           {/* Footer */}

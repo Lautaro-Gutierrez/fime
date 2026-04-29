@@ -16,6 +16,7 @@ import { formatARS, formatUSD, fromISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EditIncomeDialog } from "@/components/ingresos/edit-income-dialog";
 import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   incomes: Income[];
@@ -145,7 +146,7 @@ function DayGroup({
         </h3>
         <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
         <span className="font-mono text-[11px] font-semibold tabular-nums text-muted-foreground">
-          {formatARS(dayTotal)}
+          <PrivateAmount>{formatARS(dayTotal)}</PrivateAmount>
         </span>
       </div>
 
@@ -279,11 +280,11 @@ function IncomeRow({
               </span>
               <div className="flex flex-col items-end">
                 <span className="font-mono text-base font-bold tabular-nums">
-                  {formatARS(Number(income.amount_ars))}
+                  <PrivateAmount>{formatARS(Number(income.amount_ars))}</PrivateAmount>
                 </span>
                 {isUsdOriginal && (
                   <span className="font-mono text-[10px] tabular-nums text-lime-300/80">
-                    {formatUSD(Number(income.amount))} original
+                    <PrivateAmount>{formatUSD(Number(income.amount))} original</PrivateAmount>
                   </span>
                 )}
               </div>

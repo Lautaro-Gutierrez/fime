@@ -7,10 +7,11 @@ import { Shell } from "@/components/layout/shell";
 import { Totalizer } from "@/components/gastos/totalizer";
 import { DistributionDonut } from "@/components/gastos/distribution-donut";
 import { CategoryCards } from "@/components/gastos/category-cards";
-import { ExpensesList } from "@/components/gastos/expenses-list";
+import { ExpensesList, type ViewMode } from "@/components/gastos/expenses-list";
 import { QuickAdd } from "@/components/gastos/quick-add";
 import { MonthSelector } from "@/components/gastos/month-selector";
 import { useExpenses } from "@/hooks/use-expenses";
+import { useCreditCards } from "@/hooks/use-credit-cards";
 import { createClient } from "@/lib/supabase/client";
 import {
   firstOfMonth,
@@ -22,8 +23,10 @@ import {
 export default function GastosPage() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
 
   const { data: expenses = [], isLoading } = useExpenses(month);
+  const { data: cards = [] } = useCreditCards();
 
   // Total del mes anterior para calcular el delta
   const previousMonth = useMemo(
@@ -112,6 +115,9 @@ export default function GastosPage() {
             <ExpensesList
               expenses={expenses}
               filterCategory={activeCategory}
+              cards={cards}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
           )}
         </div>

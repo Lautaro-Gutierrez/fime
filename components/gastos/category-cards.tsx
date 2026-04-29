@@ -7,6 +7,7 @@ import { formatARS } from "@/lib/format";
 import type { Expense } from "@/hooks/use-expenses";
 import type { ExpenseCategory } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   expenses: Expense[];
@@ -112,7 +113,7 @@ export function CategoryCards({ expenses, activeCategory, onSelect }: Props) {
                       {cat.label}
                     </span>
                     <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
-                      {formatARS(value)}
+                      <PrivateAmount>{formatARS(value)}</PrivateAmount>
                     </span>
                   </div>
 

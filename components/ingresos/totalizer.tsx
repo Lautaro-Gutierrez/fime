@@ -5,6 +5,7 @@ import { animate, motion } from "framer-motion";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { formatARS } from "@/lib/format";
 import type { Income } from "@/hooks/use-incomes";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   incomes: Income[];
@@ -69,7 +70,9 @@ export function Totalizer({ incomes, previousTotal }: Props) {
           transition={{ duration: 0.4 }}
           className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-5xl font-bold leading-none tracking-tight tabular-nums text-transparent sm:text-7xl lg:text-8xl"
         >
-          <AnimatedNumber value={total} />
+          <PrivateAmount>
+            <AnimatedNumber value={total} />
+          </PrivateAmount>
         </motion.div>
 
         <div className="flex flex-wrap items-center gap-2">

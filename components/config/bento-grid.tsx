@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   ArrowUpRight,
   CreditCard,
+  Download,
   Eye,
+  EyeOff,
   Palette,
   UserCircle2,
   type LucideIcon,
 } from "lucide-react";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
+import { useUpdatePreferences } from "@/hooks/use-preferences";
+import { BoxerAvatar } from "@/components/config/perfil/boxer-avatar";
 import { cn } from "@/lib/utils";
 
 type LinkTile = {
@@ -27,10 +33,9 @@ type ToggleTile = {
   title: string;
   description: string;
   icon: LucideIcon;
+  iconActive?: LucideIcon;
   meta?: string;
   span?: "sm" | "md" | "lg";
-  // Placeholder visual hasta que se implemente el hook de stealth_mode (paso 8).
-  comingSoon?: boolean;
 };
 
 type Tile = LinkTile | ToggleTile;
@@ -69,9 +74,18 @@ const TILES: Tile[] = [
     description:
       "Aplica desenfoque a montos, saldos y porcentajes en toda la app.",
     icon: Eye,
+    iconActive: EyeOff,
     meta: "Stealth Mode",
     span: "sm",
-    comingSoon: true,
+  },
+  {
+    kind: "link",
+    href: "/config/datos",
+    title: "Tus Datos",
+    description: "Exportá toda tu información financiera en formato JSON.",
+    icon: Download,
+    meta: "Export",
+    span: "sm",
   },
 ];
 
@@ -79,13 +93,13 @@ export function BentoGrid() {
   return (
     <div className="grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {TILES.map((tile, idx) => (
-        <Tile key={tile.title} tile={tile} index={idx} />
+        <TileCard key={tile.title} tile={tile} index={idx} />
       ))}
     </div>
   );
 }
 
-function Tile({ tile, index }: { tile: Tile; index: number }) {
+function TileCard({ tile, index }: { tile: Tile; index: number }) {
   const spanCls =
     tile.span === "lg"
       ? "sm:col-span-2 lg:col-span-2 lg:row-span-2"
@@ -121,6 +135,9 @@ function Tile({ tile, index }: { tile: Tile; index: number }) {
 
 function LinkContent({ tile }: { tile: LinkTile }) {
   const Icon = tile.icon;
+  const { displayName } = usePrefsContext();
+  const isProfileTile = tile.span === "lg";
+
   return (
     <>
       <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/5 blur-3xl transition-opacity group-hover:bg-amber-500/15" />
@@ -131,6 +148,12 @@ function LinkContent({ tile }: { tile: LinkTile }) {
         </div>
         <ArrowUpRight className="size-4 text-muted-foreground/50 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-amber-300" />
       </div>
+
+      {isProfileTile && (
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-20 transition-opacity group-hover:opacity-30">
+          <BoxerAvatar displayName={displayName} size={140} />
+        </div>
+      )}
 
       <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
         {tile.meta && (
@@ -148,20 +171,32 @@ function LinkContent({ tile }: { tile: LinkTile }) {
 }
 
 function ToggleContent({ tile }: { tile: ToggleTile }) {
-  const Icon = tile.icon;
+  const { stealthMode } = usePrefsContext();
+  const updatePrefs = useUpdatePreferences();
+  const Icon = stealthMode && tile.iconActive ? tile.iconActive : tile.icon;
+
+  async function handleToggle() {
+    try {
+      await updatePrefs.mutateAsync({ stealth_mode: !stealthMode });
+      toast.success(stealthMode ? "Montos visibles" : "Montos ocultos");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    }
+  }
+
   return (
     <>
       <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/5 blur-3xl" />
 
       <div className="relative flex items-start justify-between">
-        <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+        <div className={cn(
+          "flex size-10 items-center justify-center rounded-2xl ring-1 transition-all",
+          stealthMode
+            ? "bg-amber-500/20 text-amber-300 ring-amber-500/40"
+            : "bg-amber-500/10 text-amber-300 ring-amber-500/20",
+        )}>
           <Icon className="size-5" />
         </div>
-        {tile.comingSoon ? (
-          <span className="rounded-full border border-white/10 bg-card/40 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-            pronto
-          </span>
-        ) : null}
       </div>
 
       <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
@@ -175,16 +210,39 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
         </h3>
         <p className="text-sm text-muted-foreground">{tile.description}</p>
 
-        {/* Switch placeholder — el hook real llega en paso 8. */}
-        <div className="mt-3 inline-flex items-center gap-2">
+        {/* Real toggle switch */}
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={updatePrefs.isPending}
+          className="mt-3 inline-flex items-center gap-2"
+        >
           <div
-            aria-hidden
-            className="relative h-5 w-9 rounded-full border border-white/10 bg-card/40"
+            className={cn(
+              "relative h-6 w-11 rounded-full border transition-all duration-200",
+              stealthMode
+                ? "border-amber-500/40 bg-amber-500/20"
+                : "border-white/10 bg-card/40",
+            )}
           >
-            <div className="absolute left-0.5 top-0.5 size-4 rounded-full bg-muted-foreground/30" />
+            <motion.div
+              animate={{ x: stealthMode ? 20 : 2 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className={cn(
+                "absolute top-0.5 size-5 rounded-full shadow-sm transition-colors",
+                stealthMode
+                  ? "bg-amber-400 shadow-amber-500/30"
+                  : "bg-muted-foreground/40",
+              )}
+            />
           </div>
-          <span className="text-xs text-muted-foreground/60">desactivado</span>
-        </div>
+          <span className={cn(
+            "text-xs font-medium transition-colors",
+            stealthMode ? "text-amber-300" : "text-muted-foreground/60",
+          )}>
+            {stealthMode ? "activado" : "desactivado"}
+          </span>
+        </button>
       </div>
     </>
   );
