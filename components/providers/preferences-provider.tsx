@@ -2,13 +2,15 @@
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { usePreferences, type UserPreferences } from "@/hooks/use-preferences";
-import type { Theme, Density } from "@/types/database";
+import type { Theme, Density, AccentColor } from "@/types/database";
 
 type PrefsContextValue = {
   theme: Theme;
   density: Density;
   stealthMode: boolean;
+  accentColor: AccentColor;
   displayName: string | null;
+  avatarKey: string | null;
   isLoading: boolean;
 };
 
@@ -16,7 +18,9 @@ const defaults: PrefsContextValue = {
   theme: "deep-gray",
   density: "relaxed",
   stealthMode: false,
+  accentColor: "amber",
   displayName: null,
+  avatarKey: null,
   isLoading: true,
 };
 
@@ -33,7 +37,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     theme: prefs?.theme ?? "deep-gray",
     density: prefs?.density ?? "relaxed",
     stealthMode: prefs?.stealth_mode ?? false,
+    accentColor: prefs?.accent_color ?? "amber",
     displayName: prefs?.display_name ?? null,
+    avatarKey: prefs?.avatar_url ?? null,
     isLoading,
   };
 
@@ -42,6 +48,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     const el = document.documentElement;
     el.dataset.theme = value.theme;
     el.dataset.density = value.density;
+    el.dataset.accent = value.accentColor;
 
     // OLED class toggle
     if (value.theme === "oled") {
@@ -49,7 +56,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     } else {
       el.classList.remove("oled");
     }
-  }, [value.theme, value.density]);
+  }, [value.theme, value.density, value.accentColor]);
 
   return (
     <PrefsContext.Provider value={value}>

@@ -155,7 +155,7 @@ export function EditGoalDialog({ goal, onClose, holdings = [] }: Props) {
             <Button
               onClick={submit}
               disabled={updateGoal.isPending}
-              className="bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500"
+              className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
             >
               <Save className="size-4" />
               Actualizar

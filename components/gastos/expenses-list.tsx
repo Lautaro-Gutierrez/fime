@@ -125,12 +125,12 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent p-12 text-center backdrop-blur"
+        className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-theme-500/10 via-teal-500/5 to-transparent p-12 text-center backdrop-blur"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.15),transparent_50%)]" />
         <div className="relative flex flex-col items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/20 ring-1 ring-emerald-500/30">
-            <Sparkles className="size-5 text-emerald-300" />
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-theme-500/20 ring-1 ring-theme-500/30">
+            <Sparkles className="size-5 text-theme-300" />
           </div>
           <p className="text-base font-semibold tracking-tight">
             {filterCategory ? "Sin gastos en esta categoría" : "Sin gastos todavía"}
@@ -149,10 +149,10 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
     <>
       <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-4 backdrop-blur sm:p-6">
         {/* Ambient glow */}
-        <div className="pointer-events-none absolute -left-16 -top-16 size-40 rounded-full bg-emerald-500/5 blur-3xl" />
+        <div className="pointer-events-none absolute -left-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
 
         <div className="relative mb-4 flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Movimientos
           </p>
@@ -166,7 +166,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
                 className={cn(
                   "flex items-center gap-1 rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                   viewMode === "calendar"
-                    ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md"
+                    ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -324,13 +324,13 @@ function DayGroup({
         <h3
           className={cn(
             "text-sm font-semibold capitalize tracking-tight",
-            isFuture ? "text-amber-400/90" : "text-foreground",
+            isFuture ? "text-theme-400/90" : "text-foreground",
           )}
         >
           {dayLabel(dateObj)}
         </h3>
         {isFuture && (
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-amber-300 ring-1 ring-amber-500/30">
+          <span className="rounded-full bg-theme-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-theme-300 ring-1 ring-theme-500/30">
             Programado
           </span>
         )}

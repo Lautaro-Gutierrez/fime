@@ -36,10 +36,10 @@ const RATES: RateConfig[] = [
     key: "mep",
     label: "MEP",
     hint: "Bolsa",
-    gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
-    text: "text-emerald-300",
+    gradient: "from-theme-500/20 via-theme-500/5 to-transparent",
+    text: "text-theme-300",
     glow: "shadow-[0_0_40px_-8px_rgba(16,185,129,0.35)]",
-    ring: "ring-emerald-500/30",
+    ring: "ring-theme-500/30",
     primary: true,
   },
   {
@@ -130,7 +130,7 @@ export function FxStrip() {
                     {rate.label}
                   </span>
                   {rate.primary && (
-                    <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider text-emerald-300">
+                    <span className="rounded-full bg-theme-500/20 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider text-theme-300">
                       Ref
                     </span>
                   )}

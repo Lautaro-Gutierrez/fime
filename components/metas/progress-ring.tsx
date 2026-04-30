@@ -35,8 +35,8 @@ export function ProgressRing({
   if (isInverted) {
     if (rawPct >= 100) strokeColor = "#F43F5E";       // rose-500: over the cap
     else if (rawPct >= 90) strokeColor = "#F97316";   // orange-500
-    else if (rawPct >= 70) strokeColor = "#F59E0B";   // amber-500
-    else strokeColor = "#10B981";                     // emerald-500: holgura
+    else if (rawPct >= 70) strokeColor = "#F59E0B";   // theme-500
+    else strokeColor = "#10B981";                     // theme-500: holgura
   } else if (overshoot) {
     strokeColor = "#10B981"; // overcumplió: verde brillante
   }

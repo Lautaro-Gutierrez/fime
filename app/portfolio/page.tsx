@@ -52,7 +52,7 @@ export default function PortfolioPage() {
           className="flex flex-wrap items-center justify-between gap-3 px-1"
         >
           <div className="flex items-center gap-2 rounded-full border border-white/5 bg-card/40 px-3 py-1 text-xs backdrop-blur">
-            <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
             <span className="font-mono tabular-nums text-muted-foreground">
               {holdings.length}{" "}
               {holdings.length === 1 ? "posición" : "posiciones"} activas

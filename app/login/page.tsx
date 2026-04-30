@@ -55,7 +55,7 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-theme-500/15 text-theme-400 ring-1 ring-theme-500/30">
             <Wallet className="size-7" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">FiMe</h1>

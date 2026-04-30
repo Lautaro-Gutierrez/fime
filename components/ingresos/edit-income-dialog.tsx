@@ -43,7 +43,7 @@ const CATEGORY_HEADER_GRADIENT: Record<IncomeCategory, string> = {
   sueldo: "from-lime-500/20 via-lime-500/5 to-transparent",
   freelance: "from-sky-500/20 via-sky-500/5 to-transparent",
   alquiler_cobrado: "from-blue-500/20 via-blue-500/5 to-transparent",
-  dividendos: "from-amber-500/20 via-amber-500/5 to-transparent",
+  dividendos: "from-theme-500/20 via-theme-500/5 to-transparent",
   venta: "from-orange-500/20 via-orange-500/5 to-transparent",
   bono: "from-fuchsia-500/20 via-fuchsia-500/5 to-transparent",
   otros: "from-slate-500/20 via-slate-500/5 to-transparent",

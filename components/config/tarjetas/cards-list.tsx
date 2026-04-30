@@ -25,7 +25,7 @@ export function CardsList() {
         </div>
         <button
           onClick={() => setCreateOpen(true)}
-          className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-amber-500/25 transition hover:shadow-amber-500/40"
+          className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-theme-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-theme-500/25 transition hover:shadow-theme-500/40"
         >
           <Plus className="size-4 transition-transform group-hover:rotate-90" />
           Nueva tarjeta
@@ -71,7 +71,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="size-full bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:16px_16px]" />
       </div>
-      <div className="relative flex size-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+      <div className="relative flex size-14 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-300 ring-1 ring-theme-500/20">
         <CreditCardIcon className="size-6" />
       </div>
       <div className="relative flex flex-col gap-1.5">
@@ -85,7 +85,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       </div>
       <button
         onClick={onCreate}
-        className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-amber-500/25 transition hover:shadow-amber-500/40"
+        className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-theme-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-theme-500/25 transition hover:shadow-theme-500/40"
       >
         <Plus className="size-4 transition-transform group-hover:rotate-90" />
         Cargar tarjeta

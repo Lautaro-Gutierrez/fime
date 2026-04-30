@@ -279,7 +279,7 @@ export function DistributionStep({
         <span className="text-muted-foreground">Total</span>
         <span
           className={`font-mono font-bold tabular-nums ${
-            sum === 100 ? "text-lime-300" : "text-amber-300"
+            sum === 100 ? "text-lime-300" : "text-theme-300"
           }`}
         >
           {sum}%

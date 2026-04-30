@@ -34,8 +34,8 @@ export function ForecastBar({ month, incomesTotal }: Props) {
     used > 90
       ? "from-rose-500/70 via-rose-400/70 to-rose-400/70"
       : used > 70
-        ? "from-amber-500/70 via-amber-400/70 to-amber-300/70"
-        : "from-emerald-500/70 via-emerald-400/70 to-lime-400/70";
+        ? "from-theme-500/70 via-theme-400/70 to-theme-300/70"
+        : "from-theme-500/70 via-theme-400/70 to-lime-400/70";
 
   return (
     <motion.div

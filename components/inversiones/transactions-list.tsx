@@ -223,7 +223,7 @@ function TransactionRow({
             asset.id === "cedear" && "from-cyan-500/10 via-transparent to-transparent",
             asset.id === "stock_ar" && "from-sky-500/10 via-transparent to-transparent",
             asset.id === "bond_ar" && "from-teal-500/10 via-transparent to-transparent",
-            asset.id === "time_deposit" && "from-amber-500/10 via-transparent to-transparent",
+            asset.id === "time_deposit" && "from-theme-500/10 via-transparent to-transparent",
             asset.id === "usd_cash" && "from-green-500/10 via-transparent to-transparent",
           )}
         />
@@ -269,7 +269,7 @@ function TransactionRow({
                 "rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest ring-1",
                 isOutflow
                   ? "bg-red-500/15 text-red-300 ring-red-500/30"
-                  : "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+                  : "bg-theme-500/15 text-theme-300 ring-theme-500/30",
               )}
             >
               {TX_TYPE_LABELS[inv.tx_type]}

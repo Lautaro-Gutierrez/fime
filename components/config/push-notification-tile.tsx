@@ -1,0 +1,198 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Bell, BellRing, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+export function PushNotificationTile({ className }: { className?: string }) {
+  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setPermission(Notification.permission);
+      
+      navigator.serviceWorker?.getRegistration().then(reg => {
+        if (reg) {
+          reg.pushManager.getSubscription().then(sub => {
+            setSubscribed(!!sub);
+          });
+        }
+      });
+    }
+  }, []);
+
+  async function handleToggle() {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      toast.error("Tu navegador no soporta notificaciones push.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (subscribed) {
+        // Unsubscribe logic (local only for now, DB cleanup happens on send failure)
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe();
+        setSubscribed(false);
+        toast.success("Notificaciones desactivadas localmente");
+        setLoading(false);
+        return;
+      }
+
+      const perm = await Notification.requestPermission();
+      setPermission(perm);
+
+      if (perm !== "granted") {
+        toast.error("Permiso denegado para notificaciones");
+        setLoading(false);
+        return;
+      }
+
+      // Register SW
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+
+      // Ensure public key is available
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        throw new Error("Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY en .env");
+      }
+
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      });
+
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription),
+      });
+
+      if (!res.ok) throw new Error("Error guardando suscripción");
+
+      setSubscribed(true);
+      toast.success("¡Notificaciones activadas!");
+    } catch (err) {
+      // Usar console.warn en lugar de console.error para evitar el overlay de error en Next.js
+      console.warn("Error de suscripción push:", err);
+      
+      if (err instanceof DOMException && err.name === "AbortError" && err.message.includes("push service error")) {
+        toast.error("Servicio de notificaciones bloqueado por el navegador (ej. Brave). Habilítalo en la configuración de privacidad.");
+      } else {
+        toast.error(err instanceof Error ? err.message : "Error al configurar notificaciones");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleTest() {
+    toast.promise(
+      fetch("/api/push/test", { method: "POST" }).then(res => {
+        if (!res.ok) throw new Error();
+      }),
+      {
+        loading: "Enviando prueba...",
+        success: "Notificación enviada",
+        error: "Error enviando notificación",
+      }
+    );
+  }
+
+  const Icon = subscribed ? BellRing : Bell;
+
+  return (
+    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur", className)}>
+      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
+
+      <div className="relative flex items-start justify-between">
+        <div className={cn(
+          "flex size-10 items-center justify-center rounded-2xl ring-1 transition-all",
+          subscribed
+            ? "bg-theme-500/20 text-theme-300 ring-theme-500/40"
+            : "bg-theme-500/10 text-theme-300 ring-theme-500/20",
+        )}>
+          {loading ? <Loader2 className="size-5 animate-spin" /> : <Icon className="size-5" />}
+        </div>
+        
+        {subscribed && (
+          <button 
+            onClick={handleTest}
+            className="text-[10px] text-theme-400 font-semibold uppercase tracking-widest hover:text-theme-300 hover:underline"
+          >
+            Probar
+          </button>
+        )}
+      </div>
+
+      <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
+        <span className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
+          Reminders
+        </span>
+        <h3 className="font-heading text-lg font-semibold text-foreground">
+          Notificaciones
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Recibe alertas de vencimientos de tarjetas y topes de gastos.
+        </p>
+
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={loading}
+          className="mt-3 inline-flex items-center gap-2"
+        >
+          <div
+            className={cn(
+              "relative h-6 w-11 rounded-full border transition-all duration-200",
+              subscribed
+                ? "border-theme-500/40 bg-theme-500/20"
+                : "border-white/10 bg-card/40",
+            )}
+          >
+            <motion.div
+              animate={{ x: subscribed ? 20 : 2 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className={cn(
+                "absolute top-0.5 size-5 rounded-full shadow-sm transition-colors",
+                subscribed
+                  ? "bg-theme-400 shadow-theme-500/30"
+                  : "bg-muted-foreground/40",
+              )}
+            />
+          </div>
+          <span className={cn(
+            "text-xs font-medium transition-colors",
+            subscribed ? "text-theme-300" : "text-muted-foreground/60",
+          )}>
+            {permission === "denied" ? "bloqueado" : subscribed ? "activado" : "desactivado"}
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Utility to convert Base64 to Uint8Array
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}

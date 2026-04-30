@@ -120,7 +120,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(goal)}
-            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-white/5 hover:text-amber-300"
+            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-white/5 hover:text-theme-300"
             aria-label="Editar"
           >
             <Pencil className="size-3.5" />
@@ -180,7 +180,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
           {progress.pace && progress.pace.perDay > 0 && (
             <div className="flex items-center justify-between text-[11px]">
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <Zap className="size-3 text-amber-400" /> Ritmo
+                <Zap className="size-3 text-theme-400" /> Ritmo
               </span>
               <span className="font-mono font-medium tabular-nums text-foreground">
                 {formatAmount(progress.pace.perMonth, currency, cfg.isPercentage)} / mes
@@ -193,7 +193,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
                 {progress.eta.onTrack === false ? (
                   <AlertTriangle className="size-3 text-rose-400" />
                 ) : (
-                  <Rocket className="size-3 text-emerald-400" />
+                  <Rocket className="size-3 text-theme-400" />
                 )}
                 ETA
               </span>
@@ -203,7 +203,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
                   progress.eta.onTrack === false
                     ? "text-rose-300"
                     : progress.eta.onTrack
-                      ? "text-emerald-300"
+                      ? "text-theme-300"
                       : "text-foreground",
                 )}
               >
@@ -233,7 +233,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
             <button
               key={amt}
               onClick={() => onQuickAdd(goal, amt)}
-              className="flex-1 rounded-xl border border-white/5 bg-white/5 px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums text-foreground/80 transition hover:border-amber-400/30 hover:bg-amber-500/10 hover:text-amber-300"
+              className="flex-1 rounded-xl border border-white/5 bg-white/5 px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums text-foreground/80 transition hover:border-theme-400/30 hover:bg-theme-500/10 hover:text-theme-300"
             >
               +{amt.toLocaleString("es-AR")}
             </button>

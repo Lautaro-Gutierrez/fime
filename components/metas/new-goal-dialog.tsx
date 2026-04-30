@@ -179,8 +179,8 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
             >
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.1),transparent_60%)]" />
               <div className="relative flex items-start gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-amber-500/30">
-                  <Sparkles className="size-4 text-amber-300" />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-theme-500/15 ring-1 ring-theme-500/30">
+                  <Sparkles className="size-4 text-theme-300" />
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <DialogTitle className="text-lg font-semibold tracking-tight">
@@ -293,7 +293,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
                 <Button
                   onClick={submit}
                   disabled={createGoal.isPending}
-                  className="bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500"
+                  className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
                 >
                   <Plus className="size-4" />
                   Guardar
@@ -386,7 +386,7 @@ export function GoalFormBody({
                   className={cn(
                     "rounded-lg px-3 text-xs font-semibold transition",
                     form.currency === c
-                      ? "bg-amber-500/20 text-amber-300"
+                      ? "bg-theme-500/20 text-theme-300"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -427,7 +427,7 @@ export function GoalFormBody({
                   className={cn(
                     "rounded-xl border px-3 py-2 text-left text-xs transition",
                     form.source_type === src
-                      ? "border-amber-400/40 bg-amber-500/10 text-amber-200"
+                      ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
                       : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/15 hover:text-foreground",
                   )}
                 >
@@ -493,7 +493,7 @@ export function GoalFormBody({
                     className={cn(
                       "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition",
                       active
-                        ? "border-amber-400/40 bg-amber-500/10 text-amber-200"
+                        ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
                         : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/15 hover:text-foreground",
                     )}
                   >
@@ -570,7 +570,7 @@ function QuestToggle({
 }) {
   const activeCls =
     color === "amber"
-      ? "bg-amber-500/20 text-amber-300"
+      ? "bg-theme-500/20 text-theme-300"
       : "bg-orange-500/20 text-orange-300";
   return (
     <button

@@ -114,7 +114,7 @@ export function CardItem({ card, onEdit }: Props) {
           <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
             Próximo vencimiento
           </span>
-          <span className="font-mono font-semibold tabular-nums text-amber-200">
+          <span className="font-mono font-semibold tabular-nums text-theme-200">
             {fmt(due)}
           </span>
         </div>

@@ -40,7 +40,7 @@ export function DensityPicker() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
-        <span className="size-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+        <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Densidad
         </p>
@@ -58,7 +58,7 @@ export function DensityPicker() {
               className={cn(
                 "flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 transition-all",
                 isActive
-                  ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md"
+                  ? "bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

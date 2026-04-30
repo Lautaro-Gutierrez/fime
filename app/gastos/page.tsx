@@ -71,7 +71,7 @@ export default function GastosPage() {
           className="flex flex-wrap items-end justify-between gap-4"
         >
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300/80">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-theme-300/80">
               Gastos
             </span>
             <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
@@ -107,7 +107,7 @@ export default function GastosPage() {
           {isLoading ? (
             <div className="flex items-center justify-center rounded-3xl border border-white/5 bg-card/40 p-12 backdrop-blur">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
+                <span className="size-2 animate-pulse rounded-full bg-theme-400" />
                 Cargando gastos...
               </div>
             </div>

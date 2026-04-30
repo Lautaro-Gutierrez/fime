@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import {
   ArrowUpRight,
   CreditCard,
-  Download,
   Eye,
   EyeOff,
   Palette,
@@ -15,7 +14,8 @@ import {
 } from "lucide-react";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
-import { BoxerAvatar } from "@/components/config/perfil/boxer-avatar";
+import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
+import { PushNotificationTile } from "@/components/config/push-notification-tile";
 import { cn } from "@/lib/utils";
 
 type LinkTile = {
@@ -78,15 +78,6 @@ const TILES: Tile[] = [
     meta: "Stealth Mode",
     span: "sm",
   },
-  {
-    kind: "link",
-    href: "/config/datos",
-    title: "Tus Datos",
-    description: "Exportá toda tu información financiera en formato JSON.",
-    icon: Download,
-    meta: "Export",
-    span: "sm",
-  },
 ];
 
 export function BentoGrid() {
@@ -95,6 +86,14 @@ export function BentoGrid() {
       {TILES.map((tile, idx) => (
         <TileCard key={tile.title} tile={tile} index={idx} />
       ))}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: TILES.length * 0.05 }}
+        className="sm:col-span-2 lg:col-span-1"
+      >
+        <PushNotificationTile />
+      </motion.div>
     </div>
   );
 }
@@ -120,7 +119,7 @@ function TileCard({ tile, index }: { tile: Tile; index: number }) {
       {tile.kind === "link" ? (
         <Link
           href={tile.href}
-          className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-amber-500/30 hover:bg-card/70"
+          className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-theme-500/30 hover:bg-card/70"
         >
           {inner}
         </Link>
@@ -135,29 +134,29 @@ function TileCard({ tile, index }: { tile: Tile; index: number }) {
 
 function LinkContent({ tile }: { tile: LinkTile }) {
   const Icon = tile.icon;
-  const { displayName } = usePrefsContext();
+  const { displayName, avatarKey } = usePrefsContext();
   const isProfileTile = tile.span === "lg";
 
   return (
     <>
-      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/5 blur-3xl transition-opacity group-hover:bg-amber-500/15" />
+      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl transition-opacity group-hover:bg-theme-500/15" />
 
       <div className="relative flex items-start justify-between">
-        <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20 transition-all group-hover:bg-amber-500/15 group-hover:ring-amber-500/40">
+        <div className="flex size-10 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-300 ring-1 ring-theme-500/20 transition-all group-hover:bg-theme-500/15 group-hover:ring-theme-500/40">
           <Icon className="size-5" />
         </div>
-        <ArrowUpRight className="size-4 text-muted-foreground/50 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-amber-300" />
+        <ArrowUpRight className="size-4 text-muted-foreground/50 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-theme-300" />
       </div>
 
       {isProfileTile && (
         <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-20 transition-opacity group-hover:opacity-30">
-          <BoxerAvatar displayName={displayName} size={140} />
+          <AvatarDisplay avatarKey={avatarKey} displayName={displayName} size={140} showInitials={false} />
         </div>
       )}
 
       <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
         {tile.meta && (
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-amber-300/70">
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
             {tile.meta}
           </span>
         )}
@@ -186,14 +185,14 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
 
   return (
     <>
-      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/5 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
 
       <div className="relative flex items-start justify-between">
         <div className={cn(
           "flex size-10 items-center justify-center rounded-2xl ring-1 transition-all",
           stealthMode
-            ? "bg-amber-500/20 text-amber-300 ring-amber-500/40"
-            : "bg-amber-500/10 text-amber-300 ring-amber-500/20",
+            ? "bg-theme-500/20 text-theme-300 ring-theme-500/40"
+            : "bg-theme-500/10 text-theme-300 ring-theme-500/20",
         )}>
           <Icon className="size-5" />
         </div>
@@ -201,7 +200,7 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
 
       <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
         {tile.meta && (
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-amber-300/70">
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
             {tile.meta}
           </span>
         )}
@@ -221,7 +220,7 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
             className={cn(
               "relative h-6 w-11 rounded-full border transition-all duration-200",
               stealthMode
-                ? "border-amber-500/40 bg-amber-500/20"
+                ? "border-theme-500/40 bg-theme-500/20"
                 : "border-white/10 bg-card/40",
             )}
           >
@@ -231,14 +230,14 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
               className={cn(
                 "absolute top-0.5 size-5 rounded-full shadow-sm transition-colors",
                 stealthMode
-                  ? "bg-amber-400 shadow-amber-500/30"
+                  ? "bg-theme-400 shadow-theme-500/30"
                   : "bg-muted-foreground/40",
               )}
             />
           </div>
           <span className={cn(
             "text-xs font-medium transition-colors",
-            stealthMode ? "text-amber-300" : "text-muted-foreground/60",
+            stealthMode ? "text-theme-300" : "text-muted-foreground/60",
           )}>
             {stealthMode ? "activado" : "desactivado"}
           </span>

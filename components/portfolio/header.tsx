@@ -78,12 +78,12 @@ function DeltaPill({ label, pct }: { label: string; pct: number | null }) {
   const isDown = (pct ?? 0) < -0.05;
   const Icon = isUp ? TrendingUp : isDown ? TrendingDown : Minus;
   const color = isUp
-    ? "text-emerald-400"
+    ? "text-theme-400"
     : isDown
       ? "text-rose-400"
       : "text-muted-foreground";
   const bg = isUp
-    ? "bg-emerald-500/10 border-emerald-500/20"
+    ? "bg-theme-500/10 border-theme-500/20"
     : isDown
       ? "bg-rose-500/10 border-rose-500/20"
       : "bg-white/5 border-white/10";

@@ -3,6 +3,7 @@
 import { Shell } from "@/components/layout/shell";
 import { ConfigHeader } from "@/components/config/header";
 import { ThemePicker } from "@/components/config/personalizacion/theme-picker";
+import { AccentPicker } from "@/components/config/personalizacion/accent-picker";
 import { DensityPicker } from "@/components/config/personalizacion/density-picker";
 
 export default function ConfigPersonalizacionPage() {
@@ -16,8 +17,9 @@ export default function ConfigPersonalizacionPage() {
           backHref="/config"
         />
         <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur">
-          <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/8 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
           <div className="relative flex flex-col gap-8">
+            <AccentPicker />
             <ThemePicker />
             <DensityPicker />
           </div>

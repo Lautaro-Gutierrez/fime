@@ -25,7 +25,7 @@ export function ConfigHeader({
       className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur sm:p-7"
     >
       {/* Ambient glow ámbar (identidad del módulo) */}
-      <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-theme-500/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -left-24 size-56 rounded-full bg-orange-500/10 blur-3xl" />
 
       {/* Grid pattern sutil al estilo terminal */}
@@ -43,7 +43,7 @@ export function ConfigHeader({
         {backHref && (
           <Link
             href={backHref}
-            className="inline-flex w-fit items-center gap-1 rounded-full border border-white/5 bg-card/40 px-3 py-1 text-[11px] text-muted-foreground transition hover:border-amber-500/30 hover:text-amber-300"
+            className="inline-flex w-fit items-center gap-1 rounded-full border border-white/5 bg-card/40 px-3 py-1 text-[11px] text-muted-foreground transition hover:border-theme-500/30 hover:text-theme-300"
           >
             <ChevronLeft className="size-3.5" />
             volver
@@ -51,8 +51,8 @@ export function ConfigHeader({
         )}
 
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-amber-300/80">
-            <span className="size-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-theme-300/80">
+            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
             {eyebrow}
           </span>
           <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">

@@ -43,7 +43,7 @@ export function QuestBoard({
           icon={<Swords className="size-3.5" />}
           label="Main Quests"
           count={mainGoals.length}
-          activeColor="bg-amber-500/20 text-amber-300 border-amber-500/30"
+          activeColor="bg-theme-500/20 text-theme-300 border-theme-500/30"
         />
         <TabButton
           active={tab === "side"}
@@ -70,7 +70,7 @@ export function QuestBoard({
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.06),transparent_70%)]" />
             <div className="relative">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-400 ring-1 ring-theme-500/20">
                 {tab === "main" ? (
                   <Swords className="size-5" />
                 ) : (
@@ -87,7 +87,7 @@ export function QuestBoard({
               </p>
               <button
                 onClick={onCreate}
-                className="mt-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-amber-500/25 transition hover:shadow-amber-500/40"
+                className="mt-4 rounded-full bg-gradient-to-br from-theme-500 to-orange-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-theme-500/25 transition hover:shadow-theme-500/40"
               >
                 Crear la primera
               </button>

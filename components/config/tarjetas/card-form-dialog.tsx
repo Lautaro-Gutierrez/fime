@@ -199,7 +199,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                     className={cn(
                       "rounded-lg px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition",
                       form.brand === b.id
-                        ? "bg-amber-500/20 text-amber-300"
+                        ? "bg-theme-500/20 text-theme-300"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -236,7 +236,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                       className={cn(
                         "flex-1 rounded-lg px-3 text-[11px] font-semibold uppercase tracking-wider transition",
                         form.currency === c
-                          ? "bg-amber-500/20 text-amber-300"
+                          ? "bg-theme-500/20 text-theme-300"
                           : "text-muted-foreground hover:text-foreground",
                       )}
                     >
@@ -342,7 +342,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
               <Button
                 onClick={submit}
                 disabled={isPending}
-                className="bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500"
+                className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
               >
                 <Save className="size-4" />
                 {isEdit ? "Actualizar" : "Crear"}
@@ -384,8 +384,8 @@ function CyclePreview({
   const fmt = (d: Date) =>
     d.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
   return (
-    <div className="rounded-xl border border-amber-500/15 bg-amber-500/5 px-3 py-2.5">
-      <div className="text-[9px] font-semibold uppercase tracking-widest text-amber-300/70">
+    <div className="rounded-xl border border-theme-500/15 bg-theme-500/5 px-3 py-2.5">
+      <div className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
         Próximo ciclo
       </div>
       <div className="mt-1 grid grid-cols-2 gap-3 text-xs">
@@ -397,7 +397,7 @@ function CyclePreview({
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground">Vencimiento</span>
-          <span className="font-mono font-semibold tabular-nums text-amber-200">
+          <span className="font-mono font-semibold tabular-nums text-theme-200">
             {fmt(due)}
           </span>
         </div>

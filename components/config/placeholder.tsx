@@ -11,7 +11,7 @@ export function Placeholder({ title, description }: Props) {
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="size-full bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:16px_16px]" />
       </div>
-      <div className="relative flex size-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
+      <div className="relative flex size-12 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-300 ring-1 ring-theme-500/20">
         <Construction className="size-6" />
       </div>
       <h2 className="relative font-heading text-lg font-semibold text-foreground">

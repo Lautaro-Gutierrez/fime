@@ -28,9 +28,9 @@ import { cn } from "@/lib/utils";
 // Gradient de fondo por categoría en las cards del grid.
 const CATEGORY_CARD_GRADIENT: Record<ExpenseCategory, string> = {
   alquiler: "from-blue-500/20 via-blue-500/5 to-transparent",
-  servicios: "from-amber-500/20 via-amber-500/5 to-transparent",
+  servicios: "from-theme-500/20 via-theme-500/5 to-transparent",
   impuestos: "from-red-500/20 via-red-500/5 to-transparent",
-  comida: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+  comida: "from-theme-500/20 via-theme-500/5 to-transparent",
   tarjeta_credito: "from-violet-500/20 via-violet-500/5 to-transparent",
   educacion: "from-cyan-500/20 via-cyan-500/5 to-transparent",
   imprevistos: "from-pink-500/20 via-pink-500/5 to-transparent",
@@ -150,7 +150,7 @@ export function QuickAdd() {
         render={
           <Button
             size="lg"
-            className="h-11 gap-2 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 px-5 text-white shadow-lg shadow-emerald-500/25 transition-all hover:from-emerald-400 hover:to-teal-500 hover:shadow-emerald-500/40"
+            className="h-11 gap-2 rounded-full bg-gradient-to-br from-theme-500 to-teal-600 px-5 text-white shadow-lg shadow-theme-500/25 transition-all hover:from-theme-400 hover:to-teal-500 hover:shadow-theme-500/40"
           >
             <Plus className="size-4" />
             Nuevo gasto
@@ -164,8 +164,8 @@ export function QuickAdd() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_60%)]" />
 
           <div className="relative flex items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
-              <Sparkles className="size-4 text-emerald-300" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-theme-500/15 ring-1 ring-theme-500/30">
+              <Sparkles className="size-4 text-theme-300" />
             </div>
             <div className="flex flex-col gap-0.5">
               <DialogTitle className="text-lg font-semibold tracking-tight">
@@ -194,7 +194,7 @@ export function QuickAdd() {
                 placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-16 rounded-2xl border-white/5 bg-card/60 pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20"
+                className="h-16 rounded-2xl border-white/5 bg-card/60 pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-theme-500/40 focus-visible:ring-theme-500/20"
               />
             </div>
           </div>
@@ -206,7 +206,7 @@ export function QuickAdd() {
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 !isToday
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                  ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
                   : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:text-foreground",
               )}
             >
@@ -218,7 +218,7 @@ export function QuickAdd() {
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 note
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
                   : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:text-foreground",
               )}
             >
@@ -283,7 +283,7 @@ export function QuickAdd() {
                 className={cn(
                   "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                   type === "variable"
-                    ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md"
+                    ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -295,7 +295,7 @@ export function QuickAdd() {
                 className={cn(
                   "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                   type === "fixed"
-                    ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md"
+                    ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >

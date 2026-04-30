@@ -9,7 +9,8 @@ import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BoxerAvatar } from "@/components/config/perfil/boxer-avatar";
+import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
+import { AvatarPicker } from "@/components/config/perfil/avatar-picker";
 import { cn } from "@/lib/utils";
 
 export function ProfileForm() {
@@ -98,10 +99,10 @@ export function ProfileForm() {
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
       >
-        <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-amber-500/8 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
 
         <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-          <BoxerAvatar displayName={displayName} size={96} />
+          <AvatarDisplay avatarKey={prefs?.avatar_url} displayName={displayName} size={96} />
 
           <div className="flex flex-1 flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -117,14 +118,14 @@ export function ProfileForm() {
                   }}
                   placeholder="Tu nombre"
                   maxLength={50}
-                  className="h-11 flex-1 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-amber-500/30"
+                  className="h-11 flex-1 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
                 />
                 {nameDirty && (
                   <Button
                     size="sm"
                     onClick={saveName}
                     disabled={updatePrefs.isPending}
-                    className="h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 px-4 text-white shadow-lg shadow-amber-500/20"
+                    className="h-11 rounded-xl bg-gradient-to-br from-theme-500 to-orange-600 px-4 text-white shadow-lg shadow-theme-500/20"
                   >
                     <Save className="size-4" />
                   </Button>
@@ -146,6 +147,19 @@ export function ProfileForm() {
         </div>
       </motion.div>
 
+      {/* Avatar picker */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.03 }}
+        className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
+      >
+        <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
+        <div className="relative">
+          <AvatarPicker currentKey={prefs?.avatar_url} />
+        </div>
+      </motion.div>
+
       {/* Security card */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -155,7 +169,7 @@ export function ProfileForm() {
       >
         <div className="relative flex flex-col gap-5">
           <div className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Seguridad
             </p>
@@ -168,7 +182,7 @@ export function ProfileForm() {
               onClick={() => setShowPwChange(!showPwChange)}
               className="flex items-center gap-3 rounded-xl border border-white/5 bg-card/40 px-4 py-3 text-sm font-medium transition-all hover:border-white/10"
             >
-              <Lock className="size-4 text-amber-300" />
+              <Lock className="size-4 text-theme-300" />
               <span className="flex-1 text-left">Cambiar contraseña</span>
               <span className="text-[10px] text-muted-foreground">
                 {showPwChange ? "Cancelar" : "→"}
@@ -191,7 +205,7 @@ export function ProfileForm() {
                     onChange={(e) => setNewPw(e.target.value)}
                     minLength={6}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-amber-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -203,13 +217,13 @@ export function ProfileForm() {
                     value={confirmPw}
                     onChange={(e) => setConfirmPw(e.target.value)}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-amber-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
                   />
                 </div>
                 <Button
                   onClick={changePassword}
                   disabled={pwLoading || !newPw}
-                  className="h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20"
+                  className="h-10 rounded-xl bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/20"
                 >
                   {pwLoading ? <Loader2 className="size-4 animate-spin" /> : "Actualizar contraseña"}
                 </Button>

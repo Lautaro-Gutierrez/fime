@@ -53,6 +53,8 @@ export type Theme = "deep-gray" | "oled";
 
 export type Density = "compact" | "relaxed";
 
+export type AccentColor = "amber" | "emerald" | "blue" | "rose" | "violet";
+
 export type Database = {
   public: {
     Tables: {
@@ -396,6 +398,7 @@ export type Database = {
           theme: Theme;
           density: Density;
           stealth_mode: boolean;
+          accent_color: AccentColor;
           avatar_url: string | null;
           display_name: string | null;
           updated_at: string;
@@ -405,6 +408,7 @@ export type Database = {
           theme?: Theme;
           density?: Density;
           stealth_mode?: boolean;
+          accent_color?: AccentColor;
           avatar_url?: string | null;
           display_name?: string | null;
           updated_at?: string;
@@ -414,8 +418,39 @@ export type Database = {
           theme?: Theme;
           density?: Density;
           stealth_mode?: boolean;
+          accent_color?: AccentColor;
           avatar_url?: string | null;
           display_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+          created_at?: string;
           updated_at?: string;
         };
         Relationships: [];

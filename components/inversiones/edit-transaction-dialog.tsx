@@ -34,7 +34,7 @@ const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
   cedear: "from-cyan-500/20 via-cyan-500/5 to-transparent",
   stock_ar: "from-sky-500/20 via-sky-500/5 to-transparent",
   bond_ar: "from-teal-500/20 via-teal-500/5 to-transparent",
-  time_deposit: "from-amber-500/20 via-amber-500/5 to-transparent",
+  time_deposit: "from-theme-500/20 via-theme-500/5 to-transparent",
   usd_cash: "from-green-500/20 via-green-500/5 to-transparent",
 };
 

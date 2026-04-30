@@ -3,13 +3,14 @@
 import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { Theme, Density } from "@/types/database";
+import type { Theme, Density, AccentColor } from "@/types/database";
 
 export type UserPreferences = {
   user_id: string;
   theme: Theme;
   density: Density;
   stealth_mode: boolean;
+  accent_color: AccentColor;
   avatar_url: string | null;
   display_name: string | null;
   updated_at: string;
@@ -19,6 +20,7 @@ export type PreferencesUpdate = {
   theme?: Theme;
   density?: Density;
   stealth_mode?: boolean;
+  accent_color?: AccentColor;
   avatar_url?: string | null;
   display_name?: string | null;
 };

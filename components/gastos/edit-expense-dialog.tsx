@@ -37,9 +37,9 @@ type Props = {
 // Gradient de fondo del header según la categoría actual.
 const CATEGORY_HEADER_GRADIENT: Record<ExpenseCategory, string> = {
   alquiler: "from-blue-500/20 via-blue-500/5 to-transparent",
-  servicios: "from-amber-500/20 via-amber-500/5 to-transparent",
+  servicios: "from-theme-500/20 via-theme-500/5 to-transparent",
   impuestos: "from-red-500/20 via-red-500/5 to-transparent",
-  comida: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+  comida: "from-theme-500/20 via-theme-500/5 to-transparent",
   tarjeta_credito: "from-violet-500/20 via-violet-500/5 to-transparent",
   educacion: "from-cyan-500/20 via-cyan-500/5 to-transparent",
   imprevistos: "from-pink-500/20 via-pink-500/5 to-transparent",
@@ -244,7 +244,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   className={cn(
                     "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                     type === "variable"
-                      ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md"
+                      ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -256,7 +256,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   className={cn(
                     "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                     type === "fixed"
-                      ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md"
+                      ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -379,7 +379,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
               size="sm"
               onClick={save}
               disabled={update.isPending}
-              className="h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 transition-all hover:from-emerald-400 hover:to-teal-500 hover:shadow-emerald-500/40 disabled:opacity-50"
+              className="h-10 rounded-xl bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-lg shadow-theme-500/25 transition-all hover:from-theme-400 hover:to-teal-500 hover:shadow-theme-500/40 disabled:opacity-50"
             >
               {update.isPending ? "Guardando..." : "Guardar"}
             </Button>

@@ -32,7 +32,7 @@ const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
   cedear: "from-cyan-500/20 via-cyan-500/5 to-transparent",
   stock_ar: "from-sky-500/20 via-sky-500/5 to-transparent",
   bond_ar: "from-teal-500/20 via-teal-500/5 to-transparent",
-  time_deposit: "from-amber-500/20 via-amber-500/5 to-transparent",
+  time_deposit: "from-theme-500/20 via-theme-500/5 to-transparent",
   usd_cash: "from-green-500/20 via-green-500/5 to-transparent",
 };
 
@@ -427,7 +427,7 @@ function TransactionForm({
                     "flex-1 rounded-xl border py-2.5 text-sm font-semibold uppercase tracking-wider transition-all",
                     active
                       ? isInflow
-                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 shadow-[0_0_20px_-6px_rgba(16,185,129,0.4)]"
+                        ? "border-theme-500/40 bg-theme-500/15 text-theme-300 shadow-[0_0_20px_-6px_rgba(16,185,129,0.4)]"
                         : "border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_20px_-6px_rgba(239,68,68,0.4)]"
                       : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:bg-card/60 hover:text-foreground",
                   )}
@@ -541,7 +541,7 @@ function TransactionForm({
                     variant="outline"
                     size="sm"
                     onClick={() => update("fx_rate", fxMep.toString())}
-                    className="h-10 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                    className="h-10 rounded-xl border-theme-500/30 bg-theme-500/10 text-xs font-semibold text-theme-300 hover:bg-theme-500/20 hover:text-theme-200"
                   >
                     MEP {Math.round(fxMep)}
                   </Button>

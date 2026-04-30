@@ -46,7 +46,7 @@ export function ThemePicker() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
-        <span className="size-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+        <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Tema
         </p>
@@ -65,7 +65,7 @@ export function ThemePicker() {
               className={cn(
                 "group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-4 text-left transition-all",
                 isActive
-                  ? "border-amber-500/40 ring-1 ring-amber-500/20"
+                  ? "border-theme-500/40 ring-1 ring-theme-500/20"
                   : "border-white/5 hover:border-white/10",
               )}
             >
@@ -90,7 +90,7 @@ export function ThemePicker() {
 
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <Icon className={cn("size-4", isActive ? "text-amber-300" : "text-muted-foreground")} />
+                  <Icon className={cn("size-4", isActive ? "text-theme-300" : "text-muted-foreground")} />
                   <span className="text-sm font-semibold tracking-tight">{t.label}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground">{t.description}</p>
@@ -99,7 +99,7 @@ export function ThemePicker() {
               {isActive && (
                 <motion.div
                   layoutId="theme-active"
-                  className="absolute right-3 top-3 size-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
+                  className="absolute right-3 top-3 size-2 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
                 />
               )}
             </motion.button>
