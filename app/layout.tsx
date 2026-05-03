@@ -15,7 +15,9 @@ export const metadata: Metadata = {
   applicationName: "FiMe",
   manifest: "/manifest.json",
   appleWebApp: {
+    capable: true,
     title: "FiMe",
+    statusBarStyle: "black-translucent",
   },
 };
 
