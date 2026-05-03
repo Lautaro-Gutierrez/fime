@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "FiMe — Tus finanzas, claras",
   description: "App personal de finanzas: gastos, inversiones, portfolio y metas.",
   applicationName: "FiMe",
+  manifest: "/manifest.json",
   appleWebApp: {
     title: "FiMe",
   },
