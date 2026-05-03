@@ -10,7 +10,8 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
 export function ActivityFeed() {
-  const { isStealthMode } = usePreferences();
+  const { data: preferences } = usePreferences();
+  const isStealthMode = preferences?.isStealthMode ?? false;
   const currentMonth = useMemo(() => new Date(), []);
   
   const expensesQ = useExpenses(currentMonth);
