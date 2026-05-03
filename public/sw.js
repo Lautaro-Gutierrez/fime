@@ -6,6 +6,10 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener("fetch", (event) => {
+  // Dummy fetch handler to ensure PWA installability criteria is met
+});
+
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : { title: "Notificación de FiMe", body: "Tienes una nueva alerta" };
   
