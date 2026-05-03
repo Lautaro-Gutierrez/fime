@@ -5,7 +5,7 @@ import { useGoals } from "@/hooks/use-goals";
 import { usePortfolio } from "@/hooks/use-portfolio";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { formatUSD } from "@/lib/format";
 import { ProgressRing } from "@/components/metas/progress-ring";
 import { Target } from "lucide-react";
@@ -13,7 +13,7 @@ import Link from "next/link";
 import { computeGoalProgress } from "@/lib/goals/progress";
 
 export function GoalsStrip() {
-  const { isStealthMode } = usePreferences();
+  const { stealthMode: isStealthMode } = usePrefsContext();
   const goalsQ = useGoals();
   const portfolio = usePortfolio();
   

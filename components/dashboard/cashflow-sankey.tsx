@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
 import { usePortfolio } from "@/hooks/use-portfolio";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { Sankey, Tooltip as RechartsTooltip, ResponsiveContainer, Layer, Rectangle } from "recharts";
 import { formatUSD } from "@/lib/format";
 import { Network } from "lucide-react";
@@ -50,7 +50,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }: any
 }
 
 export function CashflowSankey() {
-  const { isStealthMode } = usePreferences();
+  const { stealthMode: isStealthMode } = usePrefsContext();
   const portfolio = usePortfolio();
   
   const currentMonth = useMemo(() => new Date(), []);

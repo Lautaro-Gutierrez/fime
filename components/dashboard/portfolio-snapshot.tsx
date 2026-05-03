@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { usePortfolio } from "@/hooks/use-portfolio";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { formatUSD } from "@/lib/format";
 import { Cell, Pie, PieChart, LineChart, Line, ResponsiveContainer } from "recharts";
 import { ArrowRight, TrendingUp } from "lucide-react";
@@ -14,7 +14,7 @@ const PALETTE = [
 ];
 
 export function PortfolioSnapshot() {
-  const { isStealthMode } = usePreferences();
+  const { stealthMode: isStealthMode } = usePrefsContext();
   const portfolio = usePortfolio();
 
   const donutData = useMemo(() => {

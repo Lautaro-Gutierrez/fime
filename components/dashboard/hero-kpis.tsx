@@ -4,13 +4,16 @@ import { useMemo } from "react";
 import { usePortfolio } from "@/hooks/use-portfolio";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
-import { usePreferences } from "@/hooks/use-preferences";
+import { useUpdatePreferences } from "@/hooks/use-preferences";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { formatUSD } from "@/lib/format";
 import { Eye, EyeOff } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, YAxis } from "recharts";
 
 export function HeroKpis() {
-  const { isStealthMode, toggleStealthMode } = usePreferences();
+  const { stealthMode: isStealthMode } = usePrefsContext();
+  const { mutate: updatePrefs } = useUpdatePreferences();
+  const toggleStealthMode = () => updatePrefs({ stealth_mode: !isStealthMode });
   const portfolio = usePortfolio();
   
   // Usamos el mes actual para ingresos y gastos

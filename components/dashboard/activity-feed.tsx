@@ -3,15 +3,14 @@
 import { useMemo } from "react";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useInvestments } from "@/hooks/use-investments";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { formatUSD } from "@/lib/format";
 import { ShoppingCart, TrendingUp, Activity } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
 export function ActivityFeed() {
-  const { data: preferences } = usePreferences();
-  const isStealthMode = preferences?.isStealthMode ?? false;
+  const { stealthMode: isStealthMode } = usePrefsContext();
   const currentMonth = useMemo(() => new Date(), []);
   
   const expensesQ = useExpenses(currentMonth);
