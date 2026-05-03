@@ -155,14 +155,15 @@ export function CashflowSankey() {
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0];
-                    // Dependiendo de si se hoverea un nodo o un link, el payload cambia
+                    // Se usa "as any" para evitar errores de tipado estrictos de recharts TooltipPayload
+                    const dataPayload = data.payload as any;
                     const value = data.value;
-                    const name = data.name || `${data.source?.name} → ${data.target?.name}`;
+                    const name = data.name || `${dataPayload.source?.name} → ${dataPayload.target?.name}`;
                     return (
                       <div className="rounded-lg border border-white/10 bg-card/90 p-3 shadow-xl backdrop-blur-md">
                         <div className="text-sm font-medium capitalize mb-1">{name}</div>
                         <div className="text-lg font-semibold tabular-nums text-emerald-400">
-                          {isStealthMode ? "******" : formatUSD(value, false)}
+                          {isStealthMode ? "******" : formatUSD(Number(value) || 0, false)}
                         </div>
                       </div>
                     );

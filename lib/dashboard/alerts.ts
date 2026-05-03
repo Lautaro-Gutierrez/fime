@@ -89,7 +89,7 @@ export function useDashboardAlerts({ goals, expenses, holdings }: UseAlertsProps
 
     // 4. Portfolio concentrado (>30% en un activo)
     for (const holding of holdings) {
-      if (holding.weight_pct > 30 && holding.asset_type !== "usd_cash" && holding.asset_type !== "ars_cash") {
+      if (holding.weight_pct > 30 && holding.asset_type !== "usd_cash" && (holding.asset_type as string) !== "ars_cash") {
         alerts.push({
           id: `portfolio-concentration-${holding.key}`,
           type: "portfolio_concentration",
