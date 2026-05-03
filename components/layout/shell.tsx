@@ -58,7 +58,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-svh w-full">
       {/* Sidebar (desktop) */}
       <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card/30 px-3 py-5 md:flex">
-        <Link href="/gastos" className="mb-8 flex items-center gap-2 px-2">
+        <Link href="/" className="mb-8 flex items-center gap-2 px-2">
           <Image 
             src={logoImg} 
             alt="FiMe Logo" 
