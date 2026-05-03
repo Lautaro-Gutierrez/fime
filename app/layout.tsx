@@ -12,6 +12,10 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "FiMe — Tus finanzas, claras",
   description: "App personal de finanzas: gastos, inversiones, portfolio y metas.",
+  applicationName: "FiMe",
+  appleWebApp: {
+    title: "FiMe",
+  },
 };
 
 export const viewport: Viewport = {

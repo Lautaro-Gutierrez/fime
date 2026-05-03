@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AssetType, TxType } from "@/types/database";
@@ -44,6 +44,7 @@ const INVESTMENTS_KEY = ["investments"] as const;
 export function useInvestments() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const channelId = useId();
 
   const query = useQuery<Investment[]>({
     queryKey: INVESTMENTS_KEY,
@@ -60,7 +61,7 @@ export function useInvestments() {
 
   useEffect(() => {
     const channel = supabase
-      .channel("investments-changes")
+      .channel(`investments-changes-${channelId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "investments" },
@@ -73,7 +74,7 @@ export function useInvestments() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient]);
+  }, [supabase, queryClient, channelId]);
 
   return query;
 }

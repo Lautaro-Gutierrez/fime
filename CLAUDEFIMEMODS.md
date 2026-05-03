@@ -24,7 +24,7 @@ App web + mobile para gestionar finanzas personales con datos de mercado en tiem
 | 3 | Portfolio de Activos | ✅ completo | `/portfolio` |
 | 4 | Gestión de Ingresos | ✅ completo | `/ingresos` |
 | 5 | Metas y Objetivos | ✅ completo | `/metas` |
-| 6 | Configuración / Perfil | ⏳ pendiente | `/config` |
+| 6 | Configuración / Perfil | ✅ completo | `/config` |
 
 ---
 

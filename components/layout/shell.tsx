@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import logoImg from "@/app/icon1.png";
 import {
   LayoutDashboard,
   Receipt,
@@ -28,7 +30,7 @@ type NavItem = {
 };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", short: "Inicio", icon: LayoutDashboard, enabled: false },
+  { href: "/", label: "Dashboard", short: "Inicio", icon: LayoutDashboard, enabled: true },
   { href: "/gastos", label: "Gastos", short: "Gastos", icon: Receipt, enabled: true },
   { href: "/inversiones", label: "Inversiones", short: "Invers.", icon: TrendingUp, enabled: true },
   { href: "/portfolio", label: "Portfolio", short: "Port.", icon: PieChart, enabled: true },
@@ -57,9 +59,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* Sidebar (desktop) */}
       <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card/30 px-3 py-5 md:flex">
         <Link href="/gastos" className="mb-8 flex items-center gap-2 px-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-theme-500/15 text-theme-400 ring-1 ring-theme-500/30">
-            <Wallet className="size-4" />
-          </div>
+          <Image 
+            src={logoImg} 
+            alt="FiMe Logo" 
+            className="size-8 rounded-lg shadow-sm"
+          />
           <span className="text-lg font-semibold tracking-tight">FiMe</span>
         </Link>
 
@@ -90,7 +94,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom tabs (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-card/95 px-2 py-2 backdrop-blur md:hidden">
-        {NAV.filter((n) => ["/gastos", "/ingresos", "/inversiones", "/portfolio", "/metas", "/config"].includes(n.href)).map(
+        {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/portfolio", "/metas", "/config"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
