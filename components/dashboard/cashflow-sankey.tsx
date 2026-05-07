@@ -27,7 +27,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 function CustomNode({ x, y, width, height, index, payload, containerWidth }: any) {
   const isOut = x + width + 50 > containerWidth;
   const normalizedName = payload.name === "tarjeta_credit" ? "tarjeta_credito" : payload.name;
-  const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || normalizedName;
+  const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.short || normalizedName;
   return (
     <Layer key={`CustomNode${index}`}>
       <Rectangle
@@ -139,11 +139,11 @@ export function CashflowSankey() {
   const isLoading = incomesQ.isLoading || expensesQ.isLoading;
 
   if (isLoading) {
-    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[260px] animate-pulse" />;
+    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[260px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
       <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="flex justify-between items-start mb-6">
@@ -159,7 +159,7 @@ export function CashflowSankey() {
         </div>
       </div>
 
-      <div className="flex-1 w-full min-h-[180px]">
+      <div className="flex-1 w-full min-h-[240px]">
         {sankeyData ? (
           <ResponsiveContainer width="100%" height="100%">
             <Sankey
@@ -178,7 +178,7 @@ export function CashflowSankey() {
                     const value = data.value;
                     const name = data.name || `${dataPayload.source?.name} → ${dataPayload.target?.name}`;
                     const normalizedName = name === "tarjeta_credit" ? "tarjeta_credito" : name;
-                    const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || normalizedName;
+                    const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.short || normalizedName;
                     return (
                       <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 shadow-xl backdrop-blur-md">
                         <div className="text-sm font-medium capitalize mb-1">{label}</div>

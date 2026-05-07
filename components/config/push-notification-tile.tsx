@@ -57,8 +57,11 @@ export function PushNotificationTile({ className }: { className?: string }) {
       const registration = await navigator.serviceWorker.register("/sw.js");
       await navigator.serviceWorker.ready;
 
-      // Ensure public key is available
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      // VAPID public key — safe to expose (it's the public part of the keypair).
+      // Fallback hardcoded for environments where the env var isn't injected into the client bundle.
+      const vapidPublicKey =
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        "BN_GburDTrFQLFL5wVGzJcfQBoL578Y0ZbPmkVcb6YeRUJpOBMfNR4w6u9skOHwu7E17vxILc2LM2B6GnN8VcUk";
       if (!vapidPublicKey) {
         throw new Error("Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY en .env");
       }
