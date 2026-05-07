@@ -42,7 +42,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.05 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur"
     >
       <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-lime-500/10 blur-3xl" />
 
@@ -53,7 +53,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
         </p>
         <Link
           href="/gastos"
-          className="ml-auto inline-flex items-center gap-1 rounded-full border border-white/5 bg-card/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
+          className="ml-auto inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
         >
           Ver gastos
           <ArrowRight className="size-3" />
@@ -65,7 +65,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
 
       <div className="relative mt-4 grid gap-3 sm:grid-cols-3">
         {/* Ingresos */}
-        <div className="flex flex-col gap-0.5 rounded-xl border border-white/5 bg-card/40 p-3 backdrop-blur">
+        <div className="flex flex-col gap-0.5 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Ingresos
           </span>
@@ -75,7 +75,7 @@ export function ForecastBar({ month, incomesTotal }: Props) {
         </div>
 
         {/* Gastos */}
-        <div className="flex flex-col gap-0.5 rounded-xl border border-white/5 bg-card/40 p-3 backdrop-blur">
+        <div className="flex flex-col gap-0.5 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Gastos
           </span>

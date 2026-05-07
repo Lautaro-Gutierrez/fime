@@ -67,7 +67,7 @@ export function PerformanceChart({ series, onReset }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-violet-500/5 via-transparent to-transparent p-6 backdrop-blur"
+        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/5 via-transparent to-transparent p-6 backdrop-blur"
       >
         <div className="flex size-11 items-center justify-center rounded-2xl bg-violet-500/15 ring-1 ring-violet-500/30">
           <Activity className="size-5 text-violet-300" />
@@ -92,7 +92,7 @@ export function PerformanceChart({ series, onReset }: Props) {
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur sm:p-6"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur sm:p-6"
     >
       <div className="pointer-events-none absolute -left-24 -top-24 size-56 rounded-full bg-violet-500/10 blur-3xl" />
 
@@ -127,7 +127,7 @@ export function PerformanceChart({ series, onReset }: Props) {
                 }
               }}
               title="Reiniciar historial (útil si hay datos polucionados de versiones anteriores)"
-              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card/40 px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur transition hover:border-rose-500/30 hover:text-rose-300"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur transition hover:border-rose-500/30 hover:text-rose-300"
             >
               <RotateCcw className="size-3 transition-transform group-hover:-rotate-45" />
               Reset
@@ -219,7 +219,7 @@ function SeriesPill({
       ? "text-rose-400"
       : "text-muted-foreground";
   return (
-    <div className="inline-flex items-center gap-2 rounded-2xl border border-white/5 bg-card/40 px-3 py-1.5 backdrop-blur">
+    <div className="inline-flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-1.5 backdrop-blur">
       <span
         className="size-2 rounded-full"
         style={{
@@ -257,7 +257,7 @@ function CustomTooltip({
   const sp500 = payload.find((p) => p.dataKey === "sp500")?.value;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-card/95 px-3 py-2 shadow-xl backdrop-blur">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2 shadow-xl backdrop-blur">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
         {date}
       </div>

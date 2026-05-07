@@ -55,7 +55,7 @@ export function Filters({ state, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...state, ticker: e.target.value.toUpperCase() })
           }
-          className="h-12 rounded-2xl border-white/5 bg-card/60 pl-11 pr-10 font-mono uppercase tabular-nums backdrop-blur transition-colors placeholder:normal-case placeholder:font-sans hover:border-white/10 focus-visible:border-white/20"
+          className="h-12 rounded-2xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-11 pr-10 font-mono uppercase tabular-nums backdrop-blur transition-colors placeholder:normal-case placeholder:font-sans hover:border-white/10 focus-visible:border-white/20"
         />
         {state.ticker && (
           <button
@@ -88,7 +88,7 @@ export function Filters({ state, onChange }: Props) {
                       "ring-1 ring-inset ring-white/10",
                       ACTIVE_GLOW[a.id],
                     )
-                  : "border-white/5 bg-card/40 text-muted-foreground backdrop-blur hover:border-white/10 hover:bg-card/60 hover:text-foreground",
+                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground backdrop-blur hover:border-white/10 hover:bg-white/[0.03] backdrop-blur-xl hover:text-foreground",
               )}
             >
               <Icon className="size-3" />

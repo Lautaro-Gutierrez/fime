@@ -24,7 +24,7 @@ export function PortfolioHeader({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur sm:p-7"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur sm:p-7"
     >
       {/* Ambient glow */}
       <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-fuchsia-500/10 blur-3xl" />
@@ -43,7 +43,7 @@ export function PortfolioHeader({
         <button
           onClick={onRefresh}
           disabled={isFetching}
-          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-white/20 hover:text-foreground disabled:opacity-50"
+          className="group inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-white/20 hover:text-foreground disabled:opacity-50"
         >
           <RefreshCw
             className={`size-3.5 transition-transform ${
@@ -59,7 +59,7 @@ export function PortfolioHeader({
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Valor total
           </span>
-          <div className="mt-1 bg-gradient-to-br from-white to-white/70 bg-clip-text font-mono text-4xl font-bold tabular-nums text-transparent sm:text-5xl">
+          <div className="mt-1 bg-gradient-to-br from-white to-white/70 bg-clip-text font-mono text-5xl font-bold tabular-nums text-transparent sm:text-6xl drop-shadow-[0_0_24px_rgba(139,92,246,0.4)] [font-feature-settings:'tnum']">
             {formatUSD(totalUsd)}
           </div>
         </div>

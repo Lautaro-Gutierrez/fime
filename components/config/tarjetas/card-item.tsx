@@ -33,7 +33,7 @@ export function CardItem({ card, onEdit }: Props) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.25 }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 text-left backdrop-blur transition hover:border-white/15"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-left transition-all hover:border-white/15 hover:shadow-2xl hover:shadow-black/50"
     >
       {/* Visual: la "tarjeta" propia con gradient del color elegido */}
       <div
@@ -101,7 +101,7 @@ export function CardItem({ card, onEdit }: Props) {
           mono
         />
       </div>
-      <div className="grid grid-cols-2 gap-3 border-t border-white/5 bg-card/40 px-4 py-2.5 text-[11px]">
+      <div className="grid grid-cols-2 gap-3 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-4 py-2.5 text-[11px]">
         <div className="flex flex-col">
           <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
             Próximo cierre

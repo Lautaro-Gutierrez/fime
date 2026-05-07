@@ -45,7 +45,7 @@ export function GoalsStrip() {
   }, [portfolio.totals.total_usd, portfolio.holdings, expensesQ.data, incomesQ.data]);
 
   if (goalsQ.isLoading || portfolio.isLoading) {
-    return <div className="rounded-3xl border border-white/5 bg-card/60 backdrop-blur p-6 h-48 animate-pulse" />;
+    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-48 animate-pulse" />;
   }
 
   if (activeQuests.length === 0) {
@@ -53,7 +53,7 @@ export function GoalsStrip() {
   }
 
   return (
-    <div className="rounded-3xl border border-white/5 bg-card/60 backdrop-blur p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
       <Link href="/metas" className="absolute inset-0 z-10">
         <span className="sr-only">Go to Metas</span>
       </Link>
@@ -72,27 +72,33 @@ export function GoalsStrip() {
           const isInverted = progress.isInverted;
 
           return (
-            <div key={goal.id} className="snap-start shrink-0 flex flex-col items-center gap-3">
+            <div key={goal.id} className="snap-start shrink-0 flex flex-col items-center gap-2 bg-white/[0.02] border border-white/[0.04] p-4 rounded-2xl w-40 relative group/goal">
+              <div className="absolute inset-0 bg-gradient-to-br opacity-5 rounded-2xl pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, ${color}, transparent)` }} />
               <ProgressRing 
                 pct={pct} 
                 rawPct={rawPct} 
-                size={120} 
-                strokeWidth={8} 
+                size={86} 
+                strokeWidth={6} 
                 color={color}
                 isInverted={isInverted}
                 label={
-                  <div className="flex flex-col items-center gap-0.5 mt-1">
-                    <span className="text-xs text-muted-foreground uppercase tracking-widest">{goal.icon || "🎯"}</span>
-                    <span className="text-lg font-semibold tabular-nums leading-none">
+                  <div className="flex flex-col items-center mt-1">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{goal.icon || "🎯"}</span>
+                    <span className="text-sm font-semibold [font-feature-settings:'tnum'] leading-tight">
                       {isStealthMode ? "***" : `${Math.round(pct)}%`}
                     </span>
                   </div>
                 }
               />
-              <div className="text-center max-w-[120px]">
-                <div className="text-sm font-medium truncate">{goal.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {isStealthMode ? "******" : `${formatUSD(progress.current, false)} / ${formatUSD(progress.target, false)}`}
+              <div className="text-center w-full mt-1 z-10">
+                <div className="text-sm font-medium truncate mb-1">{goal.name}</div>
+                <div className="text-[10px] text-muted-foreground/80 flex flex-col gap-0.5">
+                  <div>{isStealthMode ? "******" : `${formatUSD(progress.current, false)} / ${formatUSD(progress.target, false)}`}</div>
+                  {!isStealthMode && (
+                    <div className="font-medium" style={{ color }}>
+                      {formatUSD(Math.abs(progress.target - progress.current), false)} left
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

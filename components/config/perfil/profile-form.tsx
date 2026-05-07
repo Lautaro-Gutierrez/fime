@@ -97,7 +97,7 @@ export function ProfileForm() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
         <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
 
@@ -118,7 +118,7 @@ export function ProfileForm() {
                   }}
                   placeholder="Tu nombre"
                   maxLength={50}
-                  className="h-11 flex-1 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
+                  className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
                 />
                 {nameDirty && (
                   <Button
@@ -140,7 +140,7 @@ export function ProfileForm() {
               <Input
                 value={email}
                 readOnly
-                className="h-11 rounded-xl border-white/5 bg-card/30 text-muted-foreground backdrop-blur"
+                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground backdrop-blur"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export function ProfileForm() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.03 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
         <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
         <div className="relative">
@@ -165,7 +165,7 @@ export function ProfileForm() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
         <div className="relative flex flex-col gap-5">
           <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export function ProfileForm() {
             <button
               type="button"
               onClick={() => setShowPwChange(!showPwChange)}
-              className="flex items-center gap-3 rounded-xl border border-white/5 bg-card/40 px-4 py-3 text-sm font-medium transition-all hover:border-white/10"
+              className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-4 py-3 text-sm font-medium transition-all hover:border-white/10"
             >
               <Lock className="size-4 text-theme-300" />
               <span className="flex-1 text-left">Cambiar contraseña</span>
@@ -193,7 +193,7 @@ export function ProfileForm() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="flex flex-col gap-3 overflow-hidden rounded-xl border border-white/5 bg-card/30 p-4"
+                className="flex flex-col gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4"
               >
                 <div className="flex flex-col gap-1.5">
                   <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -205,7 +205,7 @@ export function ProfileForm() {
                     onChange={(e) => setNewPw(e.target.value)}
                     minLength={6}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -217,7 +217,7 @@ export function ProfileForm() {
                     value={confirmPw}
                     onChange={(e) => setConfirmPw(e.target.value)}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-theme-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
                   />
                 </div>
                 <Button
@@ -232,13 +232,13 @@ export function ProfileForm() {
           </div>
 
           {/* Passkeys placeholder */}
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-white/10 bg-card/20 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl px-4 py-3">
             <KeyRound className="size-4 text-muted-foreground/50" />
             <div className="flex flex-1 flex-col">
               <span className="text-sm font-medium text-muted-foreground/70">Passkeys</span>
               <span className="text-[10px] text-muted-foreground/50">Autenticación biométrica sin contraseña</span>
             </div>
-            <span className="rounded-full border border-white/10 bg-card/40 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
               pronto
             </span>
           </div>

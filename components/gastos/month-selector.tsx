@@ -19,7 +19,7 @@ export function MonthSelector({ month, onChange }: Props) {
   const display = label.charAt(0).toUpperCase() + label.slice(1);
 
   return (
-    <div className="flex items-center gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 backdrop-blur">
+    <div className="flex items-center gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 backdrop-blur">
       <button
         onClick={() => onChange(prev)}
         aria-label="Mes anterior"

@@ -110,7 +110,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
   const Icon = subscribed ? BellRing : Bell;
 
   return (
-    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur", className)}>
+    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur", className)}>
       <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
 
       <div className="relative flex items-start justify-between">
@@ -155,7 +155,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
               "relative h-6 w-11 rounded-full border transition-all duration-200",
               subscribed
                 ? "border-theme-500/40 bg-theme-500/20"
-                : "border-white/10 bg-card/40",
+                : "border-white/10 bg-white/[0.03] backdrop-blur-xl",
             )}
           >
             <motion.div

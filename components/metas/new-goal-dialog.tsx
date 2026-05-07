@@ -167,7 +167,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger render={trigger as React.ReactElement} />}
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">
           {!type ? (
             <motion.div
@@ -204,7 +204,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => selectType(g)}
-                      className="group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/5 bg-card/60 p-3.5 text-left transition hover:border-white/10"
+                      className="group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3.5 text-left transition hover:border-white/10"
                     >
                       <div
                         className="pointer-events-none absolute inset-0 opacity-30"
@@ -286,7 +286,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
                 />
               )}
 
-              <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-card/80 px-6 py-3">
+              <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
                 <Button variant="ghost" onClick={() => setOpen(false)} disabled={createGoal.isPending}>
                   Cancelar
                 </Button>
@@ -344,13 +344,13 @@ export function GoalFormBody({
                   ? "Pasivo 1k USD/mes"
                   : "Mi meta"
           }
-          className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
         />
       </Field>
 
       {/* Quest type toggle */}
       <Field label="Tipo de misión">
-        <div className="flex gap-1.5 rounded-full border border-white/5 bg-card/60 p-1 backdrop-blur w-fit">
+        <div className="flex gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur w-fit">
           <QuestToggle
             active={form.quest_type === "main"}
             onClick={() => setForm((f) => ({ ...f, quest_type: "main" }))}
@@ -374,10 +374,10 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, target: e.target.value }))}
             placeholder={type.isPercentage ? "30" : "10000"}
             inputMode="decimal"
-            className="h-11 flex-1 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+            className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
           />
           {!type.isPercentage && type.supportedCurrencies.length > 1 && (
-            <div className="flex gap-1 rounded-xl border border-white/5 bg-card/60 p-0.5 backdrop-blur">
+            <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 backdrop-blur">
               {type.supportedCurrencies.map((c) => (
                 <button
                   key={c}
@@ -396,7 +396,7 @@ export function GoalFormBody({
             </div>
           )}
           {!type.isPercentage && type.supportedCurrencies.length === 1 && (
-            <div className="flex h-11 items-center rounded-xl border border-white/5 bg-card/60 px-3 text-xs font-semibold uppercase text-muted-foreground backdrop-blur">
+            <div className="flex h-11 items-center rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 text-xs font-semibold uppercase text-muted-foreground backdrop-blur">
               {type.supportedCurrencies[0]}
             </div>
           )}
@@ -428,7 +428,7 @@ export function GoalFormBody({
                     "rounded-xl border px-3 py-2 text-left text-xs transition",
                     form.source_type === src
                       ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
-                      : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/15 hover:text-foreground",
+                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
                   )}
                 >
                   {label}
@@ -455,7 +455,7 @@ export function GoalFormBody({
                     "flex items-center gap-2 rounded-xl border px-2.5 py-2 text-xs transition",
                     active
                       ? cn(c.bgClass, c.textClass, c.borderClass)
-                      : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/15 hover:text-foreground",
+                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
                   )}
                 >
                   <Icon className="size-3.5" />
@@ -494,7 +494,7 @@ export function GoalFormBody({
                       "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition",
                       active
                         ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
-                        : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/15 hover:text-foreground",
+                        : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
                     )}
                   >
                     <span className="font-mono font-semibold">{h.label}</span>
@@ -517,7 +517,7 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, current: e.target.value }))}
             placeholder="0"
             inputMode="decimal"
-            className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
           />
         </Field>
       )}
@@ -529,7 +529,7 @@ export function GoalFormBody({
           value={form.deadline}
           min={toISODate(new Date())}
           onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-          className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
         />
       </Field>
 
@@ -539,7 +539,7 @@ export function GoalFormBody({
           value={form.note}
           onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
           placeholder="Detalle"
-          className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
         />
       </Field>
     </div>

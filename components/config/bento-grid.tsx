@@ -119,12 +119,12 @@ function TileCard({ tile, index }: { tile: Tile; index: number }) {
       {tile.kind === "link" ? (
         <Link
           href={tile.href}
-          className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-theme-500/30 hover:bg-card/70"
+          className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-theme-500/30 hover:bg-white/[0.03] backdrop-blur-xl"
         >
           {inner}
         </Link>
       ) : (
-        <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur">
+        <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur">
           {inner}
         </div>
       )}
@@ -221,7 +221,7 @@ function ToggleContent({ tile }: { tile: ToggleTile }) {
               "relative h-6 w-11 rounded-full border transition-all duration-200",
               stealthMode
                 ? "border-theme-500/40 bg-theme-500/20"
-                : "border-white/10 bg-card/40",
+                : "border-white/10 bg-white/[0.03] backdrop-blur-xl",
             )}
           >
             <motion.div

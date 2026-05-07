@@ -244,7 +244,7 @@ export function QuickAddIncome() {
         }
       />
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">
           {step === "form" ? (
             <motion.div
@@ -324,7 +324,7 @@ export function QuickAddIncome() {
                     >
                       Monto
                     </Label>
-                    <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[10px] font-semibold backdrop-blur">
+                    <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
                       <button
                         type="button"
                         onClick={() => setCurrency("ARS")}
@@ -363,7 +363,7 @@ export function QuickAddIncome() {
                       placeholder="0"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="h-16 rounded-2xl border-white/5 bg-card/60 pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
+                      className="h-16 rounded-2xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
                     />
                   </div>
                   {/* Preview de conversión */}
@@ -441,7 +441,7 @@ export function QuickAddIncome() {
                       placeholder="Empresa, cliente..."
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -456,7 +456,7 @@ export function QuickAddIncome() {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                     />
                   </div>
                 </div>
@@ -475,18 +475,18 @@ export function QuickAddIncome() {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={120}
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                   />
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="relative flex gap-2 border-t border-white/5 bg-card/80 p-4 backdrop-blur">
+              <div className="relative flex gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur">
                 <Button
                   variant="outline"
                   onClick={() => setOpen(false)}
                   disabled={createIncome.isPending}
-                  className="h-11 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
                 >
                   Cancelar
                 </Button>
@@ -494,7 +494,7 @@ export function QuickAddIncome() {
                   onClick={submitDirect}
                   disabled={createIncome.isPending}
                   variant="outline"
-                  className="h-11 flex-1 rounded-xl border-white/5 bg-card/40 font-semibold hover:bg-card/60"
+                  className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-semibold hover:bg-white/[0.03] backdrop-blur-xl"
                 >
                   {createIncome.isPending ? "Guardando..." : "Guardar"}
                 </Button>

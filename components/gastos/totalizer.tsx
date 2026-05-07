@@ -55,7 +55,7 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="relative flex min-h-[240px] flex-col justify-center overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-card/80 via-card/60 to-theme-950/30 p-6 backdrop-blur sm:p-10"
+      className="relative flex min-h-[240px] flex-col justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-card/80 via-card/60 to-theme-950/30 p-6 backdrop-blur sm:p-10"
     >
       {/* Ambient glows */}
       <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-theme-500/15 blur-3xl" />
@@ -74,7 +74,7 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-5xl font-bold leading-none tracking-tight tabular-nums text-transparent sm:text-7xl lg:text-8xl"
+          className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-5xl font-bold leading-none tracking-tight tabular-nums text-transparent sm:text-7xl lg:text-8xl drop-shadow-[0_0_24px_rgba(16,185,129,0.4)]"
         >
           <PrivateAmount>
             <AnimatedNumber value={total} />
@@ -102,7 +102,7 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
           )}
 
           {programado > 0 && (
-            <div className="flex items-center gap-2 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-[11px] backdrop-blur">
+            <div className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/5 px-3 py-1 text-[11px] backdrop-blur">
               <span className="text-muted-foreground">
                 pagado{" "}
                 <span className="font-mono font-semibold tabular-nums text-foreground">

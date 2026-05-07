@@ -113,7 +113,7 @@ export function EditGoalDialog({ goal, onClose, holdings = [] }: Props) {
 
   return (
     <Dialog open={!!goal} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -148,7 +148,7 @@ export function EditGoalDialog({ goal, onClose, holdings = [] }: Props) {
             holdings={holdings}
           />
 
-          <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-card/80 px-6 py-3">
+          <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
             <Button variant="ghost" onClick={onClose} disabled={updateGoal.isPending}>
               Cancelar
             </Button>

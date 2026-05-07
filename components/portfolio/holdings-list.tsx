@@ -22,7 +22,7 @@ export function HoldingsList({ holdings }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="overflow-hidden rounded-3xl border border-white/5 bg-card/60 backdrop-blur"
+      className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur"
     >
       <div className="flex items-center gap-2 px-5 py-4">
         <span className="size-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
@@ -68,19 +68,22 @@ function HoldingRow({ holding: h, index }: { holding: ValuedHolding; index: numb
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="truncate font-semibold text-foreground">{h.label}</span>
-          <span className="rounded-full border border-white/5 bg-white/5 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
+          <span className="rounded-full border border-white/[0.08] bg-white/5 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
             {asset.short}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-          <span className="font-mono tabular-nums">{formatQuantity(h.quantity)}</span>
-          <span className="text-muted-foreground/50">·</span>
-          <span className="font-mono tabular-nums">{h.weight_pct.toFixed(1)}%</span>
-          <span className="text-muted-foreground/50">·</span>
-          <span className="font-mono tabular-nums">
-            <span className="text-muted-foreground/60">Inv</span>{" "}
-            {formatUSD(h.cost_basis_usd)}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground mt-0.5">
+          <div className="flex items-center gap-1.5 bg-white/5 rounded-md px-1.5 py-0.5 border border-white/[0.04]">
+            <span className="font-mono tabular-nums text-foreground/80">{formatQuantity(h.quantity)}</span>
+            <span className="text-muted-foreground/40 text-[9px]">×</span>
+            <span className="font-mono tabular-nums text-foreground/80">{formatUSD(h.current_value_usd / (h.quantity || 1))}</span>
+          </div>
+          <span className="text-muted-foreground/40">=</span>
+          <span className="font-mono tabular-nums font-medium text-white [font-feature-settings:'tnum']">
+            {formatUSD(h.current_value_usd)}
           </span>
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-mono tabular-nums">{h.weight_pct.toFixed(1)}%</span>
         </div>
       </div>
 
@@ -106,7 +109,7 @@ function DeltaChip({
 }) {
   if (pct === null) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-white/5 bg-white/5 px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-muted-foreground">
+      <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/5 px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-muted-foreground">
         <Minus className="size-3" />—
       </span>
     );

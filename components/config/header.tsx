@@ -22,7 +22,7 @@ export function ConfigHeader({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur sm:p-7"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur sm:p-7"
     >
       {/* Ambient glow ámbar (identidad del módulo) */}
       <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-theme-500/10 blur-3xl" />
@@ -43,7 +43,7 @@ export function ConfigHeader({
         {backHref && (
           <Link
             href={backHref}
-            className="inline-flex w-fit items-center gap-1 rounded-full border border-white/5 bg-card/40 px-3 py-1 text-[11px] text-muted-foreground transition hover:border-theme-500/30 hover:text-theme-300"
+            className="inline-flex w-fit items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-1 text-[11px] text-muted-foreground transition hover:border-theme-500/30 hover:text-theme-300"
           >
             <ChevronLeft className="size-3.5" />
             volver

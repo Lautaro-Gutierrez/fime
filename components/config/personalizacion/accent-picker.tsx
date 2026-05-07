@@ -51,7 +51,7 @@ export function AccentPicker() {
                 "group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border p-3 transition-all",
                 isActive
                   ? "border-theme-500/40 ring-1 ring-theme-500/20 bg-theme-500/10"
-                  : "border-white/5 hover:border-white/10 bg-card/40",
+                  : "border-white/5 hover:border-white/10 bg-white/[0.03] backdrop-blur-xl",
               )}
             >
               <div

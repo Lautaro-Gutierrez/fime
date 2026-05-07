@@ -23,7 +23,7 @@ export function MetasHeader({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur sm:p-7"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur sm:p-7"
     >
       {/* Ambient glow amber/orange */}
       <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-theme-500/10 blur-3xl" />
@@ -49,7 +49,7 @@ export function MetasHeader({
         </button>
       </div>
 
-      <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="relative mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
         <Stat label="Main Quests" value={mainCount} accent="text-theme-400" />
         <Stat label="Side Quests" value={sideCount} accent="text-orange-400" />
         <Stat label="Completadas" value={completedCount} accent="text-theme-400" icon={<Trophy className="size-3.5" />} />
@@ -75,11 +75,11 @@ function Stat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-card/40 px-4 py-3 backdrop-blur">
+    <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-4 py-3 backdrop-blur">
       <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
-      <div className={`inline-flex items-center gap-1.5 font-mono text-2xl font-bold tabular-nums ${accent}`}>
+      <div className={`inline-flex items-center gap-1.5 font-mono text-2xl font-bold tabular-nums [font-feature-settings:'tnum'] ${accent}`}>
         {icon}
         {value}
       </div>

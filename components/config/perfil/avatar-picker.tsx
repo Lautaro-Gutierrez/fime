@@ -59,7 +59,7 @@ export function AvatarPicker({ currentKey, onSelect }: Props) {
                 "group relative flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-all",
                 isSelected
                   ? "border-theme-500/50 bg-theme-500/10 shadow-lg shadow-theme-500/10"
-                  : "border-white/5 bg-card/40 hover:border-white/15 hover:bg-card/60",
+                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl hover:border-white/15 hover:bg-white/[0.03] backdrop-blur-xl",
               )}
             >
               {/* Image preview */}

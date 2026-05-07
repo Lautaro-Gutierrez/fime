@@ -42,7 +42,7 @@ export function CategoryCards({ expenses, activeCategory, onSelect }: Props) {
   );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-4 backdrop-blur sm:p-6">
+    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur sm:p-6">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute -right-16 -bottom-16 size-40 rounded-full bg-theme-500/10 blur-3xl" />
 
@@ -80,13 +80,15 @@ export function CategoryCards({ expenses, activeCategory, onSelect }: Props) {
               <button
                 onClick={() => onSelect(isActive ? null : cat.id)}
                 className={cn(
-                  "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-transparent bg-gradient-to-r p-3 text-left transition-all",
-                  isActive
-                    ? cn(ACTIVE_GRADIENT[cat.id], "border-white/10 shadow-lg")
-                    : "hover:border-white/5 hover:bg-white/5",
+                  "group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-y-white/[0.02] border-r-white/[0.02] border-l-[3px] p-3 text-left transition-all",
+                  isActive ? "shadow-lg" : "hover:bg-white/[0.02]",
                   dimmed && "opacity-40",
                 )}
+                style={{ borderLeftColor: cat.color }}
               >
+                {/* Subtle background tint */}
+                <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundColor: cat.color }} />
+                {isActive && <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundColor: cat.color }} />}
                 {/* Icon con glow */}
                 <div className="relative shrink-0">
                   <div

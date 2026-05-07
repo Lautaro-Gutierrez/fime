@@ -35,7 +35,7 @@ export function AlertsPanel() {
 
   if (alerts.length === 0) {
     return (
-      <div className="flex gap-2 items-center text-sm text-muted-foreground bg-white/5 border border-white/10 rounded-full px-4 py-2 w-max">
+      <div className="flex gap-2 items-center text-sm text-muted-foreground bg-white/5 border border-white/[0.08] rounded-full px-4 py-2 w-max">
         <Info className="w-4 h-4" />
         No hay alertas activas. Todo en orden.
       </div>

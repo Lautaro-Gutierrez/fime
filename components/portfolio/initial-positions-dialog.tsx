@@ -117,7 +117,7 @@ export function InitialPositionsDialog() {
         render={
           <Button
             variant="outline"
-            className="inline-flex items-center gap-2 rounded-full border-white/10 bg-card/60 text-xs font-medium backdrop-blur hover:border-white/20"
+            className="inline-flex items-center gap-2 rounded-full border-white/10 bg-white/[0.03] backdrop-blur-xl text-xs font-medium backdrop-blur hover:border-white/20"
           />
         }
       >
@@ -131,7 +131,7 @@ export function InitialPositionsDialog() {
       </DialogTrigger>
 
       <DialogContent
-        className="border-white/5 bg-card/95 backdrop-blur-xl overflow-hidden sm:max-w-lg"
+        className="border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur-xl overflow-hidden sm:max-w-lg"
         showCloseButton
       >
         <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export function InitialPositionsDialog() {
                   </p>
                 </div>
               ) : (
-                <div className="flex max-h-[280px] flex-col divide-y divide-white/5 overflow-y-auto rounded-2xl border border-white/5 bg-card/40">
+                <div className="flex max-h-[280px] flex-col divide-y divide-white/5 overflow-y-auto rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
                   {positions.map((p) => {
                     const a = ASSETS_BY_ID[p.asset_type];
                     const Icon = a.icon;
@@ -261,7 +261,7 @@ export function InitialPositionsDialog() {
                     key={a.id}
                     onClick={() => handleSelectAsset(a)}
                     className={cn(
-                      "group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-3 text-left backdrop-blur transition hover:border-white/15",
+                      "group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-3 text-left backdrop-blur transition hover:border-white/15",
                       ASSET_CARD_GRADIENT[a.id],
                     )}
                   >
@@ -410,7 +410,7 @@ function InitialPositionForm({
   }
 
   const inputCls =
-    "h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20";
+    "h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20";
 
   return (
     <motion.form
@@ -524,7 +524,7 @@ function InitialPositionForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="h-11 flex-1 rounded-xl border-white/10 bg-card/60 backdrop-blur"
+          className="h-11 flex-1 rounded-xl border-white/10 bg-white/[0.03] backdrop-blur-xl backdrop-blur"
         >
           Cancelar
         </Button>

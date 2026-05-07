@@ -46,7 +46,7 @@ export function TransactionsList({ investments }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent p-12 text-center"
+        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent p-12 text-center"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
         <div className="relative flex flex-col items-center gap-3">
@@ -110,7 +110,7 @@ function MonthGroup({
           {monthGroupLabel(month)}
         </h3>
         <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-        <span className="rounded-full border border-white/5 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <span className="rounded-full border border-white/[0.08] bg-white/5 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {items.length} {items.length === 1 ? "op" : "ops"}
         </span>
       </div>
@@ -210,7 +210,7 @@ function TransactionRow({
         whileHover={{ y: -2 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
-          "group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border border-white/5 bg-card/60 p-4 backdrop-blur transition-colors hover:border-white/10",
+          "group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur transition-colors hover:border-white/10",
           "before:pointer-events-none before:absolute before:inset-0 before:opacity-0 before:transition-opacity hover:before:opacity-100",
         )}
       >

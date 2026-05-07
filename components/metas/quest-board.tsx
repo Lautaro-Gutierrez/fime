@@ -36,7 +36,7 @@ export function QuestBoard({
   return (
     <div className="flex flex-col gap-4">
       {/* Tab selector */}
-      <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-card/60 p-1 backdrop-blur w-fit">
+      <div className="flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur w-fit">
         <TabButton
           active={tab === "main"}
           onClick={() => setTab("main")}
@@ -66,7 +66,7 @@ export function QuestBoard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative overflow-hidden rounded-3xl border border-dashed border-white/10 bg-card/30 p-10 text-center"
+            className="relative overflow-hidden rounded-3xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-10 text-center"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.06),transparent_70%)]" />
             <div className="relative">

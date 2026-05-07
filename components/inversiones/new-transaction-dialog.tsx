@@ -223,7 +223,7 @@ export function NewTransactionDialog() {
         }
       />
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">
           {!asset ? (
             <motion.div
@@ -263,7 +263,7 @@ export function NewTransactionDialog() {
                       whileTap={{ scale: 0.97 }}
                       onClick={() => selectAsset(a)}
                       className={cn(
-                        "group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-3.5 text-left transition-all hover:border-white/10",
+                        "group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-3.5 text-left transition-all hover:border-white/10",
                         ASSET_CARD_GRADIENT[a.id],
                       )}
                     >
@@ -429,7 +429,7 @@ function TransactionForm({
                       ? isInflow
                         ? "border-theme-500/40 bg-theme-500/15 text-theme-300 shadow-[0_0_20px_-6px_rgba(16,185,129,0.4)]"
                         : "border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_20px_-6px_rgba(239,68,68,0.4)]"
-                      : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:bg-card/60 hover:text-foreground",
+                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:bg-white/[0.03] backdrop-blur-xl hover:text-foreground",
                   )}
                 >
                   {TX_TYPE_LABELS[tx]}
@@ -450,7 +450,7 @@ function TransactionForm({
               placeholder={asset.id === "crypto" ? "BTC, ETH, SOL..." : "AAPL, GGAL, GD30..."}
               value={form.ticker}
               onChange={(e) => update("ticker", e.target.value.toUpperCase())}
-              className="h-11 rounded-xl border-white/5 bg-card/60 font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
               autoFocus
             />
           </div>
@@ -468,7 +468,7 @@ function TransactionForm({
             placeholder="0"
             value={form.quantity}
             onChange={(e) => update("quantity", e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-card/60 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
           />
         </div>
 
@@ -480,7 +480,7 @@ function TransactionForm({
                 Precio unitario
               </Label>
               {canSwitchCurrency && (
-                <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[10px] font-semibold backdrop-blur">
+                <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
                   <button
                     onClick={() => update("currency", "USD")}
                     className={cn(
@@ -517,7 +517,7 @@ function TransactionForm({
                 placeholder="0"
                 value={form.price}
                 onChange={(e) => update("price", e.target.value)}
-                className="h-11 rounded-xl border-white/5 bg-card/60 pl-8 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-8 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
               />
             </div>
             {form.currency === "ARS" && (
@@ -533,7 +533,7 @@ function TransactionForm({
                     placeholder="MEP"
                     value={form.fx_rate}
                     onChange={(e) => update("fx_rate", e.target.value)}
-                    className="h-10 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                    className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                   />
                 </div>
                 {fxMep && (
@@ -577,7 +577,7 @@ function TransactionForm({
               placeholder={field.placeholder}
               value={form.metadata[field.key] ?? ""}
               onChange={(e) => updateMetadata(field.key, e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
             />
           </div>
         ))}
@@ -592,7 +592,7 @@ function TransactionForm({
             type="date"
             value={form.date}
             onChange={(e) => update("date", e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
           />
         </div>
 
@@ -607,7 +607,7 @@ function TransactionForm({
               placeholder="IEB, Balanz..."
               value={form.broker}
               onChange={(e) => update("broker", e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -621,7 +621,7 @@ function TransactionForm({
               placeholder="0"
               value={form.fees}
               onChange={(e) => update("fees", e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
             />
           </div>
         </div>
@@ -636,16 +636,16 @@ function TransactionForm({
             value={form.note}
             onChange={(e) => update("note", e.target.value)}
             maxLength={120}
-            className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
           />
         </div>
       </div>
 
-      <div className="flex gap-2 border-t border-white/5 bg-card/80 p-4 backdrop-blur">
+      <div className="flex gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur">
         <Button
           variant="outline"
           onClick={onBack}
-          className="h-11 flex-1 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+          className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
         >
           Atrás
         </Button>

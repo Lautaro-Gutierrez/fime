@@ -8,6 +8,8 @@ import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { Sankey, Tooltip as RechartsTooltip, ResponsiveContainer, Layer, Rectangle } from "recharts";
 import { formatUSD } from "@/lib/format";
 import { Network } from "lucide-react";
+import { CATEGORIES_BY_ID } from "@/lib/categories";
+import type { ExpenseCategory } from "@/types/database";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Ingresos: "#10B981", // emerald
@@ -24,6 +26,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 function CustomNode({ x, y, width, height, index, payload, containerWidth }: any) {
   const isOut = x + width + 50 > containerWidth;
+  const normalizedName = payload.name === "tarjeta_credit" ? "tarjeta_credito" : payload.name;
+  const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || normalizedName;
   return (
     <Layer key={`CustomNode${index}`}>
       <Rectangle
@@ -31,7 +35,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }: any
         y={y}
         width={width}
         height={height}
-        fill={CATEGORY_COLORS[payload.name] || "#6366F1"}
+        fill={CATEGORY_COLORS[normalizedName] || "#6366F1"}
         fillOpacity={0.9}
         radius={4}
       />
@@ -43,7 +47,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }: any
         fill="#A1A1AA"
         className="capitalize pointer-events-none"
       >
-        {payload.name}
+        {label}
       </text>
     </Layer>
   );
@@ -59,19 +63,25 @@ export function CashflowSankey() {
 
   const fxMep = portfolio.fxMep > 0 ? portfolio.fxMep : 1000;
 
-  const sankeyData = useMemo(() => {
-    const totalIncomesUsd = (incomesQ.data ?? []).reduce((acc, inc) => {
+  const { totalIncomesUsd, totalExpensesUsd, expensesByCategory } = useMemo(() => {
+    const incomes = (incomesQ.data ?? []).reduce((acc, inc) => {
       return acc + (inc.currency === "USD" ? inc.amount : inc.amount / fxMep);
     }, 0);
 
-    const expensesByCategory = (expensesQ.data ?? []).reduce((acc, exp) => {
+    const expensesByCat = (expensesQ.data ?? []).reduce((acc, exp) => {
       const amountUsd = exp.currency === "USD" ? exp.amount : exp.amount / fxMep;
       acc[exp.category] = (acc[exp.category] || 0) + amountUsd;
       return acc;
     }, {} as Record<string, number>);
 
-    const totalExpensesUsd = Object.values(expensesByCategory).reduce((a, b) => a + b, 0);
+    const expenses = Object.values(expensesByCat).reduce((a, b) => a + b, 0);
 
+    return { totalIncomesUsd: incomes, totalExpensesUsd: expenses, expensesByCategory: expensesByCat };
+  }, [incomesQ.data, expensesQ.data, fxMep]);
+
+  const freeCashFlow = totalIncomesUsd - totalExpensesUsd;
+
+  const sankeyData = useMemo(() => {
     if (totalIncomesUsd === 0 && totalExpensesUsd === 0) {
       return null;
     }
@@ -124,24 +134,32 @@ export function CashflowSankey() {
     if (links.length === 0) return null;
 
     return { nodes, links };
-  }, [incomesQ.data, expensesQ.data, fxMep]);
+  }, [totalIncomesUsd, totalExpensesUsd, expensesByCategory]);
 
   const isLoading = incomesQ.isLoading || expensesQ.isLoading;
 
   if (isLoading) {
-    return <div className="rounded-3xl border border-white/5 bg-card/60 backdrop-blur p-6 h-full min-h-[320px] animate-pulse" />;
+    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[260px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-3xl border border-white/5 bg-card/60 backdrop-blur p-6 h-full min-h-[320px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[260px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
       <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="flex items-center gap-2 mb-6">
-        <Network className="w-5 h-5 text-emerald-400" />
-        <h3 className="text-lg font-medium text-foreground/80">Cashflow Sankey</h3>
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-2">
+          <Network className="w-5 h-5 text-emerald-400" />
+          <h3 className="text-lg font-medium text-foreground/80">Cashflow Sankey</h3>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Free Cash Flow</div>
+          <div className={`text-xl font-bold tracking-tight [font-feature-settings:'tnum'] ${freeCashFlow < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+            {isStealthMode ? '******' : formatUSD(freeCashFlow, true)}
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 w-full min-h-[250px]">
+      <div className="flex-1 w-full min-h-[180px]">
         {sankeyData ? (
           <ResponsiveContainer width="100%" height="100%">
             <Sankey
@@ -159,9 +177,11 @@ export function CashflowSankey() {
                     const dataPayload = data.payload as any;
                     const value = data.value;
                     const name = data.name || `${dataPayload.source?.name} → ${dataPayload.target?.name}`;
+                    const normalizedName = name === "tarjeta_credit" ? "tarjeta_credito" : name;
+                    const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || normalizedName;
                     return (
-                      <div className="rounded-lg border border-white/10 bg-card/90 p-3 shadow-xl backdrop-blur-md">
-                        <div className="text-sm font-medium capitalize mb-1">{name}</div>
+                      <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 shadow-xl backdrop-blur-md">
+                        <div className="text-sm font-medium capitalize mb-1">{label}</div>
                         <div className="text-lg font-semibold tabular-nums text-emerald-400">
                           {isStealthMode ? "******" : formatUSD(Number(value) || 0, false)}
                         </div>

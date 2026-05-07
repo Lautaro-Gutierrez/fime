@@ -37,7 +37,7 @@ export function DistributionDonut({ expenses }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent p-6 backdrop-blur"
+        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent p-6 backdrop-blur"
       >
         <div className="flex size-11 items-center justify-center rounded-2xl bg-indigo-500/15 ring-1 ring-indigo-500/30">
           <PieIcon className="size-5 text-indigo-300" />
@@ -54,7 +54,7 @@ export function DistributionDonut({ expenses }: Props) {
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
     >
       {/* Ambient glow */}
       <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-violet-500/10 blur-3xl" />

@@ -135,7 +135,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <div className="flex flex-col">
           {/* Header con glow de categoría */}
           <div
@@ -189,7 +189,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   inputMode="decimal"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="h-14 rounded-xl border-white/5 bg-card/60 pl-9 font-mono text-2xl font-bold tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-14 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-9 font-mono text-2xl font-bold tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             </div>
@@ -203,7 +203,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                 value={category}
                 onValueChange={(v) => handleCategoryChange(v as ExpenseCategory)}
               >
-                <SelectTrigger className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20">
+                <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
                   <span className="flex items-center gap-2 text-sm">
                     <Icon className={cn("size-3.5", cat.textClass)} />
                     {cat.label}
@@ -237,7 +237,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                     : "Discrecional del mes"}
                 </span>
               </div>
-              <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[10px] font-semibold backdrop-blur">
+              <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
                 <button
                   type="button"
                   onClick={() => setType("variable")}
@@ -286,7 +286,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                         value={cardId ?? "__none__"}
                         onValueChange={(v) => setCardId(v === "__none__" ? null : v)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20">
+                        <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
                           <span className="flex items-center gap-2 text-sm">
                             {selectedCard && selectedColor ? (
                               <>
@@ -346,7 +346,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   value={date}
                   max={maxDate}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -360,18 +360,18 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-white/5 bg-card/80 px-5 py-3 backdrop-blur">
+          <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur">
             <Button
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="h-10 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+              className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
             >
               Cancelar
             </Button>

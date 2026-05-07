@@ -158,7 +158,7 @@ export function QuickAdd() {
         }
       />
 
-      <DialogContent className="max-w-md overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <div className="relative flex flex-col gap-5 p-6">
           {/* Background glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_60%)]" />
@@ -194,7 +194,7 @@ export function QuickAdd() {
                 placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-16 rounded-2xl border-white/5 bg-card/60 pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-theme-500/40 focus-visible:ring-theme-500/20"
+                className="h-16 rounded-2xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-theme-500/40 focus-visible:ring-theme-500/20"
               />
             </div>
           </div>
@@ -207,7 +207,7 @@ export function QuickAdd() {
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 !isToday
                   ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
-                  : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:text-foreground",
+                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:text-foreground",
               )}
             >
               <CalendarDays className="size-3.5" />
@@ -219,7 +219,7 @@ export function QuickAdd() {
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 note
                   ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
-                  : "border-white/5 bg-card/40 text-muted-foreground hover:border-white/10 hover:text-foreground",
+                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:text-foreground",
               )}
             >
               <StickyNote className="size-3.5" />
@@ -244,7 +244,7 @@ export function QuickAdd() {
                   value={date}
                   max={maxDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -258,7 +258,7 @@ export function QuickAdd() {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             </motion.div>
@@ -276,7 +276,7 @@ export function QuickAdd() {
                   : "Discrecional del mes"}
               </span>
             </div>
-            <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[10px] font-semibold backdrop-blur">
+            <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
               <button
                 type="button"
                 onClick={() => setType("variable")}
@@ -330,7 +330,7 @@ export function QuickAdd() {
                         onClick={() => handleCategoryClick(cat.id)}
                         disabled={disabled}
                         className={cn(
-                          "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-1.5 text-center transition-all hover:border-white/10",
+                          "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-1.5 text-center transition-all hover:border-white/10",
                           CATEGORY_CARD_GRADIENT[cat.id],
                           disabled && "cursor-not-allowed opacity-40",
                         )}
@@ -376,7 +376,7 @@ export function QuickAdd() {
                   <button
                     type="button"
                     onClick={() => setPickingCard(false)}
-                    className="flex size-7 items-center justify-center rounded-lg border border-white/5 bg-card/40 text-muted-foreground transition-colors hover:border-white/10 hover:text-foreground"
+                    className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-muted-foreground transition-colors hover:border-white/10 hover:text-foreground"
                   >
                     <ArrowLeft className="size-3.5" />
                   </button>
@@ -398,7 +398,7 @@ export function QuickAdd() {
                         onClick={() => handleCardSelect(card.id)}
                         disabled={createExpense.isPending}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl border border-white/5 bg-card/50 px-4 py-3 text-left transition-all hover:border-white/10",
+                          "flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-4 py-3 text-left transition-all hover:border-white/10",
                           createExpense.isPending && "cursor-not-allowed opacity-40",
                         )}
                       >

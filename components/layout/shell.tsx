@@ -57,24 +57,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh w-full">
       {/* Sidebar (desktop) */}
-      <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r bg-card/30 px-3 py-5 md:flex">
-        <Link href="/" className="mb-8 flex items-center gap-2 px-2">
+      <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 py-6 md:flex">
+        <Link href="/" className="mb-10 flex items-center gap-3 px-2 group relative">
+          <div className="absolute inset-0 bg-theme-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           <Image 
             src={logoImg} 
             alt="FiMe Logo" 
-            className="size-8 rounded-lg shadow-sm"
+            className="size-9 rounded-lg shadow-sm relative z-10 ring-1 ring-white/10"
           />
-          <span className="text-lg font-semibold tracking-tight">FiMe</span>
+          <span className="text-xl font-bold tracking-tight text-white drop-shadow-md relative z-10">FiMe</span>
         </Link>
 
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map((item) => (
-            <NavLink key={item.href} item={item} active={pathname === item.href} />
+            <div key={item.href} className="contents">
+              {item.href === "/config" && <div className="my-3 h-px w-full bg-white/[0.06]" />}
+              <NavLink item={item} active={pathname === item.href} />
+            </div>
           ))}
         </nav>
 
         {/* User profile */}
-        <div className="mb-2 flex items-center gap-3 rounded-xl border border-white/5 bg-card/40 px-3 py-2.5">
+        <div className="mb-2 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2.5">
           <UserBadge />
         </div>
 
@@ -93,7 +97,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Bottom tabs (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-card/95 px-2 py-2 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 backdrop-blur md:hidden">
         {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/portfolio", "/metas", "/config"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;
@@ -127,11 +131,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
   const baseCls = cn(
-    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+    "group flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all border-l-[3px] border-transparent",
     active
-      ? "bg-theme-500/10 text-theme-400"
+      ? "bg-white/[0.04] text-theme-400 border-theme-400"
       : item.enabled
-        ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+        ? "text-muted-foreground hover:bg-white/[0.02] hover:text-foreground"
         : "cursor-not-allowed text-muted-foreground/40",
   );
 

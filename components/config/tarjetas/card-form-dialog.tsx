@@ -148,7 +148,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -185,12 +185,12 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="Santander Visa Black"
-                className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
               />
             </Field>
 
             <Field label="Marca">
-              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur">
+              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur">
                 {CARD_BRANDS.map((b) => (
                   <button
                     key={b.id}
@@ -222,12 +222,12 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   placeholder="1234"
                   inputMode="numeric"
                   maxLength={4}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </Field>
 
               <Field label="Moneda">
-                <div className="flex h-11 gap-1 rounded-xl border border-white/5 bg-card/60 p-1 backdrop-blur">
+                <div className="flex h-11 gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur">
                   {(["ARS", "USD"] as const).map((c) => (
                     <button
                       key={c}
@@ -259,7 +259,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   }
                   placeholder="5"
                   inputMode="numeric"
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </Field>
               <Field label="Día de vencimiento">
@@ -273,7 +273,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   }
                   placeholder="15"
                   inputMode="numeric"
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </Field>
             </div>
@@ -317,7 +317,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="relative flex items-center justify-between gap-2 border-t border-white/5 bg-card/80 px-6 py-3">
+          <div className="relative flex items-center justify-between gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
             {isEdit ? (
               <Button
                 variant="ghost"

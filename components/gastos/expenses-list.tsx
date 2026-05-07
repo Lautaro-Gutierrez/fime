@@ -125,7 +125,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-theme-500/10 via-teal-500/5 to-transparent p-12 text-center backdrop-blur"
+        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-theme-500/10 via-teal-500/5 to-transparent p-12 text-center backdrop-blur"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.15),transparent_50%)]" />
         <div className="relative flex flex-col items-center gap-3">
@@ -147,7 +147,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-4 backdrop-blur sm:p-6">
+      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur sm:p-6">
         {/* Ambient glow */}
         <div className="pointer-events-none absolute -left-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
 
@@ -159,7 +159,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
           <div className="flex-1" />
           {/* View mode toggle — solo visible si hay tarjetas */}
           {hasAnyCards && onViewModeChange && (
-            <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[9px] font-semibold backdrop-blur">
+            <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[9px] font-semibold backdrop-blur">
               <button
                 type="button"
                 onClick={() => onViewModeChange("calendar")}
@@ -438,7 +438,7 @@ function ExpenseRow({
         whileHover={{ y: -1 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
-          "group relative flex cursor-grab items-center gap-3 rounded-2xl border border-white/5 bg-card/60 p-3 backdrop-blur transition-colors hover:border-white/10 active:cursor-grabbing",
+          "group relative flex cursor-grab items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur transition-colors hover:border-white/10 active:cursor-grabbing",
           isFuture && "opacity-70",
         )}
       >

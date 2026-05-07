@@ -188,7 +188,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">
           {step === "form" ? (
             <motion.div
@@ -244,7 +244,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     >
                       Monto
                     </Label>
-                    <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-[10px] font-semibold backdrop-blur">
+                    <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
                       <button
                         type="button"
                         onClick={() => setCurrency("ARS")}
@@ -281,7 +281,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       inputMode="decimal"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="h-14 rounded-xl border-white/5 bg-card/60 pl-9 font-mono text-2xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
+                      className="h-14 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-9 font-mono text-2xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
                     />
                   </div>
                   {currency === "USD" && fx?.mep && parseAmount(amount) !== null && (
@@ -304,7 +304,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     value={category}
                     onValueChange={(v) => setCategory(v as IncomeCategory)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20">
+                    <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -337,7 +337,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       placeholder="Empresa, cliente..."
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -352,7 +352,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                     />
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={120}
-                    className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                   />
                 </div>
 
@@ -382,7 +382,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                   </Label>
 
                   {distribution ? (
-                    <div className="flex flex-col gap-2 rounded-xl border border-white/5 bg-card/40 p-3 backdrop-blur">
+                    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur">
                       {/* Barra de colores */}
                       <div className="flex h-2.5 w-full overflow-hidden rounded-full ring-1 ring-white/10">
                         {DISTRIBUTION_BUCKETS.map((b) => {
@@ -444,7 +444,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                         <button
                           type="button"
                           onClick={() => setStep("distribution")}
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/5 bg-card/60 px-2.5 py-1.5 text-[11px] font-semibold text-foreground/90 backdrop-blur transition-colors hover:bg-white/10"
+                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2.5 py-1.5 text-[11px] font-semibold text-foreground/90 backdrop-blur transition-colors hover:bg-white/10"
                         >
                           <Sliders className="size-3" />
                           Modificar
@@ -463,7 +463,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     <button
                       type="button"
                       onClick={() => setStep("distribution")}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/5 bg-card/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2.5 text-xs font-semibold text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
                     >
                       <Sliders className="size-3.5" />
                       Agregar distribución
@@ -477,13 +477,13 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                 </div>
               </div>
 
-              <DialogFooter className="border-t border-white/5 bg-card/80 px-5 py-3 backdrop-blur">
+              <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onClose}
                   disabled={update.isPending}
-                  className="h-10 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+                  className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
                 >
                   Cancelar
                 </Button>

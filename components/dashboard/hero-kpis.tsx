@@ -58,7 +58,7 @@ export function HeroKpis() {
   const isLoading = portfolio.isLoading || incomesQ.isLoading || expensesQ.isLoading;
 
   return (
-    <div className="rounded-3xl border border-white/5 bg-card/60 backdrop-blur p-6 relative overflow-hidden flex flex-col gap-6">
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl ring-1 ring-white/10 p-6 relative overflow-hidden flex flex-col gap-6">
       {/* Glow effect sutil */}
       <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       
@@ -78,14 +78,14 @@ export function HeroKpis() {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 z-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 z-10">
         {/* KPI 1: Patrimonio Total */}
-        <div className="flex flex-col gap-1 relative">
-          <div className="text-sm font-medium text-muted-foreground">Net Worth</div>
+        <div className="flex flex-col gap-1 relative p-4 rounded-2xl bg-gradient-to-br from-slate-500/10 to-transparent border border-white/[0.05]">
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Net Worth</div>
           {isLoading ? (
             <div className="h-9 w-32 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className="text-3xl md:text-4xl font-semibold tracking-tight">
+            <div className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white [font-feature-settings:'tnum']">
               {isStealthMode ? "******" : formatUSD(portfolio.totals.total_usd, false)}
             </div>
           )}
@@ -110,36 +110,36 @@ export function HeroKpis() {
         </div>
 
         {/* KPI 2: Free Cash Flow */}
-        <div className="flex flex-col gap-1">
-          <div className="text-sm font-medium text-muted-foreground">Free Cash Flow</div>
+        <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-white/[0.05]">
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Free Cash Flow</div>
           {isLoading ? (
             <div className="h-9 w-24 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className={`text-2xl md:text-3xl font-medium tracking-tight ${!isStealthMode && freeCashFlow < 0 ? "text-red-400" : ""}`}>
+            <div className={`text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] ${!isStealthMode && freeCashFlow < 0 ? "text-red-400" : "text-white"}`}>
               {isStealthMode ? "******" : formatUSD(freeCashFlow, true)}
             </div>
           )}
         </div>
 
         {/* KPI 3: P&L */}
-        <div className="flex flex-col gap-1">
-          <div className="text-sm font-medium text-muted-foreground">P&L (Portfolio)</div>
+        <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-white/[0.05]">
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">P&L (Portfolio)</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className={`text-2xl md:text-3xl font-medium tracking-tight ${!isStealthMode && pnlPct > 0 ? "text-emerald-400" : !isStealthMode && pnlPct < 0 ? "text-red-400" : ""}`}>
+            <div className={`text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] ${!isStealthMode && pnlPct > 0 ? "text-emerald-400" : !isStealthMode && pnlPct < 0 ? "text-red-400" : "text-white"}`}>
               {isStealthMode ? "******" : `${pnlPct > 0 ? "+" : ""}${pnlPct.toFixed(2)}%`}
             </div>
           )}
         </div>
 
         {/* KPI 4: Savings Rate */}
-        <div className="flex flex-col gap-1">
-          <div className="text-sm font-medium text-muted-foreground">Savings Rate</div>
+        <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-white/[0.05]">
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Savings Rate</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className="text-2xl md:text-3xl font-medium tracking-tight">
+            <div className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-white [font-feature-settings:'tnum']">
               {isStealthMode ? "******" : `${savingsRate.toFixed(1)}%`}
             </div>
           )}

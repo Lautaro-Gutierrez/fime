@@ -36,10 +36,10 @@ const RATES: RateConfig[] = [
     key: "mep",
     label: "MEP",
     hint: "Bolsa",
-    gradient: "from-theme-500/20 via-theme-500/5 to-transparent",
+    gradient: "from-theme-500/30 via-theme-500/10 to-white/[0.03]",
     text: "text-theme-300",
-    glow: "shadow-[0_0_40px_-8px_rgba(16,185,129,0.35)]",
-    ring: "ring-theme-500/30",
+    glow: "shadow-[0_0_40px_-4px_rgba(16,185,129,0.5)]",
+    ring: "ring-2 ring-theme-500/50",
     primary: true,
   },
   {
@@ -109,10 +109,9 @@ export function FxStrip() {
               transition={{ duration: 0.3, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
               className={cn(
-                "group relative overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br p-4 transition-all",
+                "group relative overflow-hidden rounded-2xl border border-white/[0.08] backdrop-blur-xl bg-gradient-to-br p-4 transition-all",
                 rate.gradient,
                 rate.glow,
-                rate.primary && "ring-1",
                 rate.ring,
               )}
             >

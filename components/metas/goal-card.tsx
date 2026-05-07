@@ -71,7 +71,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.25 }}
       className={cn(
-        "group relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-5 backdrop-blur transition hover:border-white/10",
+        "group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur transition hover:border-white/10",
         cfg.glowClass,
       )}
     >
@@ -144,15 +144,15 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
           rawPct={progress.rawPct}
           color={cfg.color}
           isInverted={progress.isInverted}
-          size={148}
-          strokeWidth={10}
+          size={100}
+          strokeWidth={8}
           label={
-            <div className="font-mono text-3xl font-bold tabular-nums text-foreground">
+            <div className="font-mono text-2xl font-bold tabular-nums text-foreground">
               {pctLabel}
             </div>
           }
           sublabel={
-            <div className="mt-0.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+            <div className="mt-0.5 text-[8px] uppercase tracking-widest text-muted-foreground">
               {progress.isInverted ? "del tope" : "completado"}
             </div>
           }
@@ -176,7 +176,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
 
       {/* Pacing + ETA */}
       {(progress.pace || progress.eta) && (
-        <div className="relative mt-3 grid gap-1.5 rounded-2xl border border-white/5 bg-black/20 p-3">
+        <div className="relative mt-3 grid gap-1.5 rounded-2xl border border-white/[0.08] bg-black/20 p-3">
           {progress.pace && progress.pace.perDay > 0 && (
             <div className="flex items-center justify-between text-[11px]">
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -233,7 +233,12 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
             <button
               key={amt}
               onClick={() => onQuickAdd(goal, amt)}
-              className="flex-1 rounded-xl border border-white/5 bg-white/5 px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums text-foreground/80 transition hover:border-theme-400/30 hover:bg-theme-500/10 hover:text-theme-300"
+              className="flex-1 rounded-xl border px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums transition hover:brightness-125"
+              style={{
+                color: cfg.color,
+                borderColor: `${cfg.color}40`,
+                backgroundColor: `${cfg.color}15`
+              }}
             >
               +{amt.toLocaleString("es-AR")}
             </button>

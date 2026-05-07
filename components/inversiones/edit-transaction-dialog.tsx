@@ -182,7 +182,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-card/95 p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <div className="flex max-h-[85vh] flex-col">
           {/* Header con glow del asset */}
           <div
@@ -230,7 +230,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   id="e-ticker"
                   value={ticker}
                   onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             )}
@@ -246,7 +246,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   inputMode="decimal"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </div>
 
@@ -261,7 +261,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                     inputMode="decimal"
                     value={priceUsd}
                     onChange={(e) => setPriceUsd(e.target.value)}
-                    className="h-11 rounded-xl border-white/5 bg-card/60 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
                   />
                 </div>
               )}
@@ -289,7 +289,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   onChange={(e) =>
                     setMetadata({ ...metadata, [field.key]: e.target.value })
                   }
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             ))}
@@ -304,7 +304,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -318,7 +318,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   value={fxRate}
                   onChange={(e) => setFxRate(e.target.value)}
                   placeholder="Opcional"
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             </div>
@@ -332,7 +332,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   id="e-broker"
                   value={broker}
                   onChange={(e) => setBroker(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -345,7 +345,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   inputMode="decimal"
                   value={fees}
                   onChange={(e) => setFees(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-card/60 font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                 />
               </div>
             </div>
@@ -359,12 +359,12 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={120}
-                className="h-11 rounded-xl border-white/5 bg-card/60 backdrop-blur focus-visible:border-white/20"
+                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
               />
             </div>
           </div>
 
-          <DialogFooter className="border-t border-white/5 bg-card/80 px-5 py-3 backdrop-blur">
+          <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur">
             <Button
               variant="ghost"
               size="sm"
@@ -379,7 +379,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="h-10 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+              className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
             >
               Cancelar
             </Button>

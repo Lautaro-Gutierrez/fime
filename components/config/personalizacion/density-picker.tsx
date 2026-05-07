@@ -46,7 +46,7 @@ export function DensityPicker() {
         </p>
       </div>
 
-      <div className="flex gap-0.5 rounded-full border border-white/5 bg-card/60 p-0.5 text-sm font-semibold backdrop-blur">
+      <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-sm font-semibold backdrop-blur">
         {DENSITIES.map((d) => {
           const isActive = currentDensity === d.id;
           const Icon = d.icon;

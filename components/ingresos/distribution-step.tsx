@@ -207,7 +207,7 @@ export function DistributionStep({
       <div className="relative flex items-start gap-3">
         <button
           onClick={onBack}
-          className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/5 bg-card/60 text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
           aria-label="Volver"
         >
           <ArrowLeft className="size-4" />
@@ -222,7 +222,7 @@ export function DistributionStep({
         </div>
         <button
           onClick={handleReset}
-          className="inline-flex items-center gap-1 rounded-full border border-white/5 bg-card/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
+          className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
         >
           <RotateCcw className="size-3" />
           Default
@@ -275,7 +275,7 @@ export function DistributionStep({
       </div>
 
       {/* Sum indicator */}
-      <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-card/40 px-3 py-2 text-[11px] backdrop-blur">
+      <div className="relative flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2 text-[11px] backdrop-blur">
         <span className="text-muted-foreground">Total</span>
         <span
           className={`font-mono font-bold tabular-nums ${
@@ -292,7 +292,7 @@ export function DistributionStep({
           variant="outline"
           onClick={onBack}
           disabled={isSaving}
-          className="h-11 flex-1 rounded-xl border-white/5 bg-card/40 hover:bg-card/60"
+          className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
         >
           Atrás
         </Button>
@@ -380,7 +380,7 @@ function BucketRow({
         <div className="flex items-baseline gap-1.5">
           {/* % input */}
           <div
-            className={`flex items-baseline rounded-md border border-white/5 bg-card/60 px-1.5 py-0.5 backdrop-blur transition-colors ${
+            className={`flex items-baseline rounded-md border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-1.5 py-0.5 backdrop-blur transition-colors ${
               pctDisabled
                 ? "opacity-60"
                 : "focus-within:border-lime-500/40 focus-within:ring-1 focus-within:ring-lime-500/20"
@@ -407,7 +407,7 @@ function BucketRow({
           </div>
           {/* $ input */}
           <div
-            className={`flex items-baseline gap-0.5 rounded-md border border-white/5 bg-card/60 px-1.5 py-0.5 backdrop-blur transition-colors ${
+            className={`flex items-baseline gap-0.5 rounded-md border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-1.5 py-0.5 backdrop-blur transition-colors ${
               amountDisabled
                 ? "opacity-50"
                 : "focus-within:border-lime-500/40 focus-within:ring-1 focus-within:ring-lime-500/20"
