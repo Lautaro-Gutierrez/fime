@@ -33,7 +33,7 @@ export default function PortfolioPage() {
     <Shell>
       <div className="relative flex flex-col gap-6 p-4 pb-10 sm:p-6 md:p-8">
         {/* Ambient background glow */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,rgba(217,70,239,0.08),transparent_65%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,rgba(217,70,239,0.12),transparent_80%)]" />
 
         {/* Header con total + refresh */}
         <PortfolioHeader

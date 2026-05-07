@@ -25,7 +25,8 @@ type RateConfig = {
   label: string;
   hint: string;
   gradient: string;
-  text: string;
+  bgTint: string;
+  badgeClass: string;
   glow: string;
   ring: string;
   primary?: boolean;
@@ -36,18 +37,20 @@ const RATES: RateConfig[] = [
     key: "mep",
     label: "MEP",
     hint: "Bolsa",
-    gradient: "from-theme-500/30 via-theme-500/10 to-white/[0.03]",
-    text: "text-theme-300",
-    glow: "shadow-[0_0_40px_-4px_rgba(16,185,129,0.5)]",
-    ring: "ring-2 ring-theme-500/50",
+    gradient: "from-blue-500/10 to-transparent",
+    bgTint: "bg-blue-500/[0.05]",
+    badgeClass: "bg-blue-500/20 text-blue-300",
+    glow: "shadow-[0_0_40px_-4px_rgba(59,130,246,0.5)]",
+    ring: "ring-2 ring-blue-500/50",
     primary: true,
   },
   {
     key: "ccl",
     label: "CCL",
     hint: "Contado Liqui",
-    gradient: "from-violet-500/20 via-violet-500/5 to-transparent",
-    text: "text-violet-300",
+    gradient: "from-violet-500/10 to-transparent",
+    bgTint: "bg-violet-500/[0.04]",
+    badgeClass: "bg-violet-500/20 text-violet-300",
     glow: "shadow-[0_0_40px_-8px_rgba(139,92,246,0.25)]",
     ring: "ring-violet-500/30",
   },
@@ -55,19 +58,21 @@ const RATES: RateConfig[] = [
     key: "blue",
     label: "Blue",
     hint: "Informal",
-    gradient: "from-sky-500/20 via-sky-500/5 to-transparent",
-    text: "text-sky-300",
-    glow: "shadow-[0_0_40px_-8px_rgba(14,165,233,0.25)]",
-    ring: "ring-sky-500/30",
+    gradient: "from-amber-500/10 to-transparent",
+    bgTint: "bg-amber-500/[0.04]",
+    badgeClass: "bg-amber-500/20 text-amber-300",
+    glow: "shadow-[0_0_40px_-8px_rgba(245,158,11,0.25)]",
+    ring: "ring-amber-500/30",
   },
   {
     key: "oficial",
     label: "Oficial",
     hint: "BNA",
-    gradient: "from-zinc-500/15 via-zinc-500/5 to-transparent",
-    text: "text-zinc-300",
-    glow: "shadow-[0_0_30px_-8px_rgba(113,113,122,0.2)]",
-    ring: "ring-zinc-500/20",
+    gradient: "from-slate-500/10 to-transparent",
+    bgTint: "bg-slate-500/[0.04]",
+    badgeClass: "bg-slate-500/20 text-slate-300",
+    glow: "shadow-[0_0_30px_-8px_rgba(100,116,139,0.2)]",
+    ring: "ring-slate-500/20",
   },
 ];
 
@@ -110,6 +115,7 @@ export function FxStrip() {
               whileHover={{ y: -2 }}
               className={cn(
                 "group relative overflow-hidden rounded-2xl border border-white/[0.08] backdrop-blur-xl bg-gradient-to-br p-4 transition-all",
+                rate.bgTint,
                 rate.gradient,
                 rate.glow,
                 rate.ring,
@@ -122,14 +128,14 @@ export function FxStrip() {
                 <div className="flex items-center justify-between">
                   <span
                     className={cn(
-                      "text-[10px] font-semibold uppercase tracking-widest",
-                      rate.text,
+                      "rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest",
+                      rate.badgeClass,
                     )}
                   >
                     {rate.label}
                   </span>
                   {rate.primary && (
-                    <span className="rounded-full bg-theme-500/20 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider text-theme-300">
+                    <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider text-blue-300">
                       Ref
                     </span>
                   )}
