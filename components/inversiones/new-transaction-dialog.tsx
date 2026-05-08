@@ -291,10 +291,10 @@ export function NewTransactionDialog() {
 
                       {/* Label */}
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-bold leading-tight tracking-tight text-foreground">
+                        <span className="text-[13px] font-bold leading-[1.2] tracking-tight text-foreground line-clamp-2">
                           {a.label}
                         </span>
-                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">
                           {a.short}
                         </span>
                       </div>

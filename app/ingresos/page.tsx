@@ -14,6 +14,7 @@ import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
 import { DistributionStep } from "@/components/ingresos/distribution-step";
 import { IncomesList } from "@/components/ingresos/incomes-list";
 import { useIncomes, useUpdateIncome } from "@/hooks/use-incomes";
+import { useExpenses, sumExpensesByType } from "@/hooks/use-expenses";
 import { createClient } from "@/lib/supabase/client";
 import {
   firstOfMonth,
@@ -28,7 +29,10 @@ export default function IngresosPage() {
   const [isSavingDist, setIsSavingDist] = useState(false);
 
   const { data: incomes = [], isLoading } = useIncomes(month);
+  const { data: expenses = [] } = useExpenses(month);
   const updateIncome = useUpdateIncome();
+
+  const realExpenses = useMemo(() => sumExpensesByType(expenses), [expenses]);
 
   const totalArs = useMemo(
     () => incomes.reduce((s, i) => s + Number(i.amount_ars), 0),
@@ -162,12 +166,14 @@ export default function IngresosPage() {
                   onBack={() => setEditingDistribution(false)}
                   onConfirm={handleBulkUpdateDistribution}
                   isSaving={isSavingDist}
+                  realExpenses={realExpenses}
                 />
               </div>
             ) : (
               <WaterfallSankey
                 amountArs={totalArs}
                 distribution={compositeDistribution}
+                realExpenses={realExpenses}
               />
             )}
           </div>

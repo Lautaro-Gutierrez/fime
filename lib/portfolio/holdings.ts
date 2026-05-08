@@ -159,8 +159,8 @@ export function valueHoldings(
       if (quote?.price && fxCcl > 0) {
         priceUsd = quote.price / fxCcl;
       }
-    } else if (h.asset_type === "on") {
-      // ONs argentinas: cotizan en ARS, se convierten con MEP
+    } else if (h.asset_type === "on" || h.asset_type === "stock_ar") {
+      // ONs y Acciones AR: cotizan en ARS, se convierten con MEP
       if (quote?.price && fxMep > 0) {
         priceUsd = quote.price / fxMep;
       }
