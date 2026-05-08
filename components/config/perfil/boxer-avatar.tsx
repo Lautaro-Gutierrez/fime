@@ -39,14 +39,14 @@ export function AvatarDisplay({
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-theme-500/15 via-orange-500/10 to-transparent ring-1 ring-theme-500/30",
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-theme-500/15 via-orange-500/10 to-transparent ring-1 ring-theme-500/30",
         className,
       )}
       style={{ width: size, height: size }}
     >
       {/* Glow */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-3xl"
+        className="pointer-events-none absolute inset-0 rounded-xl"
         style={{ boxShadow: "inset 0 0 40px rgba(245, 158, 11, 0.12)" }}
       />
 

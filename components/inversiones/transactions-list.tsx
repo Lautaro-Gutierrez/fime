@@ -13,6 +13,7 @@ import { ASSETS_BY_ID, TX_TYPE_LABELS } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EditTransactionDialog } from "@/components/inversiones/edit-transaction-dialog";
+import { AssetLogo } from "@/components/ui/asset-logo";
 
 type Props = {
   investments: Investment[];
@@ -225,27 +226,18 @@ function TransactionRow({
             asset.id === "bond_ar" && "from-teal-500/10 via-transparent to-transparent",
             asset.id === "time_deposit" && "from-theme-500/10 via-transparent to-transparent",
             asset.id === "usd_cash" && "from-green-500/10 via-transparent to-transparent",
+            asset.id === "on" && "from-violet-500/10 via-transparent to-transparent",
           )}
         />
 
-        {/* Icon con glow */}
+        {/* Icon con logo dinámico */}
         <div className="relative shrink-0">
-          <div
-            className={cn(
-              "absolute inset-0 rounded-2xl blur-xl opacity-40",
-              asset.bgClass,
-            )}
+          <AssetLogo 
+            assetType={inv.asset_type} 
+            ticker={inv.ticker} 
+            issuer={inv.metadata?.issuer as string}
+            size="md" 
           />
-          <div
-            className={cn(
-              "relative flex size-12 items-center justify-center rounded-2xl ring-1",
-              asset.bgClass,
-              asset.textClass,
-              asset.borderClass,
-            )}
-          >
-            <Icon className="size-5" />
-          </div>
         </div>
 
         {/* Day chip */}
@@ -274,6 +266,11 @@ function TransactionRow({
             >
               {TX_TYPE_LABELS[inv.tx_type]}
             </span>
+            {inv.asset_type === 'on' && inv.metadata?.issuer && (
+              <span className="text-[10px] text-white/30 truncate font-medium">
+                {inv.metadata.issuer as string}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="font-mono tabular-nums">

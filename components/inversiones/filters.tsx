@@ -26,6 +26,7 @@ const ACTIVE_GLOW: Record<AssetType, string> = {
   bond_ar: "shadow-[0_0_20px_-4px_rgba(20,184,166,0.4)]",
   time_deposit: "shadow-[0_0_20px_-4px_rgba(245,158,11,0.4)]",
   usd_cash: "shadow-[0_0_20px_-4px_rgba(34,197,94,0.4)]",
+  on: "shadow-[0_0_20px_-4px_rgba(139,92,246,0.4)]",
 };
 
 export function Filters({ state, onChange }: Props) {

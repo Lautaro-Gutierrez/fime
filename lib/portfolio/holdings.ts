@@ -62,7 +62,7 @@ export function computeHoldings(
 
   // 1) Seed con initial_positions.
   for (const ip of initialPositions) {
-    if (ip.asset_type === "bond_ar") continue; // V1 skip
+    if (ip.asset_type === "bond_ar") continue; // V1 skip (mantener excluido bond_ar, incluir 'on')
     const key = positionKey(ip.asset_type, ip.ticker);
     const existing = map.get(key);
     if (existing) {
@@ -95,7 +95,7 @@ export function computeHoldings(
   });
 
   for (const tx of sorted) {
-    if (tx.asset_type === "bond_ar") continue; // V1 skip
+    if (tx.asset_type === "bond_ar") continue; // V1 skip (incluir 'on')
 
     const key = positionKey(tx.asset_type, tx.ticker);
     const existing: Holding = map.get(key) ?? {
@@ -159,10 +159,8 @@ export function valueHoldings(
       if (quote?.price && fxCcl > 0) {
         priceUsd = quote.price / fxCcl;
       }
-    } else if (
-      h.asset_type === "stock_ar"
-      // bond_ar excluido V1
-    ) {
+    } else if (h.asset_type === "on") {
+      // ONs argentinas: cotizan en ARS, se convierten con MEP
       if (quote?.price && fxMep > 0) {
         priceUsd = quote.price / fxMep;
       }

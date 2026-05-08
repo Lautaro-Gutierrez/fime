@@ -174,6 +174,41 @@ export const ASSETS: AssetConfig[] = [
     requiresPrice: false,
     metadataFields: [],
   },
+  {
+    id: "on",
+    label: "Obligaciones Negociables",
+    short: "ONs",
+    color: "#8B5CF6",
+    bgClass: "bg-violet-500/15",
+    textClass: "text-violet-400",
+    borderClass: "border-violet-500/30",
+    icon: ScrollText,
+    allowedTxTypes: ["buy", "sell"],
+    requiresTicker: true,
+    requiresPrice: true,
+    metadataFields: [
+      {
+        key: "maturity",
+        label: "Vencimiento",
+        type: "date",
+        required: false,
+      },
+      {
+        key: "coupon_rate",
+        label: "Tasa cupón (%)",
+        type: "percent",
+        required: false,
+        placeholder: "Ej: 9.5",
+      },
+      {
+        key: "issuer",
+        label: "Emisor",
+        type: "text",
+        required: false,
+        placeholder: "YPF, PAE, Telecom...",
+      },
+    ],
+  },
 ];
 
 export const ASSETS_BY_ID: Record<AssetType, AssetConfig> = Object.fromEntries(

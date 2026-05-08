@@ -30,10 +30,10 @@ export function MetasHeader({
         <div className="flex flex-col gap-1">
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             <span className="size-1.5 rounded-full bg-theme-400" />
-            Metas y objetivos
+            Objetivos financieros
           </span>
-          <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-            METAS
+          <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl uppercase">
+            Objetivos
           </h1>
         </div>
 
@@ -42,7 +42,7 @@ export function MetasHeader({
           className="group relative inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-white/[0.10]"
         >
           <Plus className="size-4 transition-transform group-hover:rotate-90" />
-          + Nueva meta
+          + Nuevo objetivo
         </button>
       </div>
 

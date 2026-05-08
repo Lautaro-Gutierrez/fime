@@ -68,16 +68,34 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
           </p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-4xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent sm:text-5xl lg:text-6xl"
-        >
-          <PrivateAmount>
-            <AnimatedNumber value={total} />
-          </PrivateAmount>
-        </motion.div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-4xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent sm:text-5xl lg:text-6xl"
+          >
+            <PrivateAmount>
+              <AnimatedNumber value={total} />
+            </PrivateAmount>
+          </motion.div>
+
+          <div className="flex items-center gap-6 pb-1">
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">Fijos</p>
+              <p className="text-lg font-semibold text-white/90 tabular-nums">
+                <PrivateAmount>{formatARS(expenses.filter(e => e.type === 'fixed').reduce((s, e) => s + Number(e.amount), 0))}</PrivateAmount>
+              </p>
+            </div>
+            <div className="h-8 w-px bg-white/10" />
+            <div className="space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">Variables</p>
+              <p className="text-lg font-semibold text-white/90 tabular-nums">
+                <PrivateAmount>{formatARS(expenses.filter(e => e.type === 'variable').reduce((s, e) => s + Number(e.amount), 0))}</PrivateAmount>
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {delta !== null && (

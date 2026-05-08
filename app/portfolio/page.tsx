@@ -63,7 +63,7 @@ export default function PortfolioPage() {
         </motion.div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center rounded-3xl border border-white/5 bg-card/40 p-12 backdrop-blur">
+          <div className="flex items-center justify-center rounded-xl border border-white/5 bg-card/40 p-12 backdrop-blur">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="size-2 animate-pulse rounded-full bg-fuchsia-400" />
               Calculando holdings...

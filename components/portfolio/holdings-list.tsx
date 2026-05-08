@@ -3,6 +3,7 @@
 import { ASSETS_BY_ID } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
+import { AssetLogo } from "@/components/ui/asset-logo";
 
 type Props = { holdings: ValuedHolding[] };
 
@@ -29,13 +30,13 @@ function HoldingRow({ holding: h }: { holding: ValuedHolding }) {
   return (
     <div className="group flex items-center gap-4 py-4 px-4 -mx-4 hover:bg-white/[0.02] rounded-lg transition-colors cursor-pointer border-b border-white/[0.04] last:border-0">
       {/* Ticker Icon */}
-      <div className="relative shrink-0">
-        <div className={`absolute inset-0 rounded-xl blur-md opacity-50 ${asset.bgClass}`} />
-        <div
-          className={`relative flex size-10 items-center justify-center rounded-xl ring-1 ${asset.bgClass} ${asset.textClass} ${asset.borderClass}`}
-        >
-          <Icon className="size-4" />
-        </div>
+      <div className="relative shrink-0 group">
+        <AssetLogo 
+          assetType={h.asset_type} 
+          ticker={h.ticker} 
+          issuer={h.metadata?.issuer as string}
+          size="md" 
+        />
       </div>
       
       {/* Name & Type */}
@@ -44,13 +45,8 @@ function HoldingRow({ holding: h }: { holding: ValuedHolding }) {
           <span className="font-semibold text-white truncate">{h.label}</span>
           <TypeBadge type={asset.short} asset={asset} />
         </div>
-        <p className="text-sm text-white/40 truncate">{asset.label}</p>
-      </div>
-      
-      {/* Quantity & Price */}
-      <div className="text-right hidden sm:block">
-        <p className="text-sm text-white/60 tabular-nums">
-          {formatQuantity(h.quantity)} × {formatUSD(currentPrice)}
+        <p className="text-[10px] text-white/30 truncate mt-0.5">
+          {h.asset_type === 'on' && h.metadata?.issuer ? h.metadata.issuer as string : asset.label}
         </p>
       </div>
       
@@ -95,7 +91,6 @@ export function HoldingsList({ holdings }: Props) {
       <div className="flex items-center gap-4 py-2 text-xs text-white/40 border-b border-white/[0.06] uppercase tracking-wider font-medium">
         <div className="w-10 shrink-0" />
         <div className="flex-1">Activo</div>
-        <div className="text-right hidden sm:block">Detalles</div>
         <div className="text-right min-w-[100px]">Valor</div>
         <div className="text-right min-w-[80px]">Rendimiento</div>
       </div>

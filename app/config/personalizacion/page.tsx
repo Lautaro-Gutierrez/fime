@@ -16,7 +16,7 @@ export default function ConfigPersonalizacionPage() {
           description="Tema OLED Black o Deep Gray. Densidad compacta o relajada."
           backHref="/config"
         />
-        <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-card/60 p-6 backdrop-blur">
+        <div className="relative overflow-hidden rounded-xl border border-white/5 bg-card/60 p-6 backdrop-blur">
           <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
           <div className="relative flex flex-col gap-8">
             <AccentPicker />

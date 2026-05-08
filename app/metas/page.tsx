@@ -153,7 +153,7 @@ export default function MetasPage() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="h-72 animate-pulse rounded-3xl border border-white/5 bg-card/40"
+                className="h-72 animate-pulse rounded-xl border border-white/5 bg-card/40"
               />
             ))}
           </div>

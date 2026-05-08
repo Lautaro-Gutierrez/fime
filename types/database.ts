@@ -15,6 +15,7 @@ export type AssetType =
   | "cedear"
   | "stock_ar"
   | "bond_ar"
+  | "on"
   | "time_deposit"
   | "usd_cash";
 

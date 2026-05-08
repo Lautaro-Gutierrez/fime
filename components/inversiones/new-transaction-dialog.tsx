@@ -23,7 +23,7 @@ import { toISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // ARS-denominated asset types (need fx_rate conversion to USD).
-const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar"];
+const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar", "on"];
 
 // Gradient de fondo por asset en las cards del selector.
 const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
@@ -34,6 +34,7 @@ const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
   bond_ar: "from-teal-500/20 via-teal-500/5 to-transparent",
   time_deposit: "from-theme-500/20 via-theme-500/5 to-transparent",
   usd_cash: "from-green-500/20 via-green-500/5 to-transparent",
+  on: "from-violet-500/20 via-violet-500/5 to-transparent",
 };
 
 type FormState = {
