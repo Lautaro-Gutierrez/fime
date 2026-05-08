@@ -102,7 +102,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
       fetch("/api/push/test", { method: "POST" }).then(async res => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || "Error enviando notificación al servidor");
+          throw new Error(data.error || `Error del servidor (${res.status})`);
         }
         const data = await res.json();
         if (!data.success) throw new Error(data.error || "Error procesando notificación");
@@ -110,7 +110,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
       {
         loading: "Enviando prueba...",
         success: "Notificación enviada",
-        error: "Error enviando notificación",
+        error: (err) => err?.message || "Error enviando notificación",
       }
     );
   }
