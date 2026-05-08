@@ -188,7 +188,7 @@ export const QUEST_LABELS: Record<QuestType, string> = {
 
 export const QUEST_DESCRIPTIONS: Record<QuestType, string> = {
   main: "Objetivos persistentes de largo alcance",
-  side: "Compras puntuales y objetivos acotados",
+  side: "Objetivos de corto plazo",
 };
 
 export const SOURCE_TYPE_LABELS: Record<SourceTypeId, string> = {
