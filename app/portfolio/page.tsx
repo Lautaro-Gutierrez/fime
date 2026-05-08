@@ -42,6 +42,7 @@ export default function PortfolioPage() {
           dailyPct={dailyPct}
           isFetching={isFetchingPrices}
           onRefresh={() => refetchPrices()}
+          holdingsCount={holdings.length}
         />
 
         {/* Action bar */}

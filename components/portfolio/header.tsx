@@ -1,8 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { formatUSD } from "@/lib/format";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   totalUsd: number;
@@ -10,6 +9,7 @@ type Props = {
   dailyPct: number | null;
   isFetching: boolean;
   onRefresh: () => void;
+  holdingsCount?: number;
 };
 
 export function PortfolioHeader({
@@ -18,85 +18,91 @@ export function PortfolioHeader({
   dailyPct,
   isFetching,
   onRefresh,
+  holdingsCount = 0,
 }: Props) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur sm:p-7"
-    >
-      {/* Ambient glow */}
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
 
-      <div className="relative flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-300/80">
-            Tenencias
-          </span>
-          <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-            MI PORTFOLIO
+  const totalReturn = unrealizedPct ?? 0;
+  const todayChange = dailyPct ?? 0;
+
+  return (
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 glass-card rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <p className="text-sm text-white/50 font-medium tracking-wide uppercase">
+            Valor Total de Portfolio
+          </p>
+          <h1 className="text-5xl font-bold tracking-tight tabular-nums text-white">
+            {formatCurrency(totalUsd)}
           </h1>
         </div>
 
-        <button
-          onClick={onRefresh}
-          disabled={isFetching}
-          className="group inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-white/20 hover:text-foreground disabled:opacity-50"
-        >
-          <RefreshCw
-            className={`size-3.5 transition-transform ${
-              isFetching ? "animate-spin" : "group-hover:rotate-90"
-            }`}
-          />
-          {isFetching ? "Actualizando" : "Actualizar"}
-        </button>
-      </div>
-
-      <div className="relative mt-6 flex flex-wrap items-end gap-x-8 gap-y-4">
-        <div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Valor total
-          </span>
-          <div className="mt-1 bg-gradient-to-br from-white to-white/70 bg-clip-text font-mono text-4xl font-bold tabular-nums text-transparent sm:text-5xl [font-feature-settings:'tnum']">
-            {formatUSD(totalUsd)}
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {unrealizedPct !== null && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold tabular-nums ${
+                totalReturn >= 0
+                  ? "bg-violet-500/20 text-violet-400"
+                  : "bg-rose-500/20 text-rose-400"
+              }`}
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                {totalReturn >= 0 ? (
+                  <path
+                    d="M7 17L17 7M17 7H7M17 7V17"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : (
+                  <path
+                    d="M7 7L17 17M17 17H7M17 17V7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
+              </svg>
+              {totalReturn >= 0 ? "+" : ""}
+              {totalReturn.toFixed(2)}%
+            </span>
+          )}
+          {dailyPct !== null && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/70 text-sm font-medium tabular-nums border border-white/10">
+              Hoy {todayChange >= 0 ? "+" : ""}
+              {todayChange.toFixed(2)}%
+            </span>
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <DeltaPill label="Rendimiento" pct={unrealizedPct} />
-          <DeltaPill label="Hoy" pct={dailyPct} />
-        </div>
+        <p className="text-sm text-white/40">
+          {holdingsCount} {holdingsCount === 1 ? "posición activa" : "posiciones activas"}
+        </p>
       </div>
-    </motion.div>
-  );
-}
 
-function DeltaPill({ label, pct }: { label: string; pct: number | null }) {
-  const isUp = (pct ?? 0) > 0.05;
-  const isDown = (pct ?? 0) < -0.05;
-  const Icon = isUp ? TrendingUp : isDown ? TrendingDown : Minus;
-  const color = isUp
-    ? "text-theme-400"
-    : isDown
-      ? "text-rose-400"
-      : "text-muted-foreground";
-  const bg = isUp
-    ? "bg-theme-500/10 border-theme-500/20"
-    : isDown
-      ? "bg-rose-500/10 border-rose-500/20"
-      : "bg-white/5 border-white/10";
-
-  return (
-    <div
-      className={`inline-flex flex-col gap-0.5 rounded-2xl border px-3 py-2 backdrop-blur ${bg}`}
-    >
-      <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </span>
-      <div className={`inline-flex items-center gap-1 font-mono text-sm font-semibold tabular-nums ${color}`}>
-        <Icon className="size-3.5" />
-        {pct === null ? "—" : `${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`}
-      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onRefresh}
+        disabled={isFetching}
+        className="bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:text-white hover:border-white/[0.12] transition-all"
+      >
+        <RefreshCw
+          className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
+        />
+        {isFetching ? "Actualizando..." : "Actualizar"}
+      </Button>
     </div>
   );
 }

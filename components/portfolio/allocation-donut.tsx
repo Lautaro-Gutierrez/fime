@@ -1,11 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import { AnimatePresence, motion } from "framer-motion";
+import { Cell, Pie, PieChart, ResponsiveContainer, Sector } from "recharts";
 import { PieChart as PieIcon } from "lucide-react";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
-import { ASSETS_BY_ID } from "@/lib/assets";
 
 type Props = { holdings: ValuedHolding[] };
 
@@ -32,8 +30,43 @@ const PALETTE = [
   "#CBD5E1", // slate-300
 ];
 
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
+
+  return (
+    <g>
+      <text x={cx} y={cy - 12} textAnchor="middle" fill="#fff" className="text-2xl font-bold tabular-nums">
+        {payload.weight.toFixed(1)}%
+      </text>
+      <text x={cx} y={cy + 16} textAnchor="middle" fill="rgba(255,255,255,0.6)" className="text-sm font-medium">
+        {payload.label}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.2))" }}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius - 4}
+        outerRadius={innerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.4}
+      />
+    </g>
+  );
+};
+
 export function AllocationDonut({ holdings }: Props) {
-  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
   const data = useMemo(() => {
     return holdings
@@ -51,16 +84,19 @@ export function AllocationDonut({ holdings }: Props) {
       }));
   }, [holdings]);
 
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const onPieLeave = () => {
+    setActiveIndex(undefined);
+  };
+
   const total = data.reduce((s, d) => s + d.value, 0);
-  const active = activeKey ? data.find((d) => d.id === activeKey) : null;
 
   if (total === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-[300px] flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-fuchsia-500/5 via-transparent to-transparent p-6 backdrop-blur"
-      >
+      <div className="glass-card rounded-2xl p-6 h-full flex flex-col items-center justify-center gap-3">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-fuchsia-500/15 ring-1 ring-fuchsia-500/30">
           <PieIcon className="size-5 text-fuchsia-300" />
         </div>
@@ -68,135 +104,92 @@ export function AllocationDonut({ holdings }: Props) {
         <p className="max-w-xs text-center text-xs text-muted-foreground/70">
           Cargá posiciones iniciales o registrá transacciones en el blotter
         </p>
-      </motion.div>
+      </div>
     );
   }
 
+  // Create a 3-column grid for the legend based on the V0 design
+  const itemsPerColumn = Math.ceil(data.length / 3);
+  const legendColumns = [
+    data.slice(0, itemsPerColumn),
+    data.slice(itemsPerColumn, itemsPerColumn * 2),
+    data.slice(itemsPerColumn * 2),
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
-    >
-
-      <div className="relative flex items-center gap-2">
-        <span className="size-1.5 rounded-full bg-fuchsia-400" />
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Distribución · {data.length} {data.length === 1 ? "posición" : "posiciones"}
-        </p>
-      </div>
-
-      <div className="relative mt-3 h-[240px]">
+    <div className="glass-card rounded-2xl p-6 h-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
+      <h3 className="text-lg font-semibold text-white mb-4">Portfolio Allocation</h3>
+      
+      <div className="h-[240px] relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
+              activeIndex={activeIndex}
+              activeShape={renderActiveShape}
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={80}
-              outerRadius={100}
+              innerRadius={70}
+              outerRadius={95}
+              paddingAngle={2}
               dataKey="value"
-              stroke="none"
-              startAngle={90}
-              endAngle={-270}
-              isAnimationActive
-              animationDuration={500}
-              onMouseEnter={((entry: unknown) => {
-                const id = (entry as { id?: string } | undefined)?.id;
-                if (id) setActiveKey(id);
-              }) as unknown as (data: object) => void}
-              onMouseLeave={() => setActiveKey(null)}
+              onMouseEnter={onPieEnter}
+              onMouseLeave={onPieLeave}
+              stroke="transparent"
             >
-              {data.map((entry) => {
-                const isActive = activeKey === entry.id;
-                const isDimmed = activeKey !== null && !isActive;
-                return (
-                  <Cell
-                    key={entry.id}
-                    fill={entry.color}
-                    fillOpacity={isDimmed ? 0.2 : 1}
-                    stroke={isActive ? entry.color : "none"}
-                    strokeWidth={isActive ? 2.5 : 0}
-                  />
-                );
-              })}
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${entry.id}`} 
+                  fill={entry.color}
+                  style={{ 
+                    cursor: "pointer",
+                    transition: "all 0.2s ease-out"
+                  }}
+                />
+              ))}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <AnimatePresence mode="wait">
-            {active ? (
-              <motion.div
-                key={active.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.18 }}
-                className="flex max-w-[140px] flex-col items-center gap-1 text-center"
-              >
-                <span
-                  className="text-[9px] font-semibold uppercase leading-none tracking-widest"
-                  style={{ color: active.color }}
+        
+        {activeIndex === undefined && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white tabular-nums">{data.length}</p>
+              <p className="text-xs text-white/50">Activos</p>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* 3-column legend */}
+      <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-4">
+        {legendColumns.map((column, colIndex) => (
+          <div key={colIndex} className="space-y-2">
+            {column.map((holding) => {
+              const globalIndex = data.findIndex(d => d.id === holding.id);
+              return (
+                <div 
+                  key={holding.id} 
+                  className="flex items-center gap-2 text-xs group cursor-pointer"
+                  onMouseEnter={() => setActiveIndex(globalIndex)}
+                  onMouseLeave={() => setActiveIndex(undefined)}
                 >
-                  {active.label}
-                </span>
-                <span className="font-mono text-3xl font-bold leading-none tabular-nums">
-                  {active.weight.toFixed(1)}%
-                </span>
-                <span className="text-[9px] uppercase tracking-widest text-muted-foreground/70">
-                  {ASSETS_BY_ID[active.asset_type].short}
-                </span>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="total"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.18 }}
-                className="flex flex-col items-center gap-0.5"
-              >
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Posiciones
-                </span>
-                <span className="bg-gradient-to-br from-white to-white/70 bg-clip-text font-mono text-2xl font-bold tabular-nums text-transparent">
-                  {data.length}
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
+                    style={{ backgroundColor: holding.color }}
+                  />
+                  <span className="text-white/60 group-hover:text-white transition-colors truncate">
+                    {holding.label}
+                  </span>
+                  <span className="text-white/40 tabular-nums ml-auto">
+                    {holding.weight.toFixed(1)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
-
-      <div className="relative mt-4 flex flex-wrap gap-x-3 gap-y-1.5">
-        {data.map((d) => {
-          const isActive = activeKey === d.id;
-          return (
-            <button
-              key={d.id}
-              onMouseEnter={() => setActiveKey(d.id)}
-              onMouseLeave={() => setActiveKey(null)}
-              className={`inline-flex items-center gap-1.5 text-[11px] transition-opacity ${
-                activeKey !== null && !isActive ? "opacity-35" : "opacity-100"
-              }`}
-            >
-              <span
-                className="size-2 rounded-full"
-                style={{
-                  backgroundColor: d.color,
-                  boxShadow: isActive ? `0 0 8px ${d.color}80` : undefined,
-                }}
-              />
-              <span className="text-muted-foreground">{d.label}</span>
-              <span className="font-mono font-semibold tabular-nums text-foreground/80">
-                {d.weight.toFixed(1)}%
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </motion.div>
+    </div>
   );
 }

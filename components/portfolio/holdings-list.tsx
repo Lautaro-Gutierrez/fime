@@ -1,60 +1,34 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { ASSETS_BY_ID } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
 
 type Props = { holdings: ValuedHolding[] };
 
-export function HoldingsList({ holdings }: Props) {
-  if (holdings.length === 0) {
-    return null;
-  }
-
-  const sorted = [...holdings].sort(
-    (a, b) => b.current_value_usd - a.current_value_usd,
-  );
-
+function TypeBadge({ type, asset }: { type: string, asset: any }) {
+  // Using the asset's text/bg classes for the badge to match the theme
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur"
-    >
-      <div className="flex items-center gap-2 px-5 py-4">
-        <span className="size-1.5 rounded-full bg-violet-400" />
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          MI PORTFOLIO
-        </p>
-      </div>
-
-      <div className="flex flex-col divide-y divide-white/5">
-        {sorted.map((h, i) => (
-          <HoldingRow key={h.key} holding={h} index={i} />
-        ))}
-      </div>
-    </motion.div>
+    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${asset.bgClass} ${asset.textClass} bg-opacity-20`}>
+      {type}
+    </span>
   );
 }
 
-function HoldingRow({ holding: h, index }: { holding: ValuedHolding; index: number }) {
+function HoldingRow({ holding: h }: { holding: ValuedHolding }) {
   const asset = ASSETS_BY_ID[h.asset_type];
   const Icon = asset.icon;
 
+  const currentPrice = h.quantity ? h.current_value_usd / h.quantity : 0;
+  
   const pnl = h.unrealized_pnl_pct;
   const daily = h.change_24h_pct;
+  
+  const isPositive = (pnl ?? 0) >= 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.02, duration: 0.2 }}
-      className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/[0.015]"
-    >
-      {/* Icon con aura */}
+    <div className="group flex items-center gap-4 py-4 px-4 -mx-4 hover:bg-white/[0.02] rounded-lg transition-colors cursor-pointer border-b border-white/[0.04] last:border-0">
+      {/* Ticker Icon */}
       <div className="relative shrink-0">
         <div className={`absolute inset-0 rounded-xl blur-md opacity-50 ${asset.bgClass}`} />
         <div
@@ -63,84 +37,75 @@ function HoldingRow({ holding: h, index }: { holding: ValuedHolding; index: numb
           <Icon className="size-4" />
         </div>
       </div>
-
-      {/* Ticker + meta */}
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      
+      {/* Name & Type */}
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="truncate font-semibold text-foreground">{h.label}</span>
-          <span className="rounded-full border border-white/[0.08] bg-white/5 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground/80">
-            {asset.short}
-          </span>
+          <span className="font-semibold text-white truncate">{h.label}</span>
+          <TypeBadge type={asset.short} asset={asset} />
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground mt-0.5">
-          <div className="flex items-center gap-1.5 bg-white/5 rounded-md px-1.5 py-0.5 border border-white/[0.04]">
-            <span className="font-mono tabular-nums text-foreground/80">{formatQuantity(h.quantity)}</span>
-            <span className="text-muted-foreground/40 text-[9px]">×</span>
-            <span className="font-mono tabular-nums text-foreground/80">{formatUSD(h.current_value_usd / (h.quantity || 1))}</span>
-          </div>
-          <span className="text-muted-foreground/40">=</span>
-          <span className="font-mono tabular-nums font-medium text-white [font-feature-settings:'tnum']">
-            {formatUSD(h.current_value_usd)}
-          </span>
-          <span className="text-muted-foreground/40">·</span>
-          <span className="font-mono tabular-nums">{h.weight_pct.toFixed(1)}%</span>
-        </div>
+        <p className="text-sm text-white/40 truncate">{asset.name}</p>
       </div>
-
-      {/* P&L % + change 24h */}
-      <div className="flex shrink-0 flex-col items-end gap-0.5">
-        <DeltaChip pct={pnl} size="md" />
-        {daily !== null && h.asset_type !== "usd_cash" && h.asset_type !== "time_deposit" && (
-          <DeltaChip pct={daily} size="sm" label="24h" />
+      
+      {/* Quantity & Price */}
+      <div className="text-right hidden sm:block">
+        <p className="text-sm text-white/60 tabular-nums">
+          {formatQuantity(h.quantity)} × {formatUSD(currentPrice)}
+        </p>
+      </div>
+      
+      {/* Total Value & Weight */}
+      <div className="text-right min-w-[100px]">
+        <p className="font-semibold text-white tabular-nums">{formatUSD(h.current_value_usd)}</p>
+        <p className="text-xs text-white/40 tabular-nums">{h.weight_pct.toFixed(1)}%</p>
+      </div>
+      
+      {/* Returns */}
+      <div className="text-right min-w-[80px]">
+        <p className={`font-semibold tabular-nums ${pnl === null ? "text-muted-foreground" : isPositive ? "text-emerald-400" : "text-rose-400"}`}>
+          {pnl === null ? "—" : `${isPositive ? "+" : ""}${pnl.toFixed(1)}%`}
+        </p>
+        {daily !== null && h.asset_type !== "usd_cash" && h.asset_type !== "time_deposit" ? (
+          <p className={`text-xs tabular-nums ${daily >= 0 ? "text-white/30" : "text-rose-400/60"}`}>
+            {daily >= 0 ? "+" : ""}{daily.toFixed(2)}%
+          </p>
+        ) : (
+          <p className="text-xs text-white/30 tabular-nums">—</p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-function DeltaChip({
-  pct,
-  size = "md",
-  label,
-}: {
-  pct: number | null;
-  size?: "sm" | "md";
-  label?: string;
-}) {
-  if (pct === null) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/5 px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-muted-foreground">
-        <Minus className="size-3" />—
-      </span>
-    );
-  }
-  const isUp = pct > 0.05;
-  const isDown = pct < -0.05;
-  const Icon = isUp ? TrendingUp : isDown ? TrendingDown : Minus;
-  const color = isUp
-    ? "text-theme-400"
-    : isDown
-      ? "text-rose-400"
-      : "text-muted-foreground";
-  const bg = isUp
-    ? "bg-theme-500/10 border-theme-500/20"
-    : isDown
-      ? "bg-rose-500/10 border-rose-500/20"
-      : "bg-white/5 border-white/10";
-  const textSize = size === "md" ? "text-xs" : "text-[10px]";
+export function HoldingsList({ holdings }: Props) {
+  if (holdings.length === 0) return null;
+
+  const sorted = [...holdings].sort(
+    (a, b) => b.current_value_usd - a.current_value_usd,
+  );
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono font-semibold tabular-nums ${textSize} ${color} ${bg}`}
-    >
-      {label && (
-        <span className="font-sans text-[9px] font-medium uppercase tracking-wider opacity-70">
-          {label}
-        </span>
-      )}
-      <Icon className="size-3" />
-      {pct > 0 ? "+" : ""}
-      {pct.toFixed(2)}%
-    </span>
+    <div className="glass-card rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl mt-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-white">Holdings</h3>
+        <span className="text-xs text-white/40">{holdings.length} {holdings.length === 1 ? "posición" : "posiciones"}</span>
+      </div>
+      
+      {/* Header */}
+      <div className="flex items-center gap-4 py-2 text-xs text-white/40 border-b border-white/[0.06] uppercase tracking-wider font-medium">
+        <div className="w-10 shrink-0" />
+        <div className="flex-1">Activo</div>
+        <div className="text-right hidden sm:block">Detalles</div>
+        <div className="text-right min-w-[100px]">Valor</div>
+        <div className="text-right min-w-[80px]">Rendimiento</div>
+      </div>
+      
+      {/* Holdings List */}
+      <div className="flex flex-col">
+        {sorted.map((holding) => (
+          <HoldingRow key={holding.key} holding={holding} />
+        ))}
+      </div>
+    </div>
   );
 }
