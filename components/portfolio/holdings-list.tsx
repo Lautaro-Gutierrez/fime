@@ -44,7 +44,7 @@ function HoldingRow({ holding: h }: { holding: ValuedHolding }) {
           <span className="font-semibold text-white truncate">{h.label}</span>
           <TypeBadge type={asset.short} asset={asset} />
         </div>
-        <p className="text-sm text-white/40 truncate">{asset.name}</p>
+        <p className="text-sm text-white/40 truncate">{asset.label}</p>
       </div>
       
       {/* Quantity & Price */}
