@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
-import { Trash2, PencilLine, Sparkles, ChevronDown } from "lucide-react";
+import { Trash2, PencilLine, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale/es";
@@ -15,7 +15,7 @@ import { INCOME_CATEGORIES_BY_ID } from "@/lib/income-categories";
 import { formatARS, formatUSD, fromISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EditIncomeDialog } from "@/components/ingresos/edit-income-dialog";
-import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
+
 import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
@@ -174,8 +174,6 @@ function IncomeRow({
   const bgOpacity = useTransform(x, [-120, 0], [1, 0]);
   const iconScale = useTransform(x, [-120, -40], [1, 0.6]);
 
-  const [expanded, setExpanded] = useState(false);
-  const hasDistribution = income.distribution !== null;
   const isUsdOriginal = income.currency === "USD";
 
   function performDelete() {
@@ -289,21 +287,7 @@ function IncomeRow({
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
-            {hasDistribution && (
-              <button
-                onClick={() => setExpanded((v) => !v)}
-                className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
-                aria-label="Ver distribución"
-              >
-                <motion.span
-                  animate={{ rotate: expanded ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="inline-block"
-                >
-                  <ChevronDown className="size-3.5" />
-                </motion.span>
-              </button>
-            )}
+
             <button
               onClick={() => onEdit(income)}
               className="hidden rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100 md:block"
@@ -314,25 +298,7 @@ function IncomeRow({
           </div>
         </div>
 
-        <AnimatePresence initial={false}>
-          {expanded && income.distribution && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-3 border-t border-white/5 pt-3">
-                <WaterfallSankey
-                  amountArs={Number(income.amount_ars)}
-                  distribution={income.distribution}
-                  compact
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
       </motion.div>
     </motion.li>
   );

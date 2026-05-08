@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Sliders } from "lucide-react";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Shell } from "@/components/layout/shell";
 import { MonthSelector } from "@/components/ingresos/month-selector";
@@ -9,8 +11,9 @@ import { QuickAddIncome } from "@/components/ingresos/quick-add";
 import { Totalizer } from "@/components/ingresos/totalizer";
 import { ForecastBar } from "@/components/ingresos/forecast-bar";
 import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
+import { DistributionStep } from "@/components/ingresos/distribution-step";
 import { IncomesList } from "@/components/ingresos/incomes-list";
-import { useIncomes } from "@/hooks/use-incomes";
+import { useIncomes, useUpdateIncome } from "@/hooks/use-incomes";
 import { createClient } from "@/lib/supabase/client";
 import {
   firstOfMonth,
@@ -21,8 +24,11 @@ import {
 
 export default function IngresosPage() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
+  const [editingDistribution, setEditingDistribution] = useState(false);
+  const [isSavingDist, setIsSavingDist] = useState(false);
 
   const { data: incomes = [], isLoading } = useIncomes(month);
+  const updateIncome = useUpdateIncome();
 
   const totalArs = useMemo(
     () => incomes.reduce((s, i) => s + Number(i.amount_ars), 0),
@@ -71,6 +77,23 @@ export default function IngresosPage() {
     },
   });
 
+  const handleBulkUpdateDistribution = async (dist: { fixed_pct: number, variable_pct: number, invest_pct: number, save_pct: number }) => {
+    setIsSavingDist(true);
+    try {
+      await Promise.all(
+        incomes.map((inc) => 
+          updateIncome.mutateAsync({ id: inc.id, patch: { distribution: dist } })
+        )
+      );
+      toast.success("Distribución de ingresos actualizada");
+      setEditingDistribution(false);
+    } catch (error) {
+      toast.error("Hubo un error al guardar la distribución");
+    } finally {
+      setIsSavingDist(false);
+    }
+  };
+
   return (
     <Shell>
       <div className="relative flex flex-col gap-6 p-4 pb-10 sm:p-6 md:p-8">
@@ -110,15 +133,36 @@ export default function IngresosPage() {
         {/* Sankey grande (Teórico) + Lista */}
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-lime-400" />
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Distribución Teórica
-              </p>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-lime-400" />
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Distribución Teórica
+                </p>
+              </div>
+              {totalArs > 0 && !editingDistribution && (
+                <button
+                  onClick={() => setEditingDistribution(true)}
+                  className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
+                  aria-label="Modificar distribución total"
+                >
+                  <Sliders className="size-3.5" />
+                </button>
+              )}
             </div>
             {totalArs === 0 ? (
               <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
                 Sin ingresos este mes
+              </div>
+            ) : editingDistribution ? (
+              <div className="-mx-6 -mb-6">
+                <DistributionStep
+                  amountArs={totalArs}
+                  initial={compositeDistribution}
+                  onBack={() => setEditingDistribution(false)}
+                  onConfirm={handleBulkUpdateDistribution}
+                  isSaving={isSavingDist}
+                />
               </div>
             ) : (
               <WaterfallSankey
