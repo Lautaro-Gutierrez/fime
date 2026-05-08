@@ -8,10 +8,9 @@ import { MonthSelector } from "@/components/ingresos/month-selector";
 import { QuickAddIncome } from "@/components/ingresos/quick-add";
 import { Totalizer } from "@/components/ingresos/totalizer";
 import { ForecastBar } from "@/components/ingresos/forecast-bar";
-import { DistributionDonut } from "@/components/ingresos/distribution-donut";
+import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
 import { IncomesList } from "@/components/ingresos/incomes-list";
 import { useIncomes } from "@/hooks/use-incomes";
-import { sumExpensesByType, useExpenses } from "@/hooks/use-expenses";
 import { createClient } from "@/lib/supabase/client";
 import {
   firstOfMonth,
@@ -24,21 +23,28 @@ export default function IngresosPage() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
 
   const { data: incomes = [], isLoading } = useIncomes(month);
-  const { data: expenses = [] } = useExpenses(month);
 
   const totalArs = useMemo(
     () => incomes.reduce((s, i) => s + Number(i.amount_ars), 0),
     [incomes],
   );
 
-  // Sumas por type para el Sankey — se recalculan en cada invalidación de la
-  // cache de expenses (alta, edición, baja o Realtime).
-  const realExpenses = useMemo(() => {
-    const sums = sumExpensesByType(expenses);
-    return sums.total > 0
-      ? { fixed: sums.fixed, variable: sums.variable }
-      : undefined;
-  }, [expenses]);
+
+
+  const compositeDistribution = useMemo(() => {
+    if (totalArs === 0) return { fixed_pct: 50, variable_pct: 30, invest_pct: 10, save_pct: 10 };
+    return incomes.reduce(
+      (acc, i) => {
+        const w = Number(i.amount_ars) / totalArs;
+        acc.fixed_pct += i.distribution.fixed_pct * w;
+        acc.variable_pct += i.distribution.variable_pct * w;
+        acc.invest_pct += i.distribution.invest_pct * w;
+        acc.save_pct += i.distribution.save_pct * w;
+        return acc;
+      },
+      { fixed_pct: 0, variable_pct: 0, invest_pct: 0, save_pct: 0 }
+    );
+  }, [incomes, totalArs]);
 
   const previousMonth = useMemo(
     () => new Date(month.getFullYear(), month.getMonth() - 1, 1),
@@ -100,9 +106,26 @@ export default function IngresosPage() {
           <ForecastBar month={month} incomesTotal={totalArs} />
         </div>
 
-        {/* Distribution donut + Lista */}
-        <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-          <DistributionDonut incomes={incomes} />
+        {/* Sankey grande (Teórico) + Lista */}
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-lime-400" />
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Distribución Teórica
+              </p>
+            </div>
+            {totalArs === 0 ? (
+              <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+                Sin ingresos este mes
+              </div>
+            ) : (
+              <WaterfallSankey
+                amountArs={totalArs}
+                distribution={compositeDistribution}
+              />
+            )}
+          </div>
           {isLoading ? (
             <div className="flex items-center justify-center rounded-3xl border border-white/5 bg-card/40 p-12 backdrop-blur">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -114,7 +137,6 @@ export default function IngresosPage() {
             <IncomesList
               incomes={incomes}
               filterCategory={null}
-              realExpenses={realExpenses}
             />
           )}
         </div>

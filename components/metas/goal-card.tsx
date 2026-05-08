@@ -97,7 +97,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
               {currency && <span>· {currency}</span>}
               {goal.quest_type === "side" && (
                 <span className="rounded border border-orange-400/20 bg-orange-500/8 px-1.5 py-[1px] text-[8px] font-semibold text-orange-300">
-                  Corto
+                  Side
                 </span>
               )}
             </div>

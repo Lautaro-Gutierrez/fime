@@ -41,7 +41,7 @@ export function QuestBoard({
           active={tab === "main"}
           onClick={() => setTab("main")}
           icon={<Target className="size-3.5" />}
-          label="Largo Plazo"
+          label="Main Quests"
           count={mainGoals.length}
           activeColor="bg-theme-500/15 text-theme-300 border-theme-500/25"
         />
@@ -49,7 +49,7 @@ export function QuestBoard({
           active={tab === "side"}
           onClick={() => setTab("side")}
           icon={<Flag className="size-3.5" />}
-          label="Corto Plazo"
+          label="Side Quests"
           count={sideGoals.length}
           activeColor="bg-orange-500/15 text-orange-300 border-orange-500/25"
         />
@@ -77,11 +77,11 @@ export function QuestBoard({
                 )}
               </div>
               <h3 className="mt-4 text-sm font-semibold text-foreground">
-                Sin metas de {tab === "main" ? "largo plazo" : "corto plazo"}
+                Sin {tab === "main" ? "main quests" : "side quests"}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
                 {tab === "main"
-                  ? "Los objetivos persistentes de largo alcance van acá."
+                  ? "Los objetivos de largo plazo van acá."
                   : "Viajes, hardware y otras compras puntuales."}
               </p>
               <button

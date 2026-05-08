@@ -47,8 +47,8 @@ export function MetasHeader({
       </div>
 
       <div className="relative mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
-        <Stat label="Largo Plazo" value={mainCount} accent="text-theme-400" />
-        <Stat label="Corto Plazo" value={sideCount} accent="text-orange-400" />
+        <Stat label="Main Quests" value={mainCount} accent="text-theme-400" />
+        <Stat label="Side Quests" value={sideCount} accent="text-orange-400" />
         <Stat label="Completadas" value={completedCount} accent="text-theme-400" icon={<Trophy className="size-3.5" />} />
         <Stat
           label="Progreso promedio"

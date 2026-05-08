@@ -21,9 +21,6 @@ import { PrivateAmount } from "@/components/ui/private-amount";
 type Props = {
   incomes: Income[];
   filterCategory: string | null;
-  // Gastos reales del mes agregados por type. Si viene, el Sankey de cada
-  // ingreso expandido usa estos valores para fixed/variable en vez del plan.
-  realExpenses?: { fixed: number; variable: number };
 };
 
 function dayLabel(date: Date) {
@@ -32,7 +29,7 @@ function dayLabel(date: Date) {
   return format(date, "d 'de' LLLL", { locale: es });
 }
 
-export function IncomesList({ incomes, filterCategory, realExpenses }: Props) {
+export function IncomesList({ incomes, filterCategory }: Props) {
   const [editing, setEditing] = useState<Income | null>(null);
 
   const filtered = useMemo(
@@ -99,7 +96,6 @@ export function IncomesList({ incomes, filterCategory, realExpenses }: Props) {
                 date={date}
                 items={items}
                 onEdit={setEditing}
-                realExpenses={realExpenses}
               />
             ))}
           </AnimatePresence>
@@ -126,7 +122,6 @@ function DayGroup({
   date: string;
   items: Income[];
   onEdit: (i: Income) => void;
-  realExpenses?: { fixed: number; variable: number };
 }) {
   const dateObj = fromISODate(date);
   const dayTotal = items.reduce((s, i) => s + Number(i.amount_ars), 0);
@@ -156,7 +151,6 @@ function DayGroup({
               key={i.id}
               income={i}
               onEdit={onEdit}
-              realExpenses={realExpenses}
             />
           ))}
         </AnimatePresence>
@@ -172,7 +166,6 @@ function IncomeRow({
 }: {
   income: Income;
   onEdit: (i: Income) => void;
-  realExpenses?: { fixed: number; variable: number };
 }) {
   const cat = INCOME_CATEGORIES_BY_ID[income.category];
   const Icon = cat.icon;
@@ -337,7 +330,6 @@ function IncomeRow({
                   amountArs={Number(income.amount_ars)}
                   distribution={income.distribution}
                   compact
-                  realExpenses={realExpenses}
                 />
               </div>
             </motion.div>

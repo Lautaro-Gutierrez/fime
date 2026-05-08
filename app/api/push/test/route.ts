@@ -73,11 +73,11 @@ export async function POST(req: Request) {
       for (const exp of expenses) {
         // Normalizar el nombre en caso de typos viejos en BD y obtener la etiqueta limpia
         const normalizedName = exp.category === ("tarjeta_credit" as any) ? "tarjeta_credito" : exp.category;
-        const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || exp.description || normalizedName;
+        const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || exp.source || normalizedName;
 
         payloadsToSend.push({
           title: "Gasto Programado",
-          body: `Hoy vence: ${exp.description ? exp.description : categoryLabel} por $${exp.amount}.`,
+          body: `Hoy vence: ${exp.source ? exp.source : categoryLabel} por $${exp.amount}.`,
           url: "/gastos",
         });
       }
