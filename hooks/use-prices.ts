@@ -13,6 +13,7 @@ const POLL_MS: Record<AssetType, number> = {
   bond_ar: 180_000,
   time_deposit: 0,
   usd_cash: 0,
+  on: 180_000,
 };
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -51,7 +52,8 @@ export function useQuotes(
           } else if (
             g.asset_type === "cedear" ||
             g.asset_type === "stock_ar" ||
-            g.asset_type === "bond_ar"
+            g.asset_type === "bond_ar" ||
+            g.asset_type === "on"
           ) {
             url = `/api/prices/ar?type=${g.asset_type}&symbols=${g.tickers.join(",")}`;
           } else {

@@ -35,6 +35,7 @@ const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
   bond_ar: "from-teal-500/20 via-teal-500/5 to-transparent",
   time_deposit: "from-theme-500/20 via-theme-500/5 to-transparent",
   usd_cash: "from-green-500/20 via-green-500/5 to-transparent",
+  on: "from-violet-500/20 via-violet-500/5 to-transparent",
 };
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").
