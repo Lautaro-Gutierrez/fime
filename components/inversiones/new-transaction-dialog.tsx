@@ -50,15 +50,16 @@ type FormState = {
   metadata: Record<string, string>;
 };
 
-function defaultForm(asset: AssetConfig, mep?: number): FormState {
+function defaultForm(asset: AssetConfig, fxRates?: FxRates): FormState {
   const isArsDenominated = ARS_DENOMINATED.includes(asset.id);
+  const defaultFx = asset.id === "cedear" ? fxRates?.ccl : fxRates?.mep;
   return {
     tx_type: asset.allowedTxTypes[0],
     ticker: "",
     quantity: "",
     price: "",
     currency: isArsDenominated ? "ARS" : "USD",
-    fx_rate: isArsDenominated && mep ? mep.toString() : "",
+    fx_rate: isArsDenominated && defaultFx ? defaultFx.toString() : "",
     fees: "",
     broker: "",
     date: toISODate(new Date()),
@@ -127,7 +128,7 @@ export function NewTransactionDialog() {
 
   function selectAsset(a: AssetConfig) {
     setAsset(a);
-    setForm(defaultForm(a, fx?.mep));
+    setForm(defaultForm(a, fx));
   }
 
   function back() {
@@ -313,7 +314,7 @@ export function NewTransactionDialog() {
                 onBack={back}
                 onSubmit={submit}
                 isPending={createTx.isPending}
-                fxMep={fx?.mep}
+                fxRates={fx}
               />
             )
           )}
@@ -330,7 +331,7 @@ function TransactionForm({
   onBack,
   onSubmit,
   isPending,
-  fxMep,
+  fxRates,
 }: {
   asset: AssetConfig;
   form: FormState;
@@ -338,7 +339,7 @@ function TransactionForm({
   onBack: () => void;
   onSubmit: () => void;
   isPending: boolean;
-  fxMep?: number;
+  fxRates?: FxRates;
 }) {
   const Icon = asset.icon;
   const canSwitchCurrency = asset.requiresPrice;
@@ -536,15 +537,21 @@ function TransactionForm({
                     className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
                   />
                 </div>
-                {fxMep && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => update("fx_rate", fxMep.toString())}
-                    className="h-10 rounded-xl border-theme-500/30 bg-theme-500/10 text-xs font-semibold text-theme-300 hover:bg-theme-500/20 hover:text-theme-200"
-                  >
-                    MEP {Math.round(fxMep)}
-                  </Button>
+                {fxRates && (
+                  (() => {
+                    const defaultFx = asset.id === "cedear" ? fxRates.ccl : fxRates.mep;
+                    const fxLabel = asset.id === "cedear" ? "CCL" : "MEP";
+                    return (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => update("fx_rate", defaultFx.toString())}
+                        className="h-10 rounded-xl border-theme-500/30 bg-theme-500/10 text-xs font-semibold text-theme-300 hover:bg-theme-500/20 hover:text-theme-200"
+                      >
+                        {fxLabel} {Math.round(defaultFx)}
+                      </Button>
+                    );
+                  })()
                 )}
               </div>
             )}

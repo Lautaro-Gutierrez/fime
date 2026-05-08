@@ -107,11 +107,12 @@ export function usePortfolio() {
   const quotesQ = useQuotes(quoteGroups);
   const quotes = quotesQ.data ?? {};
   const fxMep = fxQ.data?.mep ?? 0;
+  const fxCcl = fxQ.data?.ccl ?? 0;
 
   // Holdings valuados con precios actuales.
   const valued: ValuedHolding[] = useMemo(
-    () => valueHoldings(holdings, quotes, fxMep),
-    [holdings, quotes, fxMep],
+    () => valueHoldings(holdings, quotes, fxMep, fxCcl),
+    [holdings, quotes, fxMep, fxCcl],
   );
 
   const totals = useMemo(() => portfolioTotals(valued), [valued]);
@@ -198,6 +199,7 @@ export function usePortfolio() {
     returnSeries,
     snapshots,
     fxMep,
+    fxCcl,
     isLoading:
       investmentsQ.isLoading ||
       initialQ.isLoading ||

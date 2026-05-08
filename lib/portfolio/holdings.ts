@@ -145,6 +145,7 @@ export function valueHoldings(
   holdings: Holding[],
   quotes: QuoteMap,
   fxMep: number,
+  fxCcl: number,
 ): ValuedHolding[] {
   const valued = holdings.map((h): Omit<ValuedHolding, "weight_pct"> => {
     const ticker = (h.ticker ?? "").toUpperCase();
@@ -154,8 +155,11 @@ export function valueHoldings(
 
     if (h.asset_type === "crypto" || h.asset_type === "stock_us") {
       priceUsd = quote?.price ?? null;
+    } else if (h.asset_type === "cedear") {
+      if (quote?.price && fxCcl > 0) {
+        priceUsd = quote.price / fxCcl;
+      }
     } else if (
-      h.asset_type === "cedear" ||
       h.asset_type === "stock_ar"
       // bond_ar excluido V1
     ) {
@@ -211,13 +215,14 @@ export function portfolioTotals(valued: ValuedHolding[]): {
 }
 
 /**
- * Cashflow USD de una tx (solo deposit/withdraw de usd_cash y time_deposit cuentan).
- * Positivo = entra al portfolio, negativo = sale.
+ * Cashflow USD de una tx — capital externo que entra/sale del portfolio.
+ * Buy/deposit = ingreso de capital (+), sell/withdraw = retiro de capital (−).
+ * El TWR usa este valor para neutralizar movimientos de capital y aislar el
+ * rendimiento real de los activos.
  */
 export function txCashflowUsd(tx: Investment): number {
-  if (tx.asset_type !== "usd_cash" && tx.asset_type !== "time_deposit") return 0;
   const value = usdValueOfTx(tx);
-  if (tx.tx_type === "deposit") return value;
-  if (tx.tx_type === "withdraw") return -value;
+  if (tx.tx_type === "buy" || tx.tx_type === "deposit") return value;
+  if (tx.tx_type === "sell" || tx.tx_type === "withdraw") return -value;
   return 0;
 }
