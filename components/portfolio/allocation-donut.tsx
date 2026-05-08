@@ -124,8 +124,6 @@ export function AllocationDonut({ holdings }: Props) {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              activeIndex={activeIndex === -1 ? undefined : activeIndex}
-              activeShape={renderActiveShape}
               data={data}
               cx="50%"
               cy="50%"
@@ -136,6 +134,22 @@ export function AllocationDonut({ holdings }: Props) {
               onMouseEnter={onPieEnter}
               onMouseLeave={onPieLeave}
               stroke="transparent"
+              shape={(props: any) => {
+                if (props.index === activeIndex) {
+                  return renderActiveShape(props);
+                }
+                return (
+                  <Sector
+                    cx={props.cx}
+                    cy={props.cy}
+                    innerRadius={props.innerRadius}
+                    outerRadius={props.outerRadius}
+                    startAngle={props.startAngle}
+                    endAngle={props.endAngle}
+                    fill={props.fill}
+                  />
+                );
+              }}
             >
               {data.map((entry, index) => (
                 <Cell 
