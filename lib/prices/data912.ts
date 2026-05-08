@@ -31,6 +31,7 @@ const ENDPOINT_BY_ASSET: Record<
   cedear: ["arg_cedears"],
   stock_ar: ["arg_stocks"],
   bond_ar: ["arg_bonds", "arg_notes"],
+  on: ["arg_corp"],
 };
 
 async function fetchEndpoint(endpoint: string): Promise<Data912Entry[]> {
@@ -64,7 +65,7 @@ function changePct(entry: Data912Entry): number | undefined {
 // Obtiene quotes de un asset_type AR dado (cedear | stock_ar | bond_ar).
 // Si `tickers` está vacío, devuelve todos los disponibles.
 export async function getArQuotes(
-  assetType: "cedear" | "stock_ar" | "bond_ar",
+  assetType: "cedear" | "stock_ar" | "bond_ar" | "on",
   tickers: string[] = [],
 ): Promise<QuoteMap> {
   const endpoints = ENDPOINT_BY_ASSET[assetType];

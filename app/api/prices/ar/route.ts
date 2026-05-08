@@ -8,9 +8,9 @@ export async function GET(req: NextRequest) {
   const type = req.nextUrl.searchParams.get("type");
   const symbolsParam = req.nextUrl.searchParams.get("symbols") ?? "";
 
-  if (type !== "cedear" && type !== "stock_ar" && type !== "bond_ar") {
+  if (type !== "cedear" && type !== "stock_ar" && type !== "bond_ar" && type !== "on") {
     return NextResponse.json(
-      { error: "invalid_type", message: "type debe ser cedear | stock_ar | bond_ar" },
+      { error: "invalid_type", message: "type debe ser cedear | stock_ar | bond_ar | on" },
       { status: 400 },
     );
   }
