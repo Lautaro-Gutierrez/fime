@@ -9,7 +9,6 @@ import { ASSETS_BY_ID } from "@/lib/assets";
 
 type Props = { holdings: ValuedHolding[] };
 
-// Paleta de colores sobria y corporativa (slate, indigo, teal, emerald apagados)
 const PALETTE = [
   "#6366F1", // indigo-500
   "#475569", // slate-600
@@ -21,6 +20,16 @@ const PALETTE = [
   "#4F46E5", // indigo-600
   "#14B8A6", // teal-500
   "#1E293B", // slate-800
+  "#818CF8", // indigo-400
+  "#94A3B8", // slate-400
+  "#2DD4BF", // teal-400
+  "#34D399", // emerald-400
+  "#3730A3", // indigo-800
+  "#0F172A", // slate-900
+  "#115E59", // teal-800
+  "#065F46", // emerald-800
+  "#A5B4FC", // indigo-300
+  "#CBD5E1", // slate-300
 ];
 
 export function AllocationDonut({ holdings }: Props) {
@@ -28,16 +37,18 @@ export function AllocationDonut({ holdings }: Props) {
 
   const data = useMemo(() => {
     return holdings
-      .filter((h) => h.current_value_usd > 0)
-      .map((h, i) => ({
+      .map((h) => ({
         id: h.key,
         label: h.label,
         asset_type: h.asset_type,
         value: h.current_value_usd,
         weight: h.weight_pct,
-        color: PALETTE[i % PALETTE.length],
       }))
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => b.value - a.value)
+      .map((item, i) => ({
+        ...item,
+        color: PALETTE[i % PALETTE.length],
+      }));
   }, [holdings]);
 
   const total = data.reduce((s, d) => s + d.value, 0);
