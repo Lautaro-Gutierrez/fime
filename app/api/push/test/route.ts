@@ -2,26 +2,23 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import webpush from "web-push";
 
-// Ensure VAPID details are set
-const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-const vapidPrivate = process.env.VAPID_PRIVATE_KEY || "";
-const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@fime.app";
-
-if (vapidPublic && vapidPrivate) {
-  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
-}
-
 export async function POST(req: Request) {
   try {
+    const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+    const vapidPrivate = process.env.VAPID_PRIVATE_KEY || "";
+    const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@fime.app";
+
+    if (!vapidPublic || !vapidPrivate) {
+      return NextResponse.json({ error: "VAPID keys not configured en el servidor" }, { status: 500 });
+    }
+
+    webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (!vapidPublic || !vapidPrivate) {
-      return NextResponse.json({ error: "VAPID keys not configured" }, { status: 500 });
     }
 
     // Get all subscriptions for this user

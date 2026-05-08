@@ -6,16 +6,18 @@ import { toISODate } from "@/lib/format";
 import { CATEGORIES_BY_ID } from "@/lib/categories";
 import type { ExpenseCategory } from "@/types/database";
 
-const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BN_GburDTrFQLFL5wVGzJcfQBoL578Y0ZbPmkVcb6YeRUJpOBMfNR4w6u9skOHwu7E17vxILc2LM2B6GnN8VcUk";
-const vapidPrivate = process.env.VAPID_PRIVATE_KEY || "";
-const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@fime.app";
-
-if (vapidPublic && vapidPrivate) {
-  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
-}
-
 export async function GET(req: Request) {
   try {
+    const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+    const vapidPrivate = process.env.VAPID_PRIVATE_KEY || "";
+    const vapidSubject = process.env.VAPID_SUBJECT || "mailto:admin@fime.app";
+
+    if (!vapidPublic || !vapidPrivate) {
+      return NextResponse.json({ error: "VAPID keys not configured en el servidor" }, { status: 500 });
+    }
+
+    webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+
     // Autenticación simple mediante cabecera Authorization o parámetro secreto si se pasa
     const authHeader = req.headers.get("Authorization");
     const cronSecret = process.env.CRON_SECRET;
@@ -23,10 +25,6 @@ export async function GET(req: Request) {
     // Si hay un CRON_SECRET configurado, exigir que se pase en la cabecera (formato Bearer)
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (!vapidPublic || !vapidPrivate) {
-      return NextResponse.json({ error: "VAPID keys not configured" }, { status: 500 });
     }
 
     const supabase = createAdminClient();
