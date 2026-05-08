@@ -117,7 +117,6 @@ function DayGroup({
   date,
   items,
   onEdit,
-  realExpenses,
 }: {
   date: string;
   items: Income[];
@@ -162,7 +161,6 @@ function DayGroup({
 function IncomeRow({
   income,
   onEdit,
-  realExpenses,
 }: {
   income: Income;
   onEdit: (i: Income) => void;

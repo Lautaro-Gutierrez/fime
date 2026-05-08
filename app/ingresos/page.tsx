@@ -35,6 +35,7 @@ export default function IngresosPage() {
     if (totalArs === 0) return { fixed_pct: 50, variable_pct: 30, invest_pct: 10, save_pct: 10 };
     return incomes.reduce(
       (acc, i) => {
+        if (!i.distribution) return acc;
         const w = Number(i.amount_ars) / totalArs;
         acc.fixed_pct += i.distribution.fixed_pct * w;
         acc.variable_pct += i.distribution.variable_pct * w;
