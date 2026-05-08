@@ -265,7 +265,7 @@ export function NewTransactionDialog() {
                       whileTap={{ scale: 0.97 }}
                       onClick={() => selectAsset(a)}
                       className={cn(
-                        "group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-3.5 text-left transition-all hover:border-white/10",
+                        "group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-3 text-left transition-all hover:border-white/10",
                         ASSET_CARD_GRADIENT[a.id],
                       )}
                     >
@@ -279,22 +279,22 @@ export function NewTransactionDialog() {
                         />
                         <div
                           className={cn(
-                            "relative flex size-10 items-center justify-center rounded-xl ring-1",
+                            "relative flex size-9 items-center justify-center rounded-xl ring-1",
                             a.bgClass,
                             a.textClass,
                             a.borderClass,
                           )}
                         >
-                          <Icon className="size-5" />
+                          <Icon className="size-4.5" />
                         </div>
                       </div>
-
+ 
                       {/* Label */}
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[13px] font-bold leading-[1.2] tracking-tight text-foreground line-clamp-2">
+                        <span className="text-[12px] font-bold leading-tight tracking-tight text-foreground">
                           {a.label}
                         </span>
-                        <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">
+                        <span className="text-[8px] uppercase tracking-widest text-muted-foreground/50">
                           {a.short}
                         </span>
                       </div>
