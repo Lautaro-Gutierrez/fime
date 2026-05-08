@@ -266,9 +266,9 @@ function TransactionRow({
             >
               {TX_TYPE_LABELS[inv.tx_type]}
             </span>
-            {inv.asset_type === 'on' && inv.metadata?.issuer && (
+            {inv.asset_type === 'on' && Boolean(inv.metadata?.issuer) && (
               <span className="text-[10px] text-white/30 truncate font-medium">
-                {inv.metadata.issuer as string}
+                {String(inv.metadata?.issuer)}
               </span>
             )}
           </div>
