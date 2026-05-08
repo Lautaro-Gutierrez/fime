@@ -66,7 +66,7 @@ const renderActiveShape = (props: any) => {
 };
 
 export function AllocationDonut({ holdings }: Props) {
-  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const data = useMemo(() => {
     return holdings
@@ -89,7 +89,7 @@ export function AllocationDonut({ holdings }: Props) {
   };
 
   const onPieLeave = () => {
-    setActiveIndex(undefined);
+    setActiveIndex(-1);
   };
 
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -124,7 +124,7 @@ export function AllocationDonut({ holdings }: Props) {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              activeIndex={activeIndex}
+              activeIndex={activeIndex === -1 ? undefined : activeIndex}
               activeShape={renderActiveShape}
               data={data}
               cx="50%"
@@ -151,7 +151,7 @@ export function AllocationDonut({ holdings }: Props) {
           </PieChart>
         </ResponsiveContainer>
         
-        {activeIndex === undefined && (
+        {activeIndex === -1 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
               <p className="text-2xl font-bold text-white tabular-nums">{data.length}</p>
@@ -172,7 +172,7 @@ export function AllocationDonut({ holdings }: Props) {
                   key={holding.id} 
                   className="flex items-center gap-2 text-xs group cursor-pointer"
                   onMouseEnter={() => setActiveIndex(globalIndex)}
-                  onMouseLeave={() => setActiveIndex(undefined)}
+                  onMouseLeave={() => setActiveIndex(-1)}
                 >
                   <div 
                     className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
