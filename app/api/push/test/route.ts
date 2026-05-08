@@ -51,6 +51,7 @@ export async function POST(req: Request) {
 
       try {
         await webpush.sendNotification(pushSubscription, payload);
+        return true;
       } catch (err: any) {
         if (err.statusCode === 404 || err.statusCode === 410) {
           // Subscription has expired or is no longer valid
@@ -59,12 +60,18 @@ export async function POST(req: Request) {
         } else {
           console.error("Failed to send notification:", err);
         }
+        return false;
       }
     });
 
-    await Promise.all(sendPromises);
+    const results = await Promise.all(sendPromises);
+    const successCount = results.filter(Boolean).length;
 
-    return NextResponse.json({ success: true, count: subs.length });
+    if (successCount === 0 && subs.length > 0) {
+      return NextResponse.json({ error: "Las suscripciones expiraron o fallaron" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, count: successCount });
   } catch (error) {
     console.error("Test push error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

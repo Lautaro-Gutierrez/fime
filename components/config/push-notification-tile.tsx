@@ -99,8 +99,13 @@ export function PushNotificationTile({ className }: { className?: string }) {
 
   async function handleTest() {
     toast.promise(
-      fetch("/api/push/test", { method: "POST" }).then(res => {
-        if (!res.ok) throw new Error();
+      fetch("/api/push/test", { method: "POST" }).then(async res => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Error enviando notificación al servidor");
+        }
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || "Error procesando notificación");
       }),
       {
         loading: "Enviando prueba...",
