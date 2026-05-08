@@ -49,16 +49,14 @@ export function Totalizer({ incomes, previousTotal }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="relative flex min-h-[240px] flex-col justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-card/80 via-card/60 to-emerald-950/30 p-6 backdrop-blur sm:p-10"
+      className="relative flex min-h-[240px] flex-col justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-card/80 via-card/60 to-emerald-950/30 p-6 backdrop-blur sm:p-10"
     >
       {/* Ambient glows */}
-      <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-emerald-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-12 size-48 rounded-full bg-green-500/10 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.03),transparent_60%)]" />
 
       <div className="relative flex flex-col gap-5">
         <div className="flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <span className="size-1.5 rounded-full bg-emerald-400" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Ingresos del mes
           </p>
@@ -68,7 +66,7 @@ export function Totalizer({ incomes, previousTotal }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-5xl font-bold leading-none tracking-tight tabular-nums text-transparent sm:text-7xl lg:text-8xl"
+          className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-4xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent sm:text-5xl lg:text-6xl"
         >
           <PrivateAmount>
             <AnimatedNumber value={total} />

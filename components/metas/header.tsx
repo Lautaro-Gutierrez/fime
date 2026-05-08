@@ -23,17 +23,14 @@ export function MetasHeader({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur sm:p-7"
+      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 sm:p-7"
     >
-      {/* Ambient glow amber/orange */}
-      <div className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-theme-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 size-56 rounded-full bg-orange-500/10 blur-3xl" />
 
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-theme-300/80">
-            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-            Misiones
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-theme-400" />
+            Metas y objetivos
           </span>
           <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
             METAS
@@ -42,16 +39,16 @@ export function MetasHeader({
 
         <button
           onClick={onCreate}
-          className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-theme-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-theme-500/25 transition hover:shadow-theme-500/40"
+          className="group relative inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-white/[0.10]"
         >
           <Plus className="size-4 transition-transform group-hover:rotate-90" />
-          Nueva misión
+          + Nueva meta
         </button>
       </div>
 
       <div className="relative mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
-        <Stat label="Main Quests" value={mainCount} accent="text-theme-400" />
-        <Stat label="Side Quests" value={sideCount} accent="text-orange-400" />
+        <Stat label="Largo Plazo" value={mainCount} accent="text-theme-400" />
+        <Stat label="Corto Plazo" value={sideCount} accent="text-orange-400" />
         <Stat label="Completadas" value={completedCount} accent="text-theme-400" icon={<Trophy className="size-3.5" />} />
         <Stat
           label="Progreso promedio"
@@ -75,7 +72,7 @@ function Stat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-4 py-3 backdrop-blur">
+    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
       <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
         {label}
       </span>

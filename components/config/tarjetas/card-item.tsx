@@ -33,7 +33,7 @@ export function CardItem({ card, onEdit }: Props) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.25 }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-left transition-all hover:border-white/15 hover:shadow-2xl hover:shadow-black/50"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-left transition-all hover:border-white/15 hover:shadow-2xl hover:shadow-black/50"
     >
       {/* Visual: la "tarjeta" propia con gradient del color elegido */}
       <div
@@ -53,10 +53,6 @@ export function CardItem({ card, onEdit }: Props) {
           }}
         />
         {/* Glow */}
-        <div
-          className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full blur-3xl"
-          style={{ backgroundColor: color.hex, opacity: 0.25 }}
-        />
 
         <div className="relative flex items-start justify-between">
           <div

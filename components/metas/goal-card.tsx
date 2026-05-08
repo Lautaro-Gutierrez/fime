@@ -70,26 +70,13 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.25 }}
-      className={cn(
-        "group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur transition hover:border-white/10",
-        cfg.glowClass,
-      )}
+      className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 transition hover:border-white/12"
     >
-      {/* ambient tint */}
-      <div
-        className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full blur-3xl opacity-60"
-        style={{ background: `${cfg.color}18` }}
-      />
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div
-              className={cn(
-                "absolute inset-0 rounded-xl blur-md opacity-50",
-                cfg.bgClass,
-              )}
-            />
+
             <div
               className={cn(
                 "relative flex size-10 items-center justify-center rounded-xl ring-1",
@@ -109,8 +96,8 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
               <span className={cfg.textClass}>{cfg.short}</span>
               {currency && <span>· {currency}</span>}
               {goal.quest_type === "side" && (
-                <span className="rounded-full border border-orange-400/30 bg-orange-500/10 px-1.5 py-[1px] text-[8px] font-semibold text-orange-300">
-                  Side
+                <span className="rounded border border-orange-400/20 bg-orange-500/8 px-1.5 py-[1px] text-[8px] font-semibold text-orange-300">
+                  Corto
                 </span>
               )}
             </div>
@@ -176,7 +163,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
 
       {/* Pacing + ETA */}
       {(progress.pace || progress.eta) && (
-        <div className="relative mt-3 grid gap-1.5 rounded-2xl border border-white/[0.08] bg-black/20 p-3">
+        <div className="relative mt-3 grid gap-1.5 rounded-xl border border-white/[0.08] bg-black/20 p-3">
           {progress.pace && progress.pace.perDay > 0 && (
             <div className="flex items-center justify-between text-[11px]">
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">

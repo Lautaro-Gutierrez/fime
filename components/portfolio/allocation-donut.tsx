@@ -9,12 +9,18 @@ import { ASSETS_BY_ID } from "@/lib/assets";
 
 type Props = { holdings: ValuedHolding[] };
 
-// Paleta de 20 colores con alto contraste (golden-angle-like) para diferenciar posiciones.
+// Paleta de colores sobria y corporativa (slate, indigo, teal, emerald apagados)
 const PALETTE = [
-  "#F97316", "#6366F1", "#06B6D4", "#0EA5E9", "#14B8A6",
-  "#F59E0B", "#22C55E", "#EC4899", "#8B5CF6", "#EF4444",
-  "#84CC16", "#A855F7", "#10B981", "#F43F5E", "#0891B2",
-  "#D946EF", "#FACC15", "#3B82F6", "#DC2626", "#7C3AED",
+  "#6366F1", // indigo-500
+  "#475569", // slate-600
+  "#0F766E", // teal-700
+  "#334155", // slate-700
+  "#4338CA", // indigo-700
+  "#059669", // emerald-600
+  "#64748B", // slate-500
+  "#4F46E5", // indigo-600
+  "#14B8A6", // teal-500
+  "#1E293B", // slate-800
 ];
 
 export function AllocationDonut({ holdings }: Props) {
@@ -42,7 +48,7 @@ export function AllocationDonut({ holdings }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-[300px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-fuchsia-500/5 via-transparent to-transparent p-6 backdrop-blur"
+        className="relative flex h-[300px] flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-fuchsia-500/5 via-transparent to-transparent p-6 backdrop-blur"
       >
         <div className="flex size-11 items-center justify-center rounded-2xl bg-fuchsia-500/15 ring-1 ring-fuchsia-500/30">
           <PieIcon className="size-5 text-fuchsia-300" />
@@ -60,12 +66,11 @@ export function AllocationDonut({ holdings }: Props) {
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
+      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
     >
-      <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-fuchsia-500/10 blur-3xl" />
 
       <div className="relative flex items-center gap-2">
-        <span className="size-1.5 rounded-full bg-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.8)]" />
+        <span className="size-1.5 rounded-full bg-fuchsia-400" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Distribución · {data.length} {data.length === 1 ? "posición" : "posiciones"}
         </p>
@@ -78,8 +83,8 @@ export function AllocationDonut({ holdings }: Props) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={70}
-              outerRadius={104}
+              innerRadius={80}
+              outerRadius={100}
               dataKey="value"
               stroke="none"
               startAngle={90}

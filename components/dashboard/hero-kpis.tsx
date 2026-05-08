@@ -58,9 +58,8 @@ export function HeroKpis() {
   const isLoading = portfolio.isLoading || incomesQ.isLoading || expensesQ.isLoading;
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl ring-1 ring-white/10 p-6 relative overflow-hidden flex flex-col gap-6">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl ring-1 ring-white/10 p-6 relative overflow-hidden flex flex-col gap-6">
       {/* Glow effect sutil */}
-      <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       
       <div className="flex justify-between items-start z-10">
         <div className="flex flex-col">

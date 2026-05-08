@@ -40,7 +40,7 @@ export function DensityPicker() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
-        <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+        <span className="size-1.5 rounded-full bg-theme-400" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Densidad
         </p>

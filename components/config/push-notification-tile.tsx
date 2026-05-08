@@ -118,8 +118,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
   const Icon = subscribed ? BellRing : Bell;
 
   return (
-    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur", className)}>
-      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/5 blur-3xl" />
+    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur", className)}>
 
       <div className="relative flex items-start justify-between">
         <div className={cn(

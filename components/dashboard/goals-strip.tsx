@@ -45,7 +45,7 @@ export function GoalsStrip() {
   }, [portfolio.totals.total_usd, portfolio.holdings, expensesQ.data, incomesQ.data]);
 
   if (goalsQ.isLoading || portfolio.isLoading) {
-    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-48 animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-48 animate-pulse" />;
   }
 
   if (activeQuests.length === 0) {
@@ -53,7 +53,7 @@ export function GoalsStrip() {
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
       <Link href="/metas" className="absolute inset-0 z-10">
         <span className="sr-only">Go to Metas</span>
       </Link>

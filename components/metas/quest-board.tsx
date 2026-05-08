@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Swords, Sparkles } from "lucide-react";
+import { Target, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Goal } from "@/hooks/use-goals";
 import type { GoalProgress } from "@/lib/goals/progress";
@@ -36,22 +36,22 @@ export function QuestBoard({
   return (
     <div className="flex flex-col gap-4">
       {/* Tab selector */}
-      <div className="flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur w-fit">
+      <div className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1 w-fit">
         <TabButton
           active={tab === "main"}
           onClick={() => setTab("main")}
-          icon={<Swords className="size-3.5" />}
-          label="Main Quests"
+          icon={<Target className="size-3.5" />}
+          label="Largo Plazo"
           count={mainGoals.length}
-          activeColor="bg-theme-500/20 text-theme-300 border-theme-500/30"
+          activeColor="bg-theme-500/15 text-theme-300 border-theme-500/25"
         />
         <TabButton
           active={tab === "side"}
           onClick={() => setTab("side")}
-          icon={<Sparkles className="size-3.5" />}
-          label="Side Quests"
+          icon={<Flag className="size-3.5" />}
+          label="Corto Plazo"
           count={sideGoals.length}
-          activeColor="bg-orange-500/20 text-orange-300 border-orange-500/30"
+          activeColor="bg-orange-500/15 text-orange-300 border-orange-500/25"
         />
       </div>
 
@@ -66,28 +66,27 @@ export function QuestBoard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative overflow-hidden rounded-3xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-10 text-center"
+            className="relative overflow-hidden rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-10 text-center"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.06),transparent_70%)]" />
             <div className="relative">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-400 ring-1 ring-theme-500/20">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-theme-500/10 text-theme-400 ring-1 ring-theme-500/20">
                 {tab === "main" ? (
-                  <Swords className="size-5" />
+                  <Target className="size-5" />
                 ) : (
-                  <Sparkles className="size-5" />
+                  <Flag className="size-5" />
                 )}
               </div>
               <h3 className="mt-4 text-sm font-semibold text-foreground">
-                Sin {tab === "main" ? "misiones principales" : "side quests"}
+                Sin metas de {tab === "main" ? "largo plazo" : "corto plazo"}
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
                 {tab === "main"
-                  ? "Los objetivos de largo plazo van acá."
+                  ? "Los objetivos persistentes de largo alcance van acá."
                   : "Viajes, hardware y otras compras puntuales."}
               </p>
               <button
                 onClick={onCreate}
-                className="mt-4 rounded-full bg-gradient-to-br from-theme-500 to-orange-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-theme-500/25 transition hover:shadow-theme-500/40"
+                className="mt-4 rounded-lg border border-white/[0.12] bg-white/[0.06] px-4 py-1.5 text-xs font-semibold text-foreground transition hover:bg-white/[0.10]"
               >
                 Crear la primera
               </button>
@@ -147,7 +146,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition",
+        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition",
         active
           ? activeColor
           : "border-transparent text-muted-foreground hover:text-foreground",

@@ -12,16 +12,16 @@ import { CATEGORIES_BY_ID } from "@/lib/categories";
 import type { ExpenseCategory } from "@/types/database";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Ingresos: "#10B981", // emerald
-  Déficit: "#EF4444", // red
-  Ahorro: "#3B82F6", // blue
-  alquiler: "#8B5CF6", // violet
-  servicios: "#0EA5E9", // sky
-  impuestos: "#F43F5E", // rose
-  comida: "#F59E0B", // amber
-  tarjeta_credito: "#D946EF", // fuchsia
-  educacion: "#06B6D4", // cyan
-  imprevistos: "#EC4899", // pink
+  Ingresos: "#059669", // emerald-600
+  Déficit: "#DC2626", // red-600
+  Ahorro: "#2563EB", // blue-600
+  alquiler: "#64748B", // slate-500
+  servicios: "#475569", // slate-600
+  impuestos: "#334155", // slate-700
+  comida: "#0F766E", // teal-700
+  tarjeta_credito: "#4338CA", // indigo-700
+  educacion: "#1E293B", // slate-800
+  imprevistos: "#BE123C", // rose-700
 };
 
 function CustomNode({ x, y, width, height, index, payload, containerWidth }: any) {
@@ -36,7 +36,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }: any
         width={width}
         height={height}
         fill={CATEGORY_COLORS[normalizedName] || "#6366F1"}
-        fillOpacity={0.9}
+        fillOpacity={0.7}
         radius={4}
       />
       <text
@@ -139,12 +139,11 @@ export function CashflowSankey() {
   const isLoading = incomesQ.isLoading || expensesQ.isLoading;
 
   if (isLoading) {
-    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
 
       <div className="flex justify-between items-start mb-6">
         <div className="flex items-center gap-2">
@@ -167,7 +166,7 @@ export function CashflowSankey() {
               node={<CustomNode containerWidth={1000} />} // passed to get width approx
               nodePadding={20}
               margin={{ top: 10, right: 80, bottom: 10, left: 20 }}
-              link={{ stroke: "#ffffff", strokeOpacity: 0.1 }}
+              link={{ stroke: "#ffffff", strokeOpacity: 0.06 }}
             >
               <RechartsTooltip
                 content={({ active, payload }) => {

@@ -216,7 +216,7 @@ export function NewTransactionDialog() {
         render={
           <Button
             size="lg"
-            className="h-11 gap-2 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 px-5 text-white shadow-lg shadow-indigo-500/25 transition-all hover:from-indigo-400 hover:to-violet-500 hover:shadow-indigo-500/40"
+            className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
           >
             <Plus className="size-4" />
             Nueva operación
@@ -487,7 +487,7 @@ function TransactionForm({
                     className={cn(
                       "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                       form.currency === "USD"
-                        ? "bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md"
+                        ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -498,7 +498,7 @@ function TransactionForm({
                     className={cn(
                       "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                       form.currency === "ARS"
-                        ? "bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md"
+                        ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -659,7 +659,7 @@ function TransactionForm({
         <Button
           onClick={onSubmit}
           disabled={isPending}
-          className="h-11 flex-1 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 transition-all hover:from-indigo-400 hover:to-violet-500 hover:shadow-indigo-500/40 disabled:opacity-50"
+          className="h-11 flex-1 rounded-xl border border-white/[0.12] bg-white/[0.06] text-foreground transition-all hover:bg-white/[0.10] disabled:opacity-50"
         >
           {isPending ? "Guardando..." : "Guardar operación"}
         </Button>

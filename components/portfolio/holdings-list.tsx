@@ -22,10 +22,10 @@ export function HoldingsList({ holdings }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur"
+      className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur"
     >
       <div className="flex items-center gap-2 px-5 py-4">
-        <span className="size-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+        <span className="size-1.5 rounded-full bg-violet-400" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           MI PORTFOLIO
         </p>

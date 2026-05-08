@@ -58,7 +58,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-amber-500/15",
     textClass: "text-amber-400",
     borderClass: "border-amber-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(245,158,11,0.4)]",
+    glowClass: "",
     icon: PiggyBank,
     defaultCurrency: "USD",
     supportedCurrencies: ["USD", "ARS"],
@@ -76,7 +76,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-orange-500/15",
     textClass: "text-orange-400",
     borderClass: "border-orange-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(249,115,22,0.4)]",
+    glowClass: "",
     icon: ShoppingBag,
     defaultCurrency: "USD",
     supportedCurrencies: ["USD", "ARS"],
@@ -94,7 +94,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-rose-500/15",
     textClass: "text-rose-400",
     borderClass: "border-rose-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(244,63,94,0.4)]",
+    glowClass: "",
     icon: ShieldCheck,
     defaultCurrency: "ARS",
     supportedCurrencies: ["ARS"],
@@ -112,7 +112,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-lime-500/15",
     textClass: "text-lime-400",
     borderClass: "border-lime-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(132,204,22,0.4)]",
+    glowClass: "",
     icon: TrendingUp,
     defaultCurrency: "ARS",
     supportedCurrencies: ["ARS", "USD"],
@@ -130,7 +130,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-yellow-500/15",
     textClass: "text-yellow-400",
     borderClass: "border-yellow-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(234,179,8,0.4)]",
+    glowClass: "",
     icon: Percent,
     defaultCurrency: null,
     supportedCurrencies: [],
@@ -148,7 +148,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-red-500/15",
     textClass: "text-red-400",
     borderClass: "border-red-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(239,68,68,0.4)]",
+    glowClass: "",
     icon: CreditCard,
     defaultCurrency: "ARS",
     supportedCurrencies: ["ARS", "USD"],
@@ -166,7 +166,7 @@ export const GOALS: GoalConfig[] = [
     bgClass: "bg-fuchsia-500/15",
     textClass: "text-fuchsia-400",
     borderClass: "border-fuchsia-500/30",
-    glowClass: "shadow-[0_0_20px_-4px_rgba(217,70,239,0.4)]",
+    glowClass: "",
     icon: Sparkles,
     defaultCurrency: "USD",
     supportedCurrencies: ["USD"],
@@ -182,13 +182,13 @@ export const GOALS_BY_ID: Record<GoalType, GoalConfig> = Object.fromEntries(
 ) as Record<GoalType, GoalConfig>;
 
 export const QUEST_LABELS: Record<QuestType, string> = {
-  main: "Main Quests",
-  side: "Side Quests",
+  main: "Largo Plazo",
+  side: "Corto Plazo",
 };
 
 export const QUEST_DESCRIPTIONS: Record<QuestType, string> = {
-  main: "Largo plazo · objetivos persistentes",
-  side: "Compras puntuales · objetivos acotados",
+  main: "Objetivos persistentes de largo alcance",
+  side: "Compras puntuales y objetivos acotados",
 };
 
 export const SOURCE_TYPE_LABELS: Record<SourceTypeId, string> = {

@@ -150,7 +150,7 @@ export function QuickAdd() {
         render={
           <Button
             size="lg"
-            className="h-11 gap-2 rounded-full bg-gradient-to-br from-theme-500 to-teal-600 px-5 text-white shadow-lg shadow-theme-500/25 transition-all hover:from-theme-400 hover:to-teal-500 hover:shadow-theme-500/40"
+            className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
           >
             <Plus className="size-4" />
             Nuevo gasto
@@ -283,7 +283,7 @@ export function QuickAdd() {
                 className={cn(
                   "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                   type === "variable"
-                    ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
+                    ? "bg-theme-500/10 border border-theme-500/20 text-theme-300"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -295,7 +295,7 @@ export function QuickAdd() {
                 className={cn(
                   "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
                   type === "fixed"
-                    ? "bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-md"
+                    ? "bg-theme-500/10 border border-theme-500/20 text-theme-300"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >

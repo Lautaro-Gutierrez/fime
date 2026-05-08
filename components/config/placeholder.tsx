@@ -7,7 +7,7 @@ type Props = {
 
 export function Placeholder({ title, description }: Props) {
   return (
-    <div className="relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-12 text-center">
+    <div className="relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-12 text-center">
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="size-full bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:16px_16px]" />
       </div>

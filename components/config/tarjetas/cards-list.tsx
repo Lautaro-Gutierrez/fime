@@ -37,7 +37,7 @@ export function CardsList() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-72 animate-pulse rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl"
+              className="h-72 animate-pulse rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl"
             />
           ))}
         </div>
@@ -67,7 +67,7 @@ export function CardsList() {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-12 text-center">
+    <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl p-12 text-center">
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="size-full bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:16px_16px]" />
       </div>

@@ -67,7 +67,7 @@ export function PerformanceChart({ series, onReset }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-500/5 via-transparent to-transparent p-6 backdrop-blur"
+        className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-violet-500/5 via-transparent to-transparent p-6 backdrop-blur"
       >
         <div className="flex size-11 items-center justify-center rounded-2xl bg-violet-500/15 ring-1 ring-violet-500/30">
           <Activity className="size-5 text-violet-300" />
@@ -92,13 +92,12 @@ export function PerformanceChart({ series, onReset }: Props) {
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur sm:p-6"
+      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur sm:p-6"
     >
-      <div className="pointer-events-none absolute -left-24 -top-24 size-56 rounded-full bg-violet-500/10 blur-3xl" />
 
       <div className="relative flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+          <span className="size-1.5 rounded-full bg-violet-400" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Rendimiento vs SP500
           </p>

@@ -46,7 +46,7 @@ export function TransactionsList({ investments }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent p-12 text-center"
+        className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent p-12 text-center"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
         <div className="relative flex flex-col items-center gap-3">

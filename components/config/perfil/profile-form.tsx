@@ -97,9 +97,8 @@ export function ProfileForm() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
-        <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
 
         <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:items-start">
           <AvatarDisplay avatarKey={prefs?.avatar_url} displayName={displayName} size={96} />
@@ -152,9 +151,8 @@ export function ProfileForm() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.03 }}
-        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
-        <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-theme-500/8 blur-3xl" />
         <div className="relative">
           <AvatarPicker currentKey={prefs?.avatar_url} />
         </div>
@@ -165,11 +163,11 @@ export function ProfileForm() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
+        className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur"
       >
         <div className="relative flex flex-col gap-5">
           <div className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+            <span className="size-1.5 rounded-full bg-theme-400" />
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Seguridad
             </p>

@@ -42,12 +42,11 @@ export function ForecastBar({ month, incomesTotal }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.05 }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur"
+      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur"
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-lime-500/10 blur-3xl" />
 
       <div className="relative flex items-center gap-2">
-        <span className="size-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.8)]" />
+        <span className="size-1.5 rounded-full bg-lime-400" />
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Flujo libre del mes
         </p>

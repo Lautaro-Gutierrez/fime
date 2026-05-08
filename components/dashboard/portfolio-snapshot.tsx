@@ -41,17 +41,16 @@ export function PortfolioSnapshot() {
   const isPositive = lastTwr >= 0;
 
   if (portfolio.isLoading) {
-    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[320px] animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[320px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
       <Link href="/portfolio" className="absolute inset-0 z-10">
         <span className="sr-only">Go to Portfolio</span>
       </Link>
       
       {/* Background glow para la card */}
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-fuchsia-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="flex justify-between items-start mb-6">
         <div>

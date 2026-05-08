@@ -51,11 +51,11 @@ export function ActivityFeed() {
   const isLoading = expensesQ.isLoading || investmentsQ.isLoading;
 
   if (isLoading) {
-    return <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[250px] animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[250px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative group hover:border-white/10 transition-colors">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative group hover:border-white/10 transition-colors">
       <div className="flex items-center gap-2 mb-6">
         <Activity className="w-5 h-5 text-indigo-400" />
         <h3 className="text-lg font-medium text-foreground/80">Activity Feed</h3>

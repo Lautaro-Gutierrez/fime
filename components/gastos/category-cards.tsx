@@ -42,13 +42,12 @@ export function CategoryCards({ expenses, activeCategory, onSelect }: Props) {
   );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur sm:p-6">
+    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur sm:p-6">
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute -right-16 -bottom-16 size-40 rounded-full bg-theme-500/10 blur-3xl" />
 
       <div className="relative mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          <span className="size-1.5 rounded-full bg-theme-400" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Categorías
           </p>
