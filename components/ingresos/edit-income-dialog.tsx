@@ -304,7 +304,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     value={category}
                     onValueChange={(v) => setCategory(v as IncomeCategory)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
+                    <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -337,7 +337,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       placeholder="Empresa, cliente..."
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -352,7 +352,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                     />
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={120}
-                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                   />
                 </div>
 

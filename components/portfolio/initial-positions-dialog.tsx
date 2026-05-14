@@ -132,7 +132,7 @@ export function InitialPositionsDialog() {
       </DialogTrigger>
 
       <DialogContent
-        className="border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur-xl overflow-hidden sm:max-w-lg"
+        className="border-white/5 bg-white/[0.03] backdrop-blur-xl-xl overflow-hidden sm:max-w-lg"
         showCloseButton
       >
         <div className="flex items-center gap-3">
@@ -411,7 +411,7 @@ function InitialPositionForm({
   }
 
   const inputCls =
-    "h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20";
+    "h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20";
 
   return (
     <motion.form
@@ -525,7 +525,7 @@ function InitialPositionForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="h-11 flex-1 rounded-xl border-white/10 bg-white/[0.03] backdrop-blur-xl backdrop-blur"
+          className="h-11 flex-1 rounded-xl border-white/10 bg-white/[0.03] backdrop-blur-xl"
         >
           Cancelar
         </Button>

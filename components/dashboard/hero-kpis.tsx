@@ -66,7 +66,7 @@ export function HeroKpis() {
           <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl flex items-center gap-2">
             FiMe <span className="text-theme-400">·</span> Dashboard
           </h1>
-          <h2 className="text-sm text-muted-foreground">Financial Command Center</h2>
+          <h2 className="text-sm text-muted-foreground">Centro de Control Financiero</h2>
         </div>
         <button 
           onClick={toggleStealthMode} 
@@ -80,7 +80,7 @@ export function HeroKpis() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 z-10">
         {/* KPI 1: Patrimonio Total */}
         <div className="flex flex-col gap-1 relative p-4 rounded-2xl bg-gradient-to-br from-slate-500/10 to-transparent border border-white/[0.05]">
-          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Net Worth</div>
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Patrimonio Neto</div>
           {isLoading ? (
             <div className="h-9 w-32 bg-white/5 animate-pulse rounded" />
           ) : (
@@ -110,7 +110,7 @@ export function HeroKpis() {
 
         {/* KPI 2: Free Cash Flow */}
         <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-white/[0.05]">
-          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Free Cash Flow</div>
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Flujo Libre</div>
           {isLoading ? (
             <div className="h-9 w-24 bg-white/5 animate-pulse rounded" />
           ) : (
@@ -122,7 +122,7 @@ export function HeroKpis() {
 
         {/* KPI 3: P&L */}
         <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-white/[0.05]">
-          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">P&L (Portfolio)</div>
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Rend. Portfolio</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (
@@ -134,7 +134,7 @@ export function HeroKpis() {
 
         {/* KPI 4: Savings Rate */}
         <div className="flex flex-col gap-1 p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-white/[0.05]">
-          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Savings Rate</div>
+          <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Tasa de Ahorro</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (

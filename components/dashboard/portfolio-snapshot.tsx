@@ -20,14 +20,14 @@ export function PortfolioSnapshot() {
   const donutData = useMemo(() => {
     return portfolio.holdings
       .filter((h) => h.current_value_usd > 0)
+      .sort((a, b) => b.current_value_usd - a.current_value_usd)
+      .slice(0, 5) // top 5 para el minidonut
       .map((h, i) => ({
         id: h.key,
         label: h.label,
         value: h.current_value_usd,
-        color: h.key === 'GOOGL' || h.label === 'GOOGL' ? '#22C55E' : PALETTE[i % PALETTE.length],
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5); // top 5 para el minidonut
+        color: PALETTE[i % PALETTE.length],
+      }));
   }, [portfolio.holdings]);
 
   const twrData = useMemo(() => {
@@ -41,11 +41,11 @@ export function PortfolioSnapshot() {
   const isPositive = lastTwr >= 0;
 
   if (portfolio.isLoading) {
-    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[320px] animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
       <Link href="/portfolio" className="absolute inset-0 z-10">
         <span className="sr-only">Go to Portfolio</span>
       </Link>
@@ -56,7 +56,7 @@ export function PortfolioSnapshot() {
         <div>
           <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Portfolio Snapshot
+            Resumen Portfolio
           </h3>
           <div className="text-3xl font-semibold mt-1">
             {isStealthMode ? "******" : formatUSD(portfolio.totals.total_usd, false)}
@@ -112,7 +112,7 @@ export function PortfolioSnapshot() {
 
         {/* Mini TWR Chart (30d) */}
         <div className="flex flex-col justify-center gap-2 h-[120px]">
-          <div className="text-xs text-muted-foreground">TWR (30d)</div>
+          <div className="text-xs text-muted-foreground">Rend. (30d)</div>
           <div className="h-[60px] w-full">
             {twrData.length > 1 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -129,7 +129,7 @@ export function PortfolioSnapshot() {
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center text-xs text-muted-foreground">
-                No data
+                Sin datos
               </div>
             )}
           </div>

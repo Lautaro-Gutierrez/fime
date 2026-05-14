@@ -25,8 +25,6 @@ export const viewport: Viewport = {
   themeColor: "#0A0E1A",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({
@@ -53,7 +51,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-dvh flex flex-col bg-background text-foreground">
+      <body className="min-h-dvh flex flex-col bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <QueryProvider>
             <PreferencesProvider>{children}</PreferencesProvider>

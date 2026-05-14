@@ -20,6 +20,7 @@ import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { MobileFab } from "@/components/layout/mobile-fab";
 
 type NavItem = {
   href: string;
@@ -91,14 +92,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </button>
       </aside>
 
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 md:hidden">
+        <Link href="/" className="flex items-center gap-2 group relative">
+          <div className="absolute inset-0 bg-theme-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Image src={logoImg} alt="FiMe" className="size-7 rounded shadow-sm relative z-10 ring-1 ring-white/10" />
+          <span className="font-bold tracking-tight text-white drop-shadow-md relative z-10">FiMe</span>
+        </Link>
+        <Link href="/config" className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-white/5 transition-colors">
+          <Settings className="size-5" />
+        </Link>
+      </div>
+
       {/* Content */}
       <main className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
         {children}
       </main>
 
+      <MobileFab />
+
       {/* Bottom tabs (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 backdrop-blur md:hidden">
-        {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/portfolio", "/metas", "/config"].includes(n.href)).map(
+        {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/metas"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;
             const active = pathname === item.href;

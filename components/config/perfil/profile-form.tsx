@@ -117,7 +117,7 @@ export function ProfileForm() {
                   }}
                   placeholder="Tu nombre"
                   maxLength={50}
-                  className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
+                  className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-theme-500/30"
                 />
                 {nameDirty && (
                   <Button
@@ -203,7 +203,7 @@ export function ProfileForm() {
                     onChange={(e) => setNewPw(e.target.value)}
                     minLength={6}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-theme-500/30"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -215,7 +215,7 @@ export function ProfileForm() {
                     value={confirmPw}
                     onChange={(e) => setConfirmPw(e.target.value)}
                     autoComplete="new-password"
-                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-theme-500/30"
+                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-theme-500/30"
                   />
                 </div>
                 <Button

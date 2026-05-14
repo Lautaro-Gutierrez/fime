@@ -585,7 +585,7 @@ function TransactionForm({
               placeholder={field.placeholder}
               value={form.metadata[field.key] ?? ""}
               onChange={(e) => updateMetadata(field.key, e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
             />
           </div>
         ))}
@@ -600,7 +600,7 @@ function TransactionForm({
             type="date"
             value={form.date}
             onChange={(e) => update("date", e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
           />
         </div>
 
@@ -615,7 +615,7 @@ function TransactionForm({
               placeholder="IEB, Balanz..."
               value={form.broker}
               onChange={(e) => update("broker", e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -644,7 +644,7 @@ function TransactionForm({
             value={form.note}
             onChange={(e) => update("note", e.target.value)}
             maxLength={120}
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
           />
         </div>
       </div>

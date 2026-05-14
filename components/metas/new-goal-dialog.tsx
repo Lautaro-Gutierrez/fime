@@ -344,7 +344,7 @@ export function GoalFormBody({
                   ? "Pasivo 1k USD/mes"
                   : "Mi meta"
           }
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
         />
       </Field>
 
@@ -374,7 +374,7 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, target: e.target.value }))}
             placeholder={type.isPercentage ? "30" : "10000"}
             inputMode="decimal"
-            className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+            className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
           />
           {!type.isPercentage && type.supportedCurrencies.length > 1 && (
             <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 backdrop-blur">
@@ -517,7 +517,7 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, current: e.target.value }))}
             placeholder="0"
             inputMode="decimal"
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
           />
         </Field>
       )}
@@ -529,7 +529,7 @@ export function GoalFormBody({
           value={form.deadline}
           min={toISODate(new Date())}
           onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
         />
       </Field>
 
@@ -539,7 +539,7 @@ export function GoalFormBody({
           value={form.note}
           onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
           placeholder="Detalle"
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
         />
       </Field>
     </div>

@@ -203,7 +203,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                 value={category}
                 onValueChange={(v) => handleCategoryChange(v as ExpenseCategory)}
               >
-                <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
+                <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20">
                   <span className="flex items-center gap-2 text-sm">
                     <Icon className={cn("size-3.5", cat.textClass)} />
                     {cat.label}
@@ -286,7 +286,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                         value={cardId ?? "__none__"}
                         onValueChange={(v) => setCardId(v === "__none__" ? null : v)}
                       >
-                        <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20">
+                        <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20">
                           <span className="flex items-center gap-2 text-sm">
                             {selectedCard && selectedColor ? (
                               <>
@@ -346,7 +346,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   value={date}
                   max={maxDate}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -360,7 +360,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                 />
               </div>
             </div>

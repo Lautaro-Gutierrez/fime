@@ -290,7 +290,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   onChange={(e) =>
                     setMetadata({ ...metadata, [field.key]: e.target.value })
                   }
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                 />
               </div>
             ))}
@@ -305,7 +305,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -333,7 +333,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   id="e-broker"
                   value={broker}
                   onChange={(e) => setBroker(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -360,7 +360,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={120}
-                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl backdrop-blur focus-visible:border-white/20"
+                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
               />
             </div>
           </div>

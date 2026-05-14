@@ -43,7 +43,7 @@ export function ActivityFeed() {
       .sort((a, b) => {
         // Sort by date desc, then by created_at desc
         if (a.date !== b.date) return b.date.localeCompare(a.date);
-        return b.created_at.localeCompare(a.date);
+        return b.created_at.localeCompare(a.created_at);
       })
       .slice(0, 5); // Últimas 5 operaciones
   }, [expensesQ.data, investmentsQ.data]);
@@ -51,14 +51,14 @@ export function ActivityFeed() {
   const isLoading = expensesQ.isLoading || investmentsQ.isLoading;
 
   if (isLoading) {
-    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full min-h-[250px] animate-pulse" />;
+    return <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[250px] animate-pulse" />;
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl backdrop-blur p-6 h-full flex flex-col relative group hover:border-white/10 transition-colors">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full flex flex-col relative group hover:border-white/10 transition-colors">
       <div className="flex items-center gap-2 mb-6">
         <Activity className="w-5 h-5 text-indigo-400" />
-        <h3 className="text-lg font-medium text-foreground/80">Activity Feed</h3>
+        <h3 className="text-lg font-medium text-foreground/80">Movimientos Recientes</h3>
       </div>
 
       {combinedActivity.length === 0 ? (
@@ -83,7 +83,7 @@ export function ActivityFeed() {
                       {item.label}
                     </div>
                     <div className="text-xs text-muted-foreground capitalize">
-                      {format(parseISO(item.date), "d MMM", { locale: es })} • {item.category}
+                      {format(parseISO(item.date), "d MMM", { locale: es })} • {item.category?.replace(/_/g, " ")}
                     </div>
                   </div>
                 </div>
