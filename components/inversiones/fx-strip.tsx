@@ -114,7 +114,7 @@ export function FxStrip() {
               transition={{ duration: 0.3, delay: idx * 0.04 }}
               whileHover={{ y: -2 }}
               className={cn(
-                "group relative overflow-hidden rounded-2xl border border-white/[0.08] backdrop-blur-xl bg-gradient-to-br p-4 transition-all",
+                "group relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/[0.08] backdrop-blur-xl bg-gradient-to-br p-3 sm:p-4 transition-all min-w-0",
                 rate.bgTint,
                 rate.gradient,
                 rate.glow,
@@ -140,13 +140,13 @@ export function FxStrip() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[11px] font-medium text-muted-foreground">
+                <div className="flex items-baseline gap-1 min-w-0">
+                  <span className="text-[11px] font-medium text-muted-foreground shrink-0">
                     $
                   </span>
-                  <span className="font-mono text-2xl font-bold tabular-nums text-foreground md:text-3xl">
+                  <span className="font-mono text-xl sm:text-2xl font-bold tabular-nums text-foreground md:text-3xl truncate min-w-0">
                     {isLoading ? (
-                      <span className="inline-block h-8 w-20 animate-pulse rounded bg-white/5" />
+                      <span className="inline-block h-8 w-16 sm:w-20 animate-pulse rounded bg-white/5" />
                     ) : typeof value === "number" ? (
                       formatRate(value)
                     ) : (

@@ -103,7 +103,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Content */}
-      <main className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
+      <main className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0 w-full overflow-x-hidden">
         {children}
       </main>
 

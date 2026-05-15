@@ -73,7 +73,7 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-2xl min-[360px]:text-3xl sm:text-5xl lg:text-6xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent min-w-0"
+            className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent min-w-0 break-words"
           >
             <PrivateAmount>
               <AnimatedNumber value={total} />
@@ -97,7 +97,7 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           {delta !== null && (
             <motion.span
               initial={{ opacity: 0, scale: 0.9 }}

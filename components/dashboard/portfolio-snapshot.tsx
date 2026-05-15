@@ -69,7 +69,7 @@ export function PortfolioSnapshot() {
 
       <div className="grid grid-cols-2 gap-2 flex-1 items-center">
         {/* Minidonut + Legend */}
-        <div className="flex flex-col xl:flex-row items-center xl:items-start justify-center gap-3">
+        <div className="flex flex-col xl:flex-row items-center xl:items-start justify-center gap-3 min-w-0">
           <div className="h-[100px] w-[100px] shrink-0 relative">
             {donutData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -111,7 +111,7 @@ export function PortfolioSnapshot() {
         </div>
 
         {/* Mini TWR Chart (30d) */}
-        <div className="flex flex-col justify-center gap-2 h-[120px]">
+        <div className="flex flex-col justify-center gap-2 h-[120px] min-w-0">
           <div className="text-xs text-muted-foreground">Rend. (30d)</div>
           <div className="h-[60px] w-full">
             {twrData.length > 1 ? (

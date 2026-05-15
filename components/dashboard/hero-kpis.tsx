@@ -79,12 +79,12 @@ export function HeroKpis() {
 
       <div className="grid grid-cols-1 min-[360px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 z-10">
         {/* KPI 1: Patrimonio Total */}
-        <div className="flex flex-col gap-1 relative p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-slate-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-0.5 sm:gap-1 relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
           <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Patrimonio Neto</div>
           {isLoading ? (
             <div className="h-9 w-32 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className="text-xl min-[360px]:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white [font-feature-settings:'tnum'] truncate">
+            <div className="text-lg min-[400px]:text-xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white [font-feature-settings:'tnum'] truncate">
               {isStealthMode ? "******" : formatUSD(portfolio.totals.total_usd, false)}
             </div>
           )}
@@ -109,36 +109,36 @@ export function HeroKpis() {
         </div>
 
         {/* KPI 2: Free Cash Flow */}
-        <div className="flex flex-col gap-1 p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-0.5 sm:gap-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
           <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Flujo Libre</div>
           {isLoading ? (
             <div className="h-9 w-24 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className={`text-lg min-[360px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] truncate ${!isStealthMode && freeCashFlow < 0 ? "text-red-400" : "text-white"}`}>
+            <div className={`text-lg min-[400px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] truncate ${!isStealthMode && freeCashFlow < 0 ? "text-red-400" : "text-white"}`}>
               {isStealthMode ? "******" : formatUSD(freeCashFlow, true)}
             </div>
           )}
         </div>
 
         {/* KPI 3: P&L */}
-        <div className="flex flex-col gap-1 p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-0.5 sm:gap-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
           <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Rend. Portfolio</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className={`text-lg min-[360px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] truncate ${!isStealthMode && pnlPct > 0 ? "text-emerald-400" : !isStealthMode && pnlPct < 0 ? "text-red-400" : "text-white"}`}>
+            <div className={`text-lg min-[400px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight [font-feature-settings:'tnum'] truncate ${!isStealthMode && pnlPct > 0 ? "text-emerald-400" : !isStealthMode && pnlPct < 0 ? "text-red-400" : "text-white"}`}>
               {isStealthMode ? "******" : `${pnlPct > 0 ? "+" : ""}${pnlPct.toFixed(2)}%`}
             </div>
           )}
         </div>
 
         {/* KPI 4: Savings Rate */}
-        <div className="flex flex-col gap-1 p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
+        <div className="flex flex-col gap-0.5 sm:gap-1 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent border border-white/[0.05] min-w-0 overflow-hidden">
           <div className="text-xs font-medium text-white/40 uppercase tracking-wider">Tasa de Ahorro</div>
           {isLoading ? (
             <div className="h-9 w-20 bg-white/5 animate-pulse rounded" />
           ) : (
-            <div className="text-lg min-[360px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-white [font-feature-settings:'tnum'] truncate">
+            <div className="text-lg min-[400px]:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-white [font-feature-settings:'tnum'] truncate">
               {isStealthMode ? "******" : `${savingsRate.toFixed(1)}%`}
             </div>
           )}
