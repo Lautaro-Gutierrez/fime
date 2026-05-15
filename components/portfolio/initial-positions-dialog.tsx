@@ -498,7 +498,7 @@ function InitialPositionForm({
               value={metadata[field.key] ?? ""}
               onValueChange={(val) => setMetadata({ ...metadata, [field.key]: val as string })}
             >
-              <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+              <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
                 <SelectValue placeholder={field.placeholder ?? "Seleccionar"} />
               </SelectTrigger>
               <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
