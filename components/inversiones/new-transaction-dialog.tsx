@@ -21,6 +21,7 @@ import type { FxRates } from "@/lib/prices/types";
 import { useCreateInvestment } from "@/hooks/use-investments";
 import { toISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
 
 // ARS-denominated asset types (need fx_rate conversion to USD).
 const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar", "on"];
@@ -362,6 +363,20 @@ function TransactionForm({
   function updateMetadata(key: string, value: string) {
     setForm({ ...form, metadata: { ...form.metadata, [key]: value } });
   }
+
+  // Auto-completar ratio de CEDEARs cuando cambia el ticker
+  useEffect(() => {
+    if (asset.id === "cedear" && form.ticker) {
+      const ratio = getCedearRatio(form.ticker);
+      if (ratio && form.metadata["ratio"] !== ratio.toString()) {
+        setForm({
+          ...form,
+          metadata: { ...form.metadata, ratio: ratio.toString() },
+        });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.ticker]);
 
   return (
     <motion.div

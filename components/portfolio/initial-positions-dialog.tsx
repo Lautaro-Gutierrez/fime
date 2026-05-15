@@ -25,6 +25,7 @@ import {
   type InitialPosition,
 } from "@/hooks/use-initial-positions";
 import { cn } from "@/lib/utils";
+import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
 
 // Gradient por asset (reusa convención M2).
 const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
@@ -371,6 +372,16 @@ function InitialPositionForm({
         )
       : {},
   );
+
+  useEffect(() => {
+    if (asset.id === "cedear" && ticker) {
+      const ratio = getCedearRatio(ticker);
+      if (ratio && metadata["ratio"] !== ratio.toString()) {
+        setMetadata((prev) => ({ ...prev, ratio: ratio.toString() }));
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticker]);
 
   const canSubmit = useMemo(() => {
     const qty = parseNumber(quantity);
