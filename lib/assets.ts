@@ -13,9 +13,10 @@ import type { AssetType, TxType } from "@/types/database";
 export type MetadataField = {
   key: string;
   label: string;
-  type: "number" | "text" | "date" | "percent";
+  type: "number" | "text" | "date" | "percent" | "select";
   required: boolean;
   placeholder?: string;
+  options?: { label: string; value: string }[];
 };
 
 export type AssetConfig = {
@@ -172,7 +173,20 @@ export const ASSETS: AssetConfig[] = [
     allowedTxTypes: ["deposit", "withdraw"],
     requiresTicker: false,
     requiresPrice: false,
-    metadataFields: [],
+    metadataFields: [
+      {
+        key: "usd_type",
+        label: "Tipo de dólar",
+        type: "select",
+        required: true,
+        options: [
+          { label: "MEP", value: "mep" },
+          { label: "CCL", value: "ccl" },
+          { label: "Blue", value: "blue" },
+          { label: "Oficial", value: "oficial" },
+        ],
+      },
+    ],
   },
   {
     id: "on",

@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ASSETS, ASSETS_BY_ID } from "@/lib/assets";
 import type { AssetConfig } from "@/lib/assets";
 import type { AssetType } from "@/types/database";
@@ -486,21 +493,39 @@ function InitialPositionForm({
             {field.label}
             {field.required && <span className="text-rose-400"> *</span>}
           </Label>
-          <Input
-            id={field.key}
-            type={field.type === "date" ? "date" : "text"}
-            value={metadata[field.key] ?? ""}
-            onChange={(e) =>
-              setMetadata({ ...metadata, [field.key]: e.target.value })
-            }
-            placeholder={field.placeholder}
-            inputMode={
-              field.type === "number" || field.type === "percent"
-                ? "decimal"
-                : undefined
-            }
-            className={inputCls}
-          />
+          {field.type === "select" ? (
+            <Select
+              value={metadata[field.key] ?? ""}
+              onValueChange={(val) => setMetadata({ ...metadata, [field.key]: val })}
+            >
+              <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+                <SelectValue placeholder={field.placeholder ?? "Seleccionar"} />
+              </SelectTrigger>
+              <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+                {field.options?.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="focus:bg-white/10 cursor-pointer">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              id={field.key}
+              type={field.type === "date" ? "date" : "text"}
+              value={metadata[field.key] ?? ""}
+              onChange={(e) =>
+                setMetadata({ ...metadata, [field.key]: e.target.value })
+              }
+              placeholder={field.placeholder}
+              inputMode={
+                field.type === "number" || field.type === "percent"
+                  ? "decimal"
+                  : undefined
+              }
+              className={inputCls}
+            />
+          )}
         </div>
       ))}
 
