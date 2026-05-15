@@ -145,14 +145,14 @@ export function CashflowSankey() {
   return (
     <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full min-h-[320px] flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
 
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex items-center gap-2">
-          <Network className="w-5 h-5 text-emerald-400" />
-          <h3 className="text-lg font-medium text-foreground/80">Cashflow Sankey</h3>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Network className="w-5 h-5 text-emerald-400 shrink-0" />
+          <h3 className="text-base sm:text-lg font-medium text-foreground/80 truncate">Cashflow Sankey</h3>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Free Cash Flow</div>
-          <div className={`text-xl font-bold tracking-tight [font-feature-settings:'tnum'] ${freeCashFlow < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+        <div className="sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+          <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium whitespace-nowrap">Free Cash Flow</div>
+          <div className={`text-lg sm:text-xl font-bold tracking-tight [font-feature-settings:'tnum'] ${freeCashFlow < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
             {isStealthMode ? '******' : formatUSD(freeCashFlow, true)}
           </div>
         </div>
@@ -165,7 +165,7 @@ export function CashflowSankey() {
               data={sankeyData}
               node={<CustomNode containerWidth={1000} />} // passed to get width approx
               nodePadding={20}
-              margin={{ top: 10, right: 80, bottom: 10, left: 20 }}
+              margin={{ top: 10, right: 60, bottom: 10, left: 10 }}
               link={{ stroke: "#ffffff", strokeOpacity: 0.06 }}
             >
               <RechartsTooltip

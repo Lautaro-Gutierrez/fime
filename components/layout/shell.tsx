@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Receipt,
   TrendingUp,
-  PieChart,
   Wallet,
   Target,
   Settings,
@@ -34,7 +33,6 @@ const NAV: NavItem[] = [
   { href: "/", label: "Dashboard", short: "Inicio", icon: LayoutDashboard, enabled: true },
   { href: "/gastos", label: "Gastos", short: "Gastos", icon: Receipt, enabled: true },
   { href: "/inversiones", label: "Inversiones", short: "Invers.", icon: TrendingUp, enabled: true },
-  { href: "/portfolio", label: "Portfolio", short: "Port.", icon: PieChart, enabled: true },
   { href: "/ingresos", label: "Ingresos", short: "Ingr.", icon: Wallet, enabled: true },
   { href: "/metas", label: "Metas", short: "Metas", icon: Target, enabled: true },
   { href: "/config", label: "Configuración", short: "Conf.", icon: Settings, enabled: true },
@@ -112,7 +110,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <MobileFab />
 
       {/* Bottom tabs (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 md:hidden">
         {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/metas"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;

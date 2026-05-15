@@ -13,7 +13,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 export default function DashboardPage() {
   return (
     <Shell>
-      <div className="flex flex-col gap-6 p-4 md:p-8 w-full max-w-7xl mx-auto">
+      <div className="flex flex-col gap-6 p-4 md:p-8 w-full max-w-7xl mx-auto overflow-x-hidden">
         {/* 1. HERO - KPIs */}
         <section className="w-full">
           <Suspense fallback={<div className="h-40 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>

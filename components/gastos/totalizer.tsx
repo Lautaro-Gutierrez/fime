@@ -73,24 +73,24 @@ export function Totalizer({ expenses, previousTotal, isViewingCurrentMonth }: Pr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-4xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent sm:text-5xl lg:text-6xl"
+            className="bg-gradient-to-br from-white via-white to-white/70 bg-clip-text font-mono text-2xl min-[360px]:text-3xl sm:text-5xl lg:text-6xl font-bold leading-none tracking-tight tabular-nums [font-feature-settings:'tnum'] text-transparent min-w-0"
           >
             <PrivateAmount>
               <AnimatedNumber value={total} />
             </PrivateAmount>
           </motion.div>
 
-          <div className="flex items-center gap-6 pb-1">
-            <div className="space-y-1">
+          <div className="flex items-center gap-3 sm:gap-6 pb-1 min-w-0 overflow-hidden">
+            <div className="space-y-1 min-w-0">
               <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">Fijos</p>
-              <p className="text-lg font-semibold text-white/90 tabular-nums">
+              <p className="text-sm sm:text-lg font-semibold text-white/90 tabular-nums truncate">
                 <PrivateAmount>{formatARS(expenses.filter(e => e.type === 'fixed').reduce((s, e) => s + Number(e.amount), 0))}</PrivateAmount>
               </p>
             </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div className="space-y-1">
+            <div className="h-8 w-px bg-white/10 shrink-0" />
+            <div className="space-y-1 min-w-0">
               <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">Variables</p>
-              <p className="text-lg font-semibold text-white/90 tabular-nums">
+              <p className="text-sm sm:text-lg font-semibold text-white/90 tabular-nums truncate">
                 <PrivateAmount>{formatARS(expenses.filter(e => e.type === 'variable').reduce((s, e) => s + Number(e.amount), 0))}</PrivateAmount>
               </p>
             </div>
