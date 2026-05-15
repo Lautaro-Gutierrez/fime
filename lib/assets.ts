@@ -163,7 +163,7 @@ export const ASSETS: AssetConfig[] = [
   },
   {
     id: "usd_cash",
-    label: "USD en efectivo",
+    label: "USD",
     short: "USD",
     color: "#22C55E",
     bgClass: "bg-green-500/15",
