@@ -599,7 +599,7 @@ function TransactionForm({
             {field.type === "select" ? (
               <Select
                 value={form.metadata[field.key] ?? ""}
-                onValueChange={(val) => updateMetadata(field.key, val)}
+                onValueChange={(val) => updateMetadata(field.key, val as string)}
               >
                 <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
                   <SelectValue placeholder={field.placeholder ?? "Seleccionar"} />
