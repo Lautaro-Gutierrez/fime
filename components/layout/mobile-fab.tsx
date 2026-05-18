@@ -11,7 +11,7 @@ export function MobileFab() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-[72px] right-4 z-50 md:hidden flex flex-col items-end gap-3">
+    <div className="fixed bottom-[72px] right-4 z-40 md:hidden flex flex-col items-end gap-3">
       <AnimatePresence>
         {open && (
           <motion.div

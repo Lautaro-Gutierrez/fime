@@ -118,7 +118,7 @@ export function AllocationDonut({ holdings }: Props) {
 
   return (
     <div className="glass-card rounded-2xl p-6 h-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
-      <h3 className="text-lg font-semibold text-white mb-4">Portfolio Allocation</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">Composición del Portfolio</h3>
       
       <div className="h-[240px] relative">
         <ResponsiveContainer width="100%" height="100%">
