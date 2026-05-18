@@ -434,10 +434,11 @@ function ExpenseRow({
             x.set(0);
           }
         }}
+        onClick={() => onEdit(expense)}
         whileHover={{ y: -1 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
-          "group relative flex cursor-grab items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur transition-colors hover:border-white/10 active:cursor-grabbing",
+          "group relative flex cursor-pointer items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur transition-colors hover:border-white/10",
           isFuture && "opacity-70",
         )}
       >
@@ -504,14 +505,6 @@ function ExpenseRow({
           )}
         </div>
 
-        {/* Edit button (desktop hover) */}
-        <button
-          onClick={() => onEdit(expense)}
-          className="hidden shrink-0 rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100 md:block"
-          aria-label="Editar gasto"
-        >
-          <PencilLine className="size-3.5" />
-        </button>
       </motion.div>
     </motion.li>
   );

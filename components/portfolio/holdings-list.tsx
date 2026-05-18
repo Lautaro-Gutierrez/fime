@@ -10,7 +10,7 @@ type Props = { holdings: ValuedHolding[] };
 function TypeBadge({ type, asset }: { type: string, asset: any }) {
   // Using the asset's text/bg classes for the badge to match the theme
   return (
-    <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${asset.bgClass} ${asset.textClass} bg-opacity-20`}>
+    <span className={`hidden md:inline-block shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${asset.bgClass} ${asset.textClass} bg-opacity-20`}>
       {type}
     </span>
   );

@@ -61,13 +61,15 @@ export function AlertsPanel() {
           <Link 
             key={alert.id}
             href={alert.href}
-            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm border transition-colors whitespace-nowrap snap-start shrink-0 ${baseColorClass}`}
+            className={`flex items-start sm:items-center gap-2 rounded-xl sm:rounded-full px-4 py-3 sm:py-2 text-sm border transition-colors whitespace-normal sm:whitespace-nowrap snap-start shrink-0 w-[85vw] sm:w-auto ${baseColorClass}`}
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            <span className="font-medium">{alert.title}</span>
-            <span className="text-current/70 border-l border-current/20 pl-2">
-              {isStealthMode ? "Información oculta" : alert.description}
-            </span>
+            <Icon className="w-4 h-4 shrink-0 mt-0.5 sm:mt-0" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+              <span className="font-medium">{alert.title}</span>
+              <span className="text-current/70 sm:border-l border-current/20 sm:pl-2 leading-snug">
+                {isStealthMode ? "Información oculta" : alert.description}
+              </span>
+            </div>
           </Link>
         );
       })}

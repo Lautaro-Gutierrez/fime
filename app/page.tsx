@@ -8,7 +8,6 @@ import { PortfolioSnapshot } from "@/components/dashboard/portfolio-snapshot";
 import { AlertsPanel } from "@/components/dashboard/alerts-panel";
 import { GoalsStrip } from "@/components/dashboard/goals-strip";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { QuickActions } from "@/components/dashboard/quick-actions";
 
 export default function DashboardPage() {
   return (
@@ -49,16 +48,11 @@ export default function DashboardPage() {
           </Suspense>
         </section>
 
-        {/* 5. Row 3: Activity + Quick Actions */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-20">
-          <div className="lg:col-span-2">
-            <Suspense fallback={<div className="h-64 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-              <ActivityFeed />
-            </Suspense>
-          </div>
-          <div className="lg:col-span-1 flex flex-col gap-4">
-            <QuickActions />
-          </div>
+        {/* 5. Row 3: Activity */}
+        <section className="w-full pb-20">
+          <Suspense fallback={<div className="h-64 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
+            <ActivityFeed />
+          </Suspense>
         </section>
       </div>
     </Shell>
