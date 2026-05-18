@@ -146,7 +146,7 @@ export function PerformanceChart({ series, onReset }: Props) {
       <div className="flex flex-wrap items-center gap-6 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-0.5 bg-violet-400 rounded-full" />
-          <span className="text-xs text-white/60">Portfolio TWR</span>
+          <span className="text-xs text-white/60">Mi Portfolio</span>
           <span className={`text-xs font-semibold tabular-nums ${portfolioLast >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
             {portfolioLast >= 0 ? "+" : ""}{portfolioLast.toFixed(1)}%
           </span>

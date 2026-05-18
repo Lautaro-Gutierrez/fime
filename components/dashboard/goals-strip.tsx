@@ -96,7 +96,7 @@ export function GoalsStrip() {
                   <div>{isStealthMode ? "******" : `${formatUSD(progress.current, false)} / ${formatUSD(progress.target, false)}`}</div>
                   {!isStealthMode && (
                     <div className="font-medium" style={{ color }}>
-                      {formatUSD(Math.abs(progress.target - progress.current), false)} left
+                      {formatUSD(Math.abs(progress.target - progress.current), false)} restantes
                     </div>
                   )}
                 </div>

@@ -182,7 +182,7 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
                 ) : (
                   <Rocket className="size-3 text-theme-400" />
                 )}
-                ETA
+                Tiempo estimado
               </span>
               <span
                 className={cn(

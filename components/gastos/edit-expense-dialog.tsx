@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { Pencil, CreditCard as CreditCardIcon } from "lucide-react";
+import { Pencil, CreditCard as CreditCardIcon, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { CATEGORIES, CATEGORIES_BY_ID } from "@/lib/categories";
 import { isFutureMonth, lastOfMonth, toISODate } from "@/lib/format";
-import { type Expense, useUpdateExpense } from "@/hooks/use-expenses";
+import { type Expense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useCreditCards } from "@/hooks/use-credit-cards";
 import { colorFromHex } from "@/lib/credit-cards";
 import type { ExpenseCategory, ExpenseType } from "@/types/database";
@@ -81,6 +81,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
   const [cardId, setCardId] = useState<string | null>(expense.card_id);
 
   const update = useUpdateExpense();
+  const del = useDeleteExpense();
   const { data: cards = [] } = useCreditCards();
 
   useEffect(() => {
@@ -130,6 +131,18 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al guardar");
+    }
+  }
+
+  function performDelete() {
+    if (confirm("¿Seguro que querés eliminar este gasto?")) {
+      del.mutate(expense.id, {
+        onSuccess: () => {
+          toast.success("Gasto eliminado");
+          onClose();
+        },
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Error al eliminar"),
+      });
     }
   }
 
@@ -366,23 +379,35 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
             </div>
           </div>
 
-          <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur">
+          <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur sm:justify-between flex-row justify-between items-center w-full">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={onClose}
-              className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
+              onClick={performDelete}
+              disabled={del.isPending || update.isPending}
+              className="h-10 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 mr-auto"
             >
-              Cancelar
+              <Trash2 className="size-4 mr-2" />
+              Eliminar
             </Button>
-            <Button
-              size="sm"
-              onClick={save}
-              disabled={update.isPending}
-              className="h-10 rounded-xl bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-lg shadow-theme-500/25 transition-all hover:from-theme-400 hover:to-teal-500 hover:shadow-theme-500/40 disabled:opacity-50"
-            >
-              {update.isPending ? "Guardando..." : "Guardar"}
-            </Button>
+            <div className="flex gap-2 ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={save}
+                disabled={update.isPending || del.isPending}
+                className="h-10 rounded-xl bg-gradient-to-br from-theme-500 to-teal-600 text-white shadow-lg shadow-theme-500/25 transition-all hover:from-theme-400 hover:to-teal-500 hover:shadow-theme-500/40 disabled:opacity-50"
+              >
+                {update.isPending ? "Guardando..." : "Guardar"}
+              </Button>
+            </div>
           </DialogFooter>
         </div>
       </DialogContent>
