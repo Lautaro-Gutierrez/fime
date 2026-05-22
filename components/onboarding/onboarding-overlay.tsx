@@ -50,12 +50,10 @@ export function OnboardingOverlay() {
         // Un pequeño delay para esperar a que termine el scroll y transiciones de tamaño
         setTimeout(() => {
           const rect = element.getBoundingClientRect();
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
-          const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
           setCoords({
-            top: rect.top + scrollTop,
-            left: rect.left + scrollLeft,
+            top: rect.top,
+            left: rect.left,
             width: rect.width,
             height: rect.height,
           });
