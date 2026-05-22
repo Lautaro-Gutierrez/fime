@@ -4,6 +4,8 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { PreferencesProvider } from "@/components/providers/preferences-provider";
+import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
+import { OnboardingOverlay } from "@/components/onboarding/onboarding-overlay";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -54,7 +56,12 @@ export default function RootLayout({
       <body className="min-h-dvh flex flex-col bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <QueryProvider>
-            <PreferencesProvider>{children}</PreferencesProvider>
+            <PreferencesProvider>
+              <OnboardingProvider>
+                {children}
+                <OnboardingOverlay />
+              </OnboardingProvider>
+            </PreferencesProvider>
           </QueryProvider>
           <Toaster position="bottom-center" />
         </ThemeProvider>

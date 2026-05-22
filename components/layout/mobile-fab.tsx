@@ -32,6 +32,7 @@ export function MobileFab() {
       </AnimatePresence>
 
       <button
+        id="mobile-fab-button"
         onClick={() => setOpen(!open)}
         className={cn(
           "flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all active:scale-95",

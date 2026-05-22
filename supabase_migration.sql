@@ -35,3 +35,8 @@ USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own subscriptions" 
 ON public.push_subscriptions FOR DELETE 
 USING (auth.uid() = user_id);
+
+-- 3. Onboarding (Guía de Inicio)
+ALTER TABLE public.user_preferences 
+ADD COLUMN IF NOT EXISTS onboarding_completed boolean NOT NULL DEFAULT false;
+

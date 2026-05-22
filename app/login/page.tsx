@@ -30,7 +30,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Bienvenido");
-        router.push("/gastos");
+        router.push("/");
         router.refresh();
       } else {
         const { error } = await supabase.auth.signUp({ email, password });

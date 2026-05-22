@@ -11,6 +11,7 @@ type PrefsContextValue = {
   accentColor: AccentColor;
   displayName: string | null;
   avatarKey: string | null;
+  onboardingCompleted: boolean;
   isLoading: boolean;
 };
 
@@ -21,6 +22,7 @@ const defaults: PrefsContextValue = {
   accentColor: "amber",
   displayName: null,
   avatarKey: null,
+  onboardingCompleted: true, // Default to true so it doesn't flash during load
   isLoading: true,
 };
 
@@ -40,6 +42,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     accentColor: prefs?.accent_color ?? "amber",
     displayName: prefs?.display_name ?? null,
     avatarKey: prefs?.avatar_url ?? null,
+    onboardingCompleted: prefs?.onboarding_completed ?? false, // Defaults to false for new users without preference row
     isLoading,
   };
 

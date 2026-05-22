@@ -13,6 +13,7 @@ export type UserPreferences = {
   accent_color: AccentColor;
   avatar_url: string | null;
   display_name: string | null;
+  onboarding_completed: boolean;
   updated_at: string;
 };
 
@@ -23,6 +24,7 @@ export type PreferencesUpdate = {
   accent_color?: AccentColor;
   avatar_url?: string | null;
   display_name?: string | null;
+  onboarding_completed?: boolean;
 };
 
 const PREFS_KEY = ["user_preferences"] as const;

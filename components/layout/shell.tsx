@@ -56,7 +56,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh w-full">
       {/* Sidebar (desktop) */}
-      <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 py-6 md:flex">
+      <aside id="desktop-sidebar" className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 py-6 md:flex">
         <Link href="/" className="mb-10 flex items-center gap-3 px-2 group relative">
           <div className="absolute inset-0 bg-theme-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           <Image 
@@ -113,7 +113,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <MobileFab />
 
       {/* Bottom tabs (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 md:hidden">
+      <nav id="mobile-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 md:hidden">
         {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/metas"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -10,10 +11,12 @@ import {
   EyeOff,
   Palette,
   UserCircle2,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 import { PushNotificationTile } from "@/components/config/push-notification-tile";
 import { cn } from "@/lib/utils";
@@ -94,6 +97,55 @@ export function BentoGrid() {
       >
         <PushNotificationTile />
       </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: (TILES.length + 1) * 0.05 }}
+        className="sm:col-span-2 lg:col-span-1"
+      >
+        <OnboardingTile />
+      </motion.div>
+    </div>
+  );
+}
+
+function OnboardingTile() {
+  const { restart } = useOnboarding();
+  const router = useRouter();
+
+  const handleRestart = () => {
+    restart();
+    router.push("/");
+    toast.success("Guía de inicio reactivada. Redirigiendo al inicio...");
+  };
+
+  return (
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur">
+      <div className="relative flex items-start justify-between">
+        <div className="flex size-10 items-center justify-center rounded-2xl bg-theme-500/10 text-theme-300 ring-1 ring-theme-500/20 transition-all group-hover:bg-theme-500/15 group-hover:ring-theme-500/40">
+          <BookOpen className="size-5" />
+        </div>
+      </div>
+
+      <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
+        <span className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
+          Guía Interactiva
+        </span>
+        <h3 className="font-heading text-lg font-semibold text-foreground">
+          Guía de Inicio
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Reactivá el tour guiado para repasar el funcionamiento esencial de FiMe.
+        </p>
+
+        <button
+          type="button"
+          onClick={handleRestart}
+          className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg bg-theme-500/15 px-3 py-1.5 text-xs font-medium text-theme-300 border border-theme-500/30 transition-all hover:bg-theme-500/25"
+        >
+          Repetir guía de inicio
+        </button>
+      </div>
     </div>
   );
 }
