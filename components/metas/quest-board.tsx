@@ -36,7 +36,7 @@ export function QuestBoard({
   return (
     <div className="flex flex-col gap-4">
       {/* Tab selector */}
-      <div className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1 w-fit">
+      <div id="metas-quest-board" className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1 w-fit">
         <TabButton
           active={tab === "main"}
           onClick={() => setTab("main")}

@@ -35,6 +35,7 @@ export function DistributionDonut({ expenses }: Props) {
   if (total === 0) {
     return (
       <motion.div
+        id="gastos-donut"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         className="relative flex h-[260px] flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent p-6 backdrop-blur"
@@ -51,6 +52,7 @@ export function DistributionDonut({ expenses }: Props) {
 
   return (
     <motion.div
+      id="gastos-donut"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}

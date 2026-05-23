@@ -14,6 +14,7 @@ export type UserPreferences = {
   avatar_url: string | null;
   display_name: string | null;
   onboarding_completed: boolean;
+  completed_tours: string[];
   updated_at: string;
 };
 
@@ -25,6 +26,7 @@ export type PreferencesUpdate = {
   avatar_url?: string | null;
   display_name?: string | null;
   onboarding_completed?: boolean;
+  completed_tours?: string[];
 };
 
 const PREFS_KEY = ["user_preferences"] as const;

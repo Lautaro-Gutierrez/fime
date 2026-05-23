@@ -38,6 +38,7 @@ export function MetasHeader({
         </div>
 
         <button
+          id="metas-quick-add"
           onClick={onCreate}
           className="group relative inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-white/[0.10]"
         >

@@ -110,13 +110,13 @@ export function BentoGrid() {
 }
 
 function OnboardingTile() {
-  const { restart } = useOnboarding();
+  const { restartAll } = useOnboarding();
   const router = useRouter();
 
   const handleRestart = () => {
-    restart();
+    restartAll();
     router.push("/");
-    toast.success("Guía de inicio reactivada. Redirigiendo al inicio...");
+    toast.success("Tours reiniciados con éxito. Redirigiendo al inicio...");
   };
 
   return (
@@ -132,10 +132,10 @@ function OnboardingTile() {
           Guía Interactiva
         </span>
         <h3 className="font-heading text-lg font-semibold text-foreground">
-          Guía de Inicio
+          Guías de Inicio
         </h3>
         <p className="text-sm text-muted-foreground">
-          Reactivá el tour guiado para repasar el funcionamiento esencial de FiMe.
+          Volvé a activar los mini-tours contextuales de cada módulo para repasar las funcionalidades clave de FiMe en tu próxima visita.
         </p>
 
         <button
@@ -143,7 +143,7 @@ function OnboardingTile() {
           onClick={handleRestart}
           className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg bg-theme-500/15 px-3 py-1.5 text-xs font-medium text-theme-300 border border-theme-500/30 transition-all hover:bg-theme-500/25"
         >
-          Repetir guía de inicio
+          Repetir todas las guías
         </button>
       </div>
     </div>

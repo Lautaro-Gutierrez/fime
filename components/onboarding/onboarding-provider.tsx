@@ -3,11 +3,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
-import {
-  ONBOARDING_STEPS_DESKTOP,
-  ONBOARDING_STEPS_MOBILE,
-  type OnboardingStep,
-} from "./onboarding-steps";
+import { getTourSteps, type OnboardingStep } from "./tours";
+import { TOUR_REGISTRY } from "./tour-registry";
 import { usePathname } from "next/navigation";
 
 type OnboardingContextValue = {
@@ -21,6 +18,7 @@ type OnboardingContextValue = {
   skip: () => void;
   complete: () => void;
   restart: () => void;
+  restartAll: () => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -34,13 +32,14 @@ export function useOnboarding() {
 }
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const { onboardingCompleted, isLoading } = usePrefsContext();
+  const { completedTours, isLoading } = usePrefsContext();
   const { mutate: updatePrefs } = useUpdatePreferences();
   const pathname = usePathname();
 
   const [isMobile, setIsMobile] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentTourId, setCurrentTourId] = useState<string | null>(null);
 
   // Detectar responsive para ajustar los elementos de spotlight
   useEffect(() => {
@@ -52,21 +51,40 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
-  const steps = isMobile ? ONBOARDING_STEPS_MOBILE : ONBOARDING_STEPS_DESKTOP;
+  // Obtener los pasos del tour activo
+  const steps = currentTourId ? getTourSteps(currentTourId, isMobile) : [];
   const currentStep = steps[currentStepIndex] || null;
   const totalSteps = steps.length;
 
-  // Activar onboarding solo si:
-  // 1. El usuario no lo ha completado aún (`onboardingCompleted` es false).
-  // 2. No está cargando los datos iniciales de preferencias.
-  // 3. Está en la página del Dashboard (`/`), que es la página de bienvenida principal.
+  // Lógica de disparo contextual con delay de 600ms
   useEffect(() => {
-    if (!isLoading && !onboardingCompleted && pathname === "/") {
-      setIsActive(true);
-    } else {
+    if (isLoading) return;
+
+    const tourId = TOUR_REGISTRY[pathname];
+
+    if (!tourId) {
       setIsActive(false);
+      setCurrentTourId(null);
+      return;
     }
-  }, [isLoading, onboardingCompleted, pathname]);
+
+    const isCompleted = completedTours.includes(tourId);
+
+    if (isCompleted) {
+      setIsActive(false);
+      setCurrentTourId(null);
+      return;
+    }
+
+    // Activar el tour tras un delay de 600ms para asegurar renderizado correcto y fin de animaciones
+    const timer = setTimeout(() => {
+      setCurrentTourId(tourId);
+      setCurrentStepIndex(0);
+      setIsActive(true);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [pathname, completedTours, isLoading]);
 
   const next = () => {
     if (currentStepIndex < totalSteps - 1) {
@@ -82,22 +100,49 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const skip = () => {
+  const markCurrentTourAsCompleted = () => {
+    if (!currentTourId) return;
     setIsActive(false);
-    updatePrefs({ onboarding_completed: true });
+
+    if (!completedTours.includes(currentTourId)) {
+      const nextCompleted = [...completedTours, currentTourId];
+      updatePrefs({ completed_tours: nextCompleted });
+
+      // Compatibilidad legacy: si completa el dashboard, también marcar onboarding_completed
+      if (currentTourId === "dashboard") {
+        updatePrefs({ onboarding_completed: true });
+      }
+    }
+  };
+
+  const skip = () => {
+    markCurrentTourAsCompleted();
   };
 
   const complete = () => {
-    setIsActive(false);
-    updatePrefs({ onboarding_completed: true });
+    markCurrentTourAsCompleted();
   };
 
+  // Reinicia el tour de la página actual
   const restart = () => {
+    const tourId = TOUR_REGISTRY[pathname];
+    if (!tourId) return;
+
+    const nextCompleted = completedTours.filter((id) => id !== tourId);
+    updatePrefs({ completed_tours: nextCompleted });
+
+    setCurrentTourId(tourId);
     setCurrentStepIndex(0);
-    // Primero actualizamos en base de datos para que onboardingCompleted sea false
-    updatePrefs({ onboarding_completed: false });
-    // Y forzamos la activación visual
     setIsActive(true);
+  };
+
+  // Reinicia todos los tours globales (UX Reset)
+  const restartAll = () => {
+    setIsActive(false);
+    setCurrentTourId(null);
+    updatePrefs({ completed_tours: [] });
+    // Legacy support
+    updatePrefs({ onboarding_completed: false });
   };
 
   return (
@@ -113,6 +158,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         skip,
         complete,
         restart,
+        restartAll,
       }}
     >
       {children}

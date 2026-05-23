@@ -149,6 +149,7 @@ export function QuickAdd() {
       <DialogTrigger
         render={
           <Button
+            id="gastos-quick-add"
             size="lg"
             className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
           >

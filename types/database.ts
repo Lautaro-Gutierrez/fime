@@ -403,6 +403,7 @@ export type Database = {
           avatar_url: string | null;
           display_name: string | null;
           onboarding_completed: boolean;
+          completed_tours: string[];
           updated_at: string;
         };
         Insert: {
@@ -414,6 +415,7 @@ export type Database = {
           avatar_url?: string | null;
           display_name?: string | null;
           onboarding_completed?: boolean;
+          completed_tours?: string[];
           updated_at?: string;
         };
         Update: {
@@ -425,6 +427,7 @@ export type Database = {
           avatar_url?: string | null;
           display_name?: string | null;
           onboarding_completed?: boolean;
+          completed_tours?: string[];
           updated_at?: string;
         };
         Relationships: [];

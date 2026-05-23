@@ -1,13 +1,6 @@
-export type OnboardingStep = {
-  id: string;
-  type: "modal" | "spotlight";
-  targetSelector?: string; // Selector CSS para el spotlight
-  title: string;
-  body: string;
-  placement?: "top" | "bottom" | "left" | "right" | "center";
-};
+import type { OnboardingStep } from "./types";
 
-export const ONBOARDING_STEPS_DESKTOP: OnboardingStep[] = [
+export const DASHBOARD_TOUR_DESKTOP: OnboardingStep[] = [
   {
     id: "welcome",
     type: "modal",
@@ -56,7 +49,7 @@ export const ONBOARDING_STEPS_DESKTOP: OnboardingStep[] = [
   },
 ];
 
-export const ONBOARDING_STEPS_MOBILE: OnboardingStep[] = [
+export const DASHBOARD_TOUR_MOBILE: OnboardingStep[] = [
   {
     id: "welcome",
     type: "modal",

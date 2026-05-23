@@ -136,7 +136,7 @@ export default function IngresosPage() {
 
         {/* Sankey grande (Teórico) + Lista */}
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur">
+          <div id="ingresos-distribution" className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="size-1.5 rounded-full bg-lime-400" />

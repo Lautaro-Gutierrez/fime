@@ -224,6 +224,7 @@ export function NewTransactionDialog() {
       <DialogTrigger
         render={
           <Button
+            id="inversiones-quick-add"
             size="lg"
             className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
           >

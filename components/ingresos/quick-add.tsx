@@ -235,6 +235,7 @@ export function QuickAddIncome() {
       <DialogTrigger
         render={
           <Button
+            id="ingresos-quick-add"
             size="lg"
             className="h-11 gap-2 rounded-full bg-gradient-to-br from-lime-500 to-green-600 px-5 text-white shadow-lg shadow-lime-500/25 transition-all hover:from-lime-400 hover:to-green-500 hover:shadow-lime-500/40"
           >

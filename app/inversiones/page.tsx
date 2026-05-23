@@ -69,7 +69,7 @@ function InversionesContent() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full max-w-xs">
+          <TabsList id="inversiones-tabs" className="w-full max-w-xs">
             <TabsTrigger value="bitacora" className="flex-1">Bitácora</TabsTrigger>
             <TabsTrigger value="portfolio" className="flex-1">Portfolio</TabsTrigger>
           </TabsList>
