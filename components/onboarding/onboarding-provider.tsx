@@ -5,7 +5,7 @@ import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
 import { getTourSteps, type OnboardingStep } from "./tours";
 import { TOUR_REGISTRY } from "./tour-registry";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type OnboardingContextValue = {
   isActive: boolean;
@@ -31,10 +31,20 @@ export function useOnboarding() {
   return ctx;
 }
 
+const TOUR_SEQUENCE = ["dashboard", "gastos", "inversiones", "ingresos", "metas"];
+const TOUR_ROUTES: Record<string, string> = {
+  dashboard: "/",
+  gastos: "/gastos",
+  inversiones: "/inversiones",
+  ingresos: "/ingresos",
+  metas: "/metas",
+};
+
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { completedTours, isLoading } = usePrefsContext();
   const { mutate: updatePrefs } = useUpdatePreferences();
   const pathname = usePathname();
+  const router = useRouter();
 
   const [isMobile, setIsMobile] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -100,27 +110,40 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const markCurrentTourAsCompleted = () => {
-    if (!currentTourId) return;
-    setIsActive(false);
-
-    if (!completedTours.includes(currentTourId)) {
-      const nextCompleted = [...completedTours, currentTourId];
-      updatePrefs({ completed_tours: nextCompleted });
-
-      // Compatibilidad legacy: si completa el dashboard, también marcar onboarding_completed
-      if (currentTourId === "dashboard") {
-        updatePrefs({ onboarding_completed: true });
-      }
-    }
-  };
-
   const skip = () => {
-    markCurrentTourAsCompleted();
+    setIsActive(false);
+    // Saltar todo marca todos los tours de la secuencia como completados para no interrumpir al usuario nunca más.
+    updatePrefs({
+      completed_tours: TOUR_SEQUENCE,
+      onboarding_completed: true,
+    });
   };
 
   const complete = () => {
-    markCurrentTourAsCompleted();
+    if (!currentTourId) return;
+    setIsActive(false);
+
+    // Actualizar array de completados de forma unificada para evitar condiciones de carrera
+    const nextCompleted = completedTours.includes(currentTourId)
+      ? completedTours
+      : [...completedTours, currentTourId];
+
+    const patch: any = { completed_tours: nextCompleted };
+    if (currentTourId === "dashboard") {
+      patch.onboarding_completed = true;
+    }
+    
+    updatePrefs(patch);
+
+    // Navegación automática continua
+    const currentIndex = TOUR_SEQUENCE.indexOf(currentTourId);
+    if (currentIndex !== -1 && currentIndex < TOUR_SEQUENCE.length - 1) {
+      const nextTourId = TOUR_SEQUENCE[currentIndex + 1];
+      const nextRoute = TOUR_ROUTES[nextTourId];
+      if (nextRoute) {
+        router.push(nextRoute);
+      }
+    }
   };
 
   // Reinicia el tour de la página actual
@@ -140,9 +163,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const restartAll = () => {
     setIsActive(false);
     setCurrentTourId(null);
-    updatePrefs({ completed_tours: [] });
-    // Legacy support
-    updatePrefs({ onboarding_completed: false });
+    updatePrefs({
+      completed_tours: [],
+      onboarding_completed: false,
+    });
   };
 
   return (
