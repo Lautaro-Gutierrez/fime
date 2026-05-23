@@ -21,7 +21,7 @@ export const DASHBOARD_TOUR_DESKTOP: OnboardingStep[] = [
     type: "spotlight",
     targetSelector: "#dashboard-portfolio-snapshot",
     title: "Portfolio y Rendimiento",
-    body: "Esta tarjeta te da una foto rápida del rendimiento de tus inversiones (TWR) en los últimos 30 días y el top 5 de activos que componen tu portfolio. Hacé clic en cualquier parte de ella para ir al módulo completo de inversiones.",
+    body: "Esta tarjeta te da una foto rápida del rendimiento de tus inversiones en los últimos 30 días y el top 5 de activos que componen tu portfolio. Hacé clic en cualquier parte de ella para ir al módulo completo de inversiones.",
     placement: "left",
   },
   {
@@ -70,7 +70,7 @@ export const DASHBOARD_TOUR_MOBILE: OnboardingStep[] = [
     type: "spotlight",
     targetSelector: "#dashboard-portfolio-snapshot",
     title: "Portfolio y Rendimiento",
-    body: "Esta tarjeta te da una foto rápida del rendimiento de tus inversiones (TWR) en los últimos 30 días y el top 5 de activos que componen tu portfolio. Tocá sobre ella para ir al detalle completo de tus inversiones.",
+    body: "Esta tarjeta te da una foto rápida del rendimiento de tus inversiones en los últimos 30 días y el top 5 de activos que componen tu portfolio. Tocá sobre ella para ir al detalle completo de tus inversiones.",
     placement: "top",
   },
   {
