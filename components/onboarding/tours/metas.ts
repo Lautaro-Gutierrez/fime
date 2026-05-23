@@ -21,7 +21,7 @@ export const METAS_TOUR_DESKTOP: OnboardingStep[] = [
     type: "spotlight",
     targetSelector: "#metas-quick-add",
     title: "Trazar una Meta",
-    body: "Creá un nuevo objetivo financiero con este botón. Podés definir monto objetivo, fecha límite y el tipo de meta (ahorro, límite de gasto, tasa de ahorro, etc.) para que FiMe empiece a medir tu avance diario.",
+    body: "Establecé un nuevo objetivo financiero desde este panel. Podés definir el monto, la fecha límite y el tipo de meta. Además, la app te permite vincular activos financieros específicos (como acciones, crypto o bonos) para que respalden tu objetivo y el sistema mida tu avance automáticamente.",
     placement: "left",
   },
 ];
@@ -47,7 +47,7 @@ export const METAS_TOUR_MOBILE: OnboardingStep[] = [
     type: "spotlight",
     targetSelector: "#metas-quick-add",
     title: "Trazar una Meta",
-    body: "Creá un nuevo objetivo financiero indicando monto objetivo, fecha límite y tipo de meta para que FiMe empiece a medir tu avance al instante.",
+    body: "Establecé un nuevo objetivo financiero desde este panel. Podés definir el monto, la fecha límite y el tipo de meta. Además, la app te permite vincular activos financieros específicos (como acciones, crypto o bonos) para que respalden tu objetivo y el sistema mida tu avance automáticamente.",
     placement: "top",
   },
 ];
