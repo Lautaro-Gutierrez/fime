@@ -66,6 +66,10 @@ export function OnboardingOverlay() {
             placement = "top";
           } else if (placement === "top" && rect.top - 200 < 0) {
             placement = "bottom";
+          } else if (placement === "right" && rect.right + 400 > window.innerWidth) {
+            placement = "left";
+          } else if (placement === "left" && rect.left - 400 < 0) {
+            placement = "right";
           }
 
           setTooltipPlacement(placement);

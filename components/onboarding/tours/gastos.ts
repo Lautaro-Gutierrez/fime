@@ -14,7 +14,7 @@ export const GASTOS_TOUR_DESKTOP: OnboardingStep[] = [
     targetSelector: "#gastos-donut",
     title: "Distribución de Consumo",
     body: "Este gráfico muestra de forma visual la división de tus gastos. Distinguí claramente entre Gastos Fijos (obligatorios) y Variables (deseables) para tomar mejores decisiones.",
-    placement: "right",
+    placement: "left",
   },
   {
     id: "gastos-quick-add",
