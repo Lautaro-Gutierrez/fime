@@ -5,7 +5,7 @@ export const INVERSIONES_TOUR_DESKTOP: OnboardingStep[] = [
     id: "inversiones-welcome",
     type: "modal",
     title: "Hacé Crecer tu Capital",
-    body: "Bienvenido a tu terminal de Inversiones. Acá podés trackear tus CEDEARs, acciones, cripto, bonos o plazos fijos. FiMe unifica todo y calcula rendimientos en tiempo real (recordá que tus gastos fijos y variables están vinculados directamente al módulo de Gastos).",
+    body: "Bienvenido a tu terminal de Inversiones. Acá podés trackear tus CEDEARs, acciones, cripto, bonos o plazos fijos. FiMe unifica todo y calcula rendimientos en tiempo real.",
     placement: "center",
   },
   {
@@ -31,7 +31,7 @@ export const INVERSIONES_TOUR_MOBILE: OnboardingStep[] = [
     id: "inversiones-welcome",
     type: "modal",
     title: "Hacé Crecer tu Capital",
-    body: "Bienvenido a tu terminal de Inversiones. Acá podés trackear tus CEDEARs, acciones, cripto, bonos o plazos fijos. FiMe unifica todo y calcula rendimientos en tiempo real (recordá que tus gastos fijos y variables están vinculados directamente al módulo de Gastos).",
+    body: "Bienvenido a tu terminal de Inversiones. Acá podés trackear tus CEDEARs, acciones, cripto, bonos o plazos fijos. FiMe unifica todo y calcula rendimientos en tiempo real.",
     placement: "center",
   },
   {
