@@ -4,8 +4,8 @@ export const METAS_TOUR_DESKTOP: OnboardingStep[] = [
   {
     id: "metas-welcome",
     type: "modal",
-    title: "Alcanzá tus Metas",
-    body: "El módulo de Metas funciona como el tablero de misiones de un RPG. Definí tus objetivos financieros y convertilos en logros visuales.",
+    title: "Hacé realidad tus proyectos",
+    body: "Tus objetivos, a tu ritmo. Definí qué querés lograr: desde las próximas vacaciones o cambiar el auto, hasta el fondo para tu jubilación. FiMe sigue tu progreso paso a paso para que sepas exactamente cuándo lo vas a alcanzar",
     placement: "center",
   },
   {
@@ -30,8 +30,8 @@ export const METAS_TOUR_MOBILE: OnboardingStep[] = [
   {
     id: "metas-welcome",
     type: "modal",
-    title: "Alcanzá tus Metas",
-    body: "El módulo de Metas funciona como el tablero de misiones de un RPG. Definí tus objetivos financieros y convertilos en logros visuales.",
+    title: "Hacé realidad tus proyectos",
+    body: "Tus objetivos, a tu ritmo. Definí qué querés lograr: desde las próximas vacaciones o cambiar el auto, hasta el fondo para tu jubilación. FiMe sigue tu progreso paso a paso para que sepas exactamente cuándo lo vas a alcanzar",
     placement: "center",
   },
   {
