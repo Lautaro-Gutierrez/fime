@@ -4,6 +4,7 @@ import { GASTOS_TOUR_DESKTOP, GASTOS_TOUR_MOBILE } from "./gastos";
 import { INVERSIONES_TOUR_DESKTOP, INVERSIONES_TOUR_MOBILE } from "./inversiones";
 import { INGRESOS_TOUR_DESKTOP, INGRESOS_TOUR_MOBILE } from "./ingresos";
 import { METAS_TOUR_DESKTOP, METAS_TOUR_MOBILE } from "./metas";
+import { CONFIG_TOUR_DESKTOP, CONFIG_TOUR_MOBILE } from "./configuracion";
 
 export type { OnboardingStep };
 
@@ -19,6 +20,8 @@ export function getTourSteps(tourId: string, isMobile: boolean): OnboardingStep[
       return isMobile ? INGRESOS_TOUR_MOBILE : INGRESOS_TOUR_DESKTOP;
     case "metas":
       return isMobile ? METAS_TOUR_MOBILE : METAS_TOUR_DESKTOP;
+    case "configuracion":
+      return isMobile ? CONFIG_TOUR_MOBILE : CONFIG_TOUR_DESKTOP;
     default:
       return [];
   }

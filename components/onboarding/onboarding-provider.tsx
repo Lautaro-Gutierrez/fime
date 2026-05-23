@@ -31,13 +31,14 @@ export function useOnboarding() {
   return ctx;
 }
 
-const TOUR_SEQUENCE = ["dashboard", "gastos", "inversiones", "ingresos", "metas"];
+const TOUR_SEQUENCE = ["dashboard", "gastos", "inversiones", "ingresos", "metas", "configuracion"];
 const TOUR_ROUTES: Record<string, string> = {
   dashboard: "/",
   gastos: "/gastos",
   inversiones: "/inversiones",
   ingresos: "/ingresos",
   metas: "/metas",
+  configuracion: "/config",
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {

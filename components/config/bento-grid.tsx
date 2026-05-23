@@ -29,6 +29,7 @@ type LinkTile = {
   icon: LucideIcon;
   meta?: string;
   span?: "sm" | "md" | "lg";
+  id?: string;
 };
 
 type ToggleTile = {
@@ -39,6 +40,7 @@ type ToggleTile = {
   iconActive?: LucideIcon;
   meta?: string;
   span?: "sm" | "md" | "lg";
+  id?: string;
 };
 
 type Tile = LinkTile | ToggleTile;
@@ -61,6 +63,7 @@ const TILES: Tile[] = [
     icon: CreditCard,
     meta: "Credit Cards",
     span: "md",
+    id: "config-cards",
   },
   {
     kind: "link",
@@ -70,6 +73,7 @@ const TILES: Tile[] = [
     icon: Palette,
     meta: "Theming",
     span: "md",
+    id: "config-theme",
   },
   {
     kind: "toggle",
@@ -163,6 +167,7 @@ function TileCard({ tile, index }: { tile: Tile; index: number }) {
 
   return (
     <motion.div
+      id={tile.id}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}

@@ -4,4 +4,5 @@ export const TOUR_REGISTRY: Record<string, string> = {
   "/inversiones": "inversiones",
   "/ingresos": "ingresos",
   "/metas": "metas",
+  "/config": "configuracion",
 };
