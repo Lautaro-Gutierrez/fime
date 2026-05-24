@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shell } from "@/components/layout/shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 
 // Bitácora components
 import { FxStrip } from "@/components/inversiones/fx-strip";
@@ -42,6 +43,18 @@ function InversionesContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "portfolio" ? "portfolio" : "bitacora";
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  const { currentStep, isActive } = useOnboarding();
+
+  useEffect(() => {
+    if (isActive && currentStep) {
+      if (currentStep.id === "inv-initial") {
+        setActiveTab("portfolio");
+      } else if (currentStep.id === "inv-welcome" || currentStep.id === "inv-tabs") {
+        setActiveTab("bitacora");
+      }
+    }
+  }, [isActive, currentStep?.id]);
 
   return (
     <Shell>
