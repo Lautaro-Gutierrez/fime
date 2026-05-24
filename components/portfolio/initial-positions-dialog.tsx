@@ -140,6 +140,7 @@ export function InitialPositionsDialog() {
       <DialogTrigger
         render={
           <Button
+            id="inv-initial"
             variant="outline"
             className="inline-flex items-center gap-2 rounded-full border-white/10 bg-white/[0.03] backdrop-blur-xl text-xs font-medium backdrop-blur hover:border-white/20"
           />
