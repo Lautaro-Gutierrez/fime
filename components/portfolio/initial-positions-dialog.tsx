@@ -366,6 +366,7 @@ function InitialPositionForm({
   onSubmit,
   onCancel,
   submitting,
+  fxRates,
 }: {
   asset: AssetConfig;
   initial?: InitialPosition | null;
