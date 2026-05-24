@@ -24,6 +24,8 @@ import { ASSETS, ASSETS_BY_ID } from "@/lib/assets";
 import type { AssetConfig } from "@/lib/assets";
 import type { AssetType } from "@/types/database";
 import { toISODate, formatQuantity, formatUSD } from "@/lib/format";
+import type { FxRates } from "@/lib/prices/types";
+import { useQuery } from "@tanstack/react-query";
 import {
   useInitialPositions,
   useCreateInitialPosition,
@@ -78,6 +80,12 @@ function parseNumber(v: string): number | null {
   return isFinite(n) && n > 0 ? n : null;
 }
 
+async function fetchFx(): Promise<FxRates> {
+  const res = await fetch("/api/prices/fx", { cache: "no-store" });
+  if (!res.ok) throw new Error("fx fetch failed");
+  return res.json();
+}
+
 type Step = "list" | "select" | "form";
 
 export function InitialPositionsDialog() {
@@ -90,6 +98,13 @@ export function InitialPositionsDialog() {
   const createMut = useCreateInitialPosition();
   const updateMut = useUpdateInitialPosition();
   const deleteMut = useDeleteInitialPosition();
+
+  const { data: fx } = useQuery({
+    queryKey: ["fx-rates"],
+    queryFn: fetchFx,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -326,6 +341,7 @@ export function InitialPositionsDialog() {
                 }
               }}
               submitting={createMut.isPending || updateMut.isPending}
+              fxRates={fx}
             />
           )}
         </AnimatePresence>
@@ -356,10 +372,20 @@ function InitialPositionForm({
   onSubmit: (p: FormPayload) => void | Promise<void>;
   onCancel: () => void;
   submitting: boolean;
+  fxRates?: FxRates;
 }) {
+  const isArsDenominated = ["cedear", "stock_ar", "bond_ar", "on"].includes(asset.id);
+  const defaultFx = asset.id === "cedear" ? fxRates?.ccl : fxRates?.mep;
+  
   const [ticker, setTicker] = useState(initial?.ticker ?? "");
   const [quantity, setQuantity] = useState(
     initial ? String(initial.quantity) : "",
+  );
+  const [currency, setCurrency] = useState<"USD" | "ARS">(
+    initial ? "USD" : isArsDenominated ? "ARS" : "USD"
+  );
+  const [fxRate, setFxRate] = useState(
+    initial ? "" : isArsDenominated && defaultFx ? defaultFx.toString() : ""
   );
   const [avgCost, setAvgCost] = useState(
     initial
@@ -404,8 +430,22 @@ function InitialPositionForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const qty = parseNumber(quantity);
-    const cost = parseNumber(avgCost);
+    let cost = parseNumber(avgCost);
     if (qty === null || cost === null) return;
+    
+    if (currency === "ARS") {
+      const fxr = parseNumber(fxRate);
+      if (fxr === null || fxr === 0) {
+        toast.error("Ingresá un tipo de cambio válido.");
+        return;
+      }
+      cost = cost / fxr;
+    }
+
+    if (asset.id === "on") {
+      cost = cost * 100;
+    }
+
     const meta: Record<string, unknown> = {};
     for (const field of asset.metadataFields) {
       const v = metadata[field.key];
@@ -472,18 +512,88 @@ function InitialPositionForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="avgcost" className="text-xs text-muted-foreground">
-            {asset.id === "on" ? "Costo c/100 VN (USD)" : "Costo promedio (USD)"}
-          </Label>
-          <Input
-            id="avgcost"
-            value={avgCost}
-            onChange={(e) => setAvgCost(e.target.value)}
-            placeholder="0.00"
-            inputMode="decimal"
-            className={cn(inputCls, "font-mono tabular-nums")}
-            disabled={asset.id === "usd_cash"}
-          />
+          <div className="flex items-center justify-between">
+            <Label htmlFor="avgcost" className="text-xs text-muted-foreground">
+              {asset.id === "on" ? "Costo unitario" : "Costo promedio"}
+            </Label>
+            {asset.requiresPrice && (
+              <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
+                <button
+                  type="button"
+                  onClick={() => setCurrency("USD")}
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 uppercase tracking-widest transition-all",
+                    currency === "USD"
+                      ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  USD
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrency("ARS")}
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 uppercase tracking-widest transition-all",
+                    currency === "ARS"
+                      ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  ARS
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-mono text-sm text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="avgcost"
+              value={avgCost}
+              onChange={(e) => setAvgCost(e.target.value)}
+              placeholder="0.00"
+              inputMode="decimal"
+              className={cn(inputCls, "pl-7 font-mono tabular-nums")}
+              disabled={asset.id === "usd_cash"}
+            />
+          </div>
+          {currency === "ARS" && (
+            <div className="flex items-end gap-2 pt-1">
+              <div className="flex flex-1 flex-col gap-1">
+                <Label htmlFor="fx" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Tipo de cambio
+                </Label>
+                <Input
+                  id="fx"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="MEP"
+                  value={fxRate}
+                  onChange={(e) => setFxRate(e.target.value)}
+                  className="h-9 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-sm tabular-nums focus-visible:border-white/20"
+                />
+              </div>
+              {fxRates && (
+                (() => {
+                  const defFx = asset.id === "cedear" ? fxRates.ccl : fxRates.mep;
+                  const fxLabel = asset.id === "cedear" ? "CCL" : "MEP";
+                  return (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFxRate(defFx.toString())}
+                      className="h-9 rounded-xl border-theme-500/30 bg-theme-500/10 text-xs font-semibold text-theme-300 hover:bg-theme-500/20 hover:text-theme-200"
+                    >
+                      {fxLabel} {Math.round(defFx)}
+                    </Button>
+                  );
+                })()
+              )}
+            </div>
+          )}
         </div>
       </div>
 
