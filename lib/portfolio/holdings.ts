@@ -38,6 +38,13 @@ function positionLabel(assetType: AssetType, ticker: string | null): string {
   return (ticker ?? "").toUpperCase();
 }
 
+/**
+ * Cantidad efectiva: para ONs, los precios y costos se expresan cada 100 VN.
+ */
+export function effectiveQty(assetType: AssetType, quantity: number): number {
+  return assetType === "on" ? quantity / 100 : quantity;
+}
+
 // Costo USD de una tx (tanto buy/deposit como sell/withdraw usan la misma fórmula para "valor USD").
 function usdValueOfTx(tx: Investment): number {
   if (tx.asset_type === "usd_cash") return tx.quantity;
@@ -47,7 +54,7 @@ function usdValueOfTx(tx: Investment): number {
     if (tx.fx_rate && tx.fx_rate > 0) return tx.quantity / tx.fx_rate;
     return 0;
   }
-  return tx.quantity * (tx.price_usd ?? 0);
+  return effectiveQty(tx.asset_type, tx.quantity) * (tx.price_usd ?? 0);
 }
 
 /**
@@ -67,10 +74,10 @@ export function computeHoldings(
     const existing = map.get(key);
     if (existing) {
       const newQty = existing.quantity + ip.quantity;
-      const newCost = existing.cost_basis_usd + ip.quantity * ip.avg_cost_usd;
+      const newCost = existing.cost_basis_usd + effectiveQty(ip.asset_type, ip.quantity) * ip.avg_cost_usd;
       existing.quantity = newQty;
       existing.cost_basis_usd = newCost;
-      existing.avg_cost_usd = newQty > 0 ? newCost / newQty : 0;
+      existing.avg_cost_usd = newQty > 0 ? newCost / effectiveQty(ip.asset_type, newQty) : 0;
       existing.metadata = { ...existing.metadata, ...ip.metadata };
     } else {
       map.set(key, {
@@ -80,7 +87,7 @@ export function computeHoldings(
         label: positionLabel(ip.asset_type, ip.ticker),
         quantity: ip.quantity,
         avg_cost_usd: ip.avg_cost_usd,
-        cost_basis_usd: ip.quantity * ip.avg_cost_usd,
+        cost_basis_usd: effectiveQty(ip.asset_type, ip.quantity) * ip.avg_cost_usd,
         realized_pnl_usd: 0,
         metadata: { ...ip.metadata },
       });
@@ -117,12 +124,12 @@ export function computeHoldings(
       const newCost = existing.cost_basis_usd + valueUsd + tx.fees_usd;
       existing.quantity = newQty;
       existing.cost_basis_usd = newCost;
-      existing.avg_cost_usd = newQty > 0 ? newCost / newQty : 0;
+      existing.avg_cost_usd = newQty > 0 ? newCost / effectiveQty(tx.asset_type, newQty) : 0;
       if (tx.metadata && Object.keys(tx.metadata).length > 0) {
         existing.metadata = { ...existing.metadata, ...tx.metadata };
       }
     } else if (tx.tx_type === "sell" || tx.tx_type === "withdraw") {
-      const costRemoved = existing.avg_cost_usd * tx.quantity;
+      const costRemoved = existing.avg_cost_usd * effectiveQty(tx.asset_type, tx.quantity);
       const pnl = valueUsd - costRemoved - tx.fees_usd;
       existing.realized_pnl_usd += pnl;
       existing.quantity = Math.max(0, existing.quantity - tx.quantity);
@@ -159,8 +166,13 @@ export function valueHoldings(
       if (quote?.price && fxCcl > 0) {
         priceUsd = quote.price / fxCcl;
       }
-    } else if (h.asset_type === "on" || h.asset_type === "stock_ar") {
-      // ONs y Acciones AR: cotizan en ARS, se convierten con MEP
+    } else if (h.asset_type === "on") {
+      // ONs: cotizan en ARS por cada 100 VN, se convierten con MEP
+      if (quote?.price && fxMep > 0) {
+        priceUsd = quote.price / fxMep;  // precio por 100 VN en USD
+      }
+    } else if (h.asset_type === "stock_ar") {
+      // Acciones AR: cotizan en ARS por unidad
       if (quote?.price && fxMep > 0) {
         priceUsd = quote.price / fxMep;
       }
@@ -173,7 +185,7 @@ export function valueHoldings(
       change24h = 0;
     }
 
-    const currentValue = priceUsd !== null ? h.quantity * priceUsd : 0;
+    const currentValue = priceUsd !== null ? effectiveQty(h.asset_type, h.quantity) * priceUsd : 0;
     const pnlPct =
       h.avg_cost_usd > 0 && priceUsd !== null
         ? ((priceUsd - h.avg_cost_usd) / h.avg_cost_usd) * 100

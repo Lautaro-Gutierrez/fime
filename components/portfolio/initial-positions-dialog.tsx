@@ -473,7 +473,7 @@ function InitialPositionForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="avgcost" className="text-xs text-muted-foreground">
-            Costo promedio (USD)
+            {asset.id === "on" ? "Costo c/100 VN (USD)" : "Costo promedio (USD)"}
           </Label>
           <Input
             id="avgcost"

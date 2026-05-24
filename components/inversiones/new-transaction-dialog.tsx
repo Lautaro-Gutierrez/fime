@@ -502,7 +502,7 @@ function TransactionForm({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="price" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Precio unitario
+                {asset.id === "on" ? "Precio c/100 VN" : "Precio unitario"}
               </Label>
               {canSwitchCurrency && (
                 <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
@@ -581,7 +581,7 @@ function TransactionForm({
             )}
             {usdEquivalent !== null && form.currency === "ARS" && (
               <p className="rounded-lg bg-white/5 px-3 py-1.5 font-mono text-xs text-muted-foreground">
-                ≈ USD {usdEquivalent.toFixed(4)} por unidad
+                ≈ USD {usdEquivalent.toFixed(4)} {asset.id === "on" ? "c/100 VN" : "por unidad"}
               </p>
             )}
           </div>
