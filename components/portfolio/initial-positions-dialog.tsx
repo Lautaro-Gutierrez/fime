@@ -380,6 +380,8 @@ function InitialPositionForm({
   onCancel,
   submitting,
   fxRates,
+  portfolios,
+  defaultPortfolioId,
 }: {
   asset: AssetConfig;
   initial?: InitialPosition | null;
