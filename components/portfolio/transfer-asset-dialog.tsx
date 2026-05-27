@@ -108,62 +108,82 @@ export function TransferAssetDialog({ open, onOpenChange, holding, sourcePortfol
             </div>
           </div>
 
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className="flex flex-col gap-0 relative">
             {/* Source Portfolio (Readonly) */}
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-white/40">Origen</span>
-              <div className="flex h-10 w-full items-center gap-2 rounded-lg border border-white/5 bg-white/[0.02] px-3 opacity-70">
+            <div className="flex flex-col gap-2 rounded-xl border border-white/5 bg-white/[0.02] p-3 pb-5">
+              <span className="text-xs font-medium text-white/40 px-1">Desde portfolio</span>
+              <div className="flex items-center gap-3 px-1">
                 {sourcePortfolio ? (() => {
                   const Icon = PORTFOLIO_ICONS[sourcePortfolio.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
                   const colorClass = PORTFOLIO_COLORS[sourcePortfolio.color] || "bg-indigo-500";
                   return (
                     <>
-                      <div className={cn("flex size-5 items-center justify-center rounded bg-white/10 text-white")}>
-                        <Icon className="size-3" />
+                      <div className={cn("flex size-8 items-center justify-center rounded-lg bg-white/5", colorClass.replace('bg-', 'text-'))}>
+                        <Icon className="size-4" />
                       </div>
-                      <span className="truncate text-sm text-white/70">{sourcePortfolio.name}</span>
+                      <span className="text-sm font-medium text-white/90">{sourcePortfolio.name}</span>
                     </>
                   );
                 })() : null}
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center pt-6 text-white/20">
-              <ArrowRight className="size-4" />
+            {/* Arrow Divider */}
+            <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+              <div className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-[#09090b] text-white/40 shadow-sm">
+                <ArrowRight className="size-4 rotate-90" />
+              </div>
             </div>
 
             {/* Target Portfolio Select */}
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-medium text-white/70">Destino</span>
-              <Select 
-                value={targetPortfolioId} 
-                onValueChange={(val) => setTargetPortfolioId(val || "")} 
-                disabled={isPending}
-              >
-                <SelectTrigger className="w-full bg-white/5 hover:bg-white/10">
-                  <SelectValue placeholder="Elegir..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {targetPortfolios.length === 0 ? (
-                    <SelectItem value="none" disabled>No hay otros portfolios</SelectItem>
-                  ) : (
-                    targetPortfolios.map((p) => {
-                      const Icon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
-                      const colorClass = PORTFOLIO_COLORS[p.color] || "bg-indigo-500";
+            <div className="flex flex-col gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3 pt-5 mt-[-8px]">
+              <span className="text-xs font-medium text-indigo-200/50 px-1 pl-12">Hacia portfolio</span>
+              <div className="pl-11">
+                <Select 
+                  value={targetPortfolioId} 
+                  onValueChange={(val) => setTargetPortfolioId(val || "")} 
+                  disabled={isPending}
+                >
+                  <SelectTrigger className="w-full bg-white/5 hover:bg-white/10 h-11 border-white/10">
+                    {targetPortfolioId ? (() => {
+                      const selectedTarget = targetPortfolios.find(p => p.id === targetPortfolioId);
+                      if (!selectedTarget) return <span className="text-muted-foreground">Elegir destino...</span>;
+                      const Icon = PORTFOLIO_ICONS[selectedTarget.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                      const colorClass = PORTFOLIO_COLORS[selectedTarget.color] || "bg-indigo-500";
                       return (
-                        <SelectItem key={p.id} value={p.id} className="cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <div className={cn("flex size-5 items-center justify-center rounded bg-white/10", colorClass.replace('bg-', 'text-'))}>
-                              <Icon className="size-3" />
-                            </div>
-                            <span>{p.name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className={cn("flex size-5 items-center justify-center rounded bg-white/10", colorClass.replace('bg-', 'text-'))}>
+                            <Icon className="size-3" />
                           </div>
-                        </SelectItem>
+                          <span>{selectedTarget.name}</span>
+                        </div>
                       );
-                    })
-                  )}
-                </SelectContent>
-              </Select>
+                    })() : (
+                      <span className="text-muted-foreground">Elegir destino...</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {targetPortfolios.length === 0 ? (
+                      <SelectItem value="none" disabled>No hay otros portfolios</SelectItem>
+                    ) : (
+                      targetPortfolios.map((p) => {
+                        const Icon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                        const colorClass = PORTFOLIO_COLORS[p.color] || "bg-indigo-500";
+                        return (
+                          <SelectItem key={p.id} value={p.id} className="cursor-pointer py-2">
+                            <div className="flex items-center gap-2">
+                              <div className={cn("flex size-6 items-center justify-center rounded bg-white/10", colorClass.replace('bg-', 'text-'))}>
+                                <Icon className="size-3.5" />
+                              </div>
+                              <span className="font-medium">{p.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
