@@ -24,7 +24,9 @@ import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { HoldingsList } from "@/components/portfolio/holdings-list";
 import { PerformanceChart } from "@/components/portfolio/performance-chart";
 import { InitialPositionsDialog } from "@/components/portfolio/initial-positions-dialog";
+import { TransferAssetDialog } from "@/components/portfolio/transfer-asset-dialog";
 import { usePortfolio } from "@/hooks/use-portfolio";
+import type { ValuedHolding } from "@/lib/portfolio/holdings";
 
 export default function InversionesPage({
   params,
@@ -131,6 +133,7 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
 
           <TabsContent value="portfolio">
             <PortfolioTab
+              portfolioId={portfolioId}
               holdings={holdings}
               totals={totals}
               returnSeries={returnSeries}
@@ -229,6 +232,7 @@ function BitacoraTab({ portfolioId }: { portfolioId: string }) {
 
 /* ── Portfolio Tab ── */
 function PortfolioTab({
+  portfolioId,
   holdings,
   totals,
   returnSeries,
@@ -237,6 +241,7 @@ function PortfolioTab({
   refetchPrices,
   resetHistory,
 }: {
+  portfolioId: string;
   holdings: any[];
   totals: any;
   returnSeries: any[];
@@ -245,6 +250,8 @@ function PortfolioTab({
   refetchPrices: () => void;
   resetHistory: () => Promise<void>;
 }) {
+  const [transferHolding, setTransferHolding] = useState<ValuedHolding | null>(null);
+
   // Delta de "hoy" desde la serie TWR.
   const dailyPct = useMemo(() => {
     if (returnSeries.length < 2) return null;
@@ -302,7 +309,20 @@ function PortfolioTab({
           </div>
 
           {/* Holdings list */}
-          <HoldingsList holdings={holdings} />
+          <HoldingsList 
+            holdings={holdings} 
+            portfolioId={portfolioId} 
+            onTransfer={setTransferHolding} 
+          />
+
+          {portfolioId !== "ALL" && (
+            <TransferAssetDialog
+              open={!!transferHolding}
+              onOpenChange={(v) => !v && setTransferHolding(null)}
+              holding={transferHolding}
+              sourcePortfolioId={portfolioId}
+            />
+          )}
         </>
       )}
     </div>

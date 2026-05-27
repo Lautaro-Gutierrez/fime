@@ -509,7 +509,21 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      transfer_asset: {
+        Args: {
+          p_user_id: string;
+          p_source_portfolio: string;
+          p_target_portfolio: string;
+          p_asset_type: string;
+          p_ticker: string | null;
+        };
+        Returns: {
+          investments_moved: number;
+          initial_positions_moved: number;
+        };
+      };
+    };
     Enums: {
       expense_category: ExpenseCategory;
       asset_type: AssetType;
