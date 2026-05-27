@@ -80,6 +80,7 @@ interface PortfolioSelectorProps {
   activeId: string | "ALL";
   currentTotalUsd?: number;
   holdingsCount?: number;
+  isLoading?: boolean;
 }
 
 export function PortfolioSelector({
@@ -87,6 +88,7 @@ export function PortfolioSelector({
   activeId,
   currentTotalUsd = 0,
   holdingsCount = 0,
+  isLoading = false,
 }: PortfolioSelectorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -124,6 +126,11 @@ export function PortfolioSelector({
                   }}
                 />
                 <span>{activePortfolio.name}</span>
+              </div>
+            ) : isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="size-3 animate-spin rounded-full border-2 border-white/20 border-t-indigo-400" />
+                <span className="text-muted-foreground">Cargando...</span>
               </div>
             ) : (
               <span>Seleccionar...</span>
@@ -181,57 +188,68 @@ export function PortfolioSelector({
 
                     {/* Individual Portfolios */}
                     <div className="max-h-[280px] overflow-y-auto overflow-x-hidden p-0.5">
-                      {portfolios.map((p) => {
-                        const Icon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
-                        const isSelected = activeId === p.id;
-                        const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
-                        const bgClass = PORTFOLIO_COLORS[p.color] || "bg-indigo-500";
+                      {isLoading && portfolios.length === 0 ? (
+                        <div className="flex flex-col gap-1 p-2">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="flex h-10 items-center gap-3 rounded-lg px-2">
+                              <div className="size-7 animate-pulse rounded-md bg-white/10" />
+                              <div className="h-4 w-24 animate-pulse rounded bg-white/10" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        portfolios.map((p) => {
+                          const Icon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                          const isSelected = activeId === p.id;
+                          const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
+                          const bgClass = PORTFOLIO_COLORS[p.color] || "bg-indigo-500";
 
-                        return (
-                          <DropdownMenu.Item
-                            key={p.id}
-                            onSelect={() => handleSelect(p.id)}
-                            className="group flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 outline-none transition-colors hover:bg-white/5 focus:bg-white/5"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={cn(
-                                  "flex size-7 items-center justify-center rounded-md bg-white/5 transition-colors",
-                                  isSelected ? colorClass : "text-muted-foreground group-hover:text-foreground",
-                                )}
-                              >
-                                <Icon className="size-3.5" />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">{p.name}</span>
-                                {isSelected && (
-                                  <span className="text-[10px] text-muted-foreground">
-                                    {holdingsCount} ops · {formatUSD(currentTotalUsd)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {isSelected && (
-                                <motion.div
-                                  layoutId="active-portfolio-check"
-                                  className={colorClass}
-                                >
-                                  <Check className="size-4" />
-                                </motion.div>
-                              )}
-                              {!isSelected && (
-                                <span
+                          return (
+                            <DropdownMenu.Item
+                              key={p.id}
+                              onSelect={() => handleSelect(p.id)}
+                              className="group flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 outline-none transition-colors hover:bg-white/5 focus:bg-white/5"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
                                   className={cn(
-                                    "size-1.5 rounded-full opacity-50",
-                                    bgClass,
+                                    "flex size-7 items-center justify-center rounded-md bg-white/5 transition-colors",
+                                    isSelected ? colorClass : "text-muted-foreground group-hover:text-foreground",
                                   )}
-                                />
-                              )}
-                            </div>
-                          </DropdownMenu.Item>
-                        );
-                      })}
+                                >
+                                  <Icon className="size-3.5" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">{p.name}</span>
+                                  {isSelected && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {holdingsCount} ops · {formatUSD(currentTotalUsd)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {isSelected && (
+                                  <motion.div
+                                    layoutId="active-portfolio-check"
+                                    className={colorClass}
+                                  >
+                                    <Check className="size-4" />
+                                  </motion.div>
+                                )}
+                                {!isSelected && (
+                                  <span
+                                    className={cn(
+                                      "size-1.5 rounded-full opacity-50",
+                                      bgClass,
+                                    )}
+                                  />
+                                )}
+                              </div>
+                            </DropdownMenu.Item>
+                          );
+                        })
+                      )}
                     </div>
 
                     <DropdownMenu.Separator className="my-1 h-px bg-white/5" />

@@ -97,7 +97,6 @@ export function EditPortfolioDialog({ portfolio, open, onOpenChange }: EditPortf
                     color === c ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950" : "opacity-60",
                     PORTFOLIO_COLORS[c]
                   )}
-                  style={{ backgroundColor: `var(--${c}-500)` }}
                 />
               ))}
             </div>

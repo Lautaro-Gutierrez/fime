@@ -104,16 +104,13 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
           </p>
 
           <div className="mt-4 flex items-center">
-            {isLoadingPortfolios ? (
-              <div className="h-10 w-48 animate-pulse rounded-md bg-card" />
-            ) : (
-              <PortfolioSelector
-                portfolios={portfolios}
-                activeId={portfolioId}
-                currentTotalUsd={totals.total_usd}
-                holdingsCount={holdings.length}
-              />
-            )}
+            <PortfolioSelector
+              portfolios={portfolios}
+              activeId={portfolioId}
+              currentTotalUsd={totals.total_usd}
+              holdingsCount={holdings.length}
+              isLoading={isLoadingPortfolios}
+            />
           </div>
         </motion.div>
 
