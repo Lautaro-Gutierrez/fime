@@ -15,7 +15,7 @@ const PALETTE = [
 
 export function PortfolioSnapshot() {
   const { stealthMode: isStealthMode } = usePrefsContext();
-  const portfolio = usePortfolio();
+  const portfolio = usePortfolio("ALL");
 
   const donutData = useMemo(() => {
     return portfolio.holdings
@@ -46,7 +46,7 @@ export function PortfolioSnapshot() {
 
   return (
     <div id="dashboard-portfolio-snapshot" className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 h-full flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
-      <Link href="/inversiones?tab=portfolio" className="absolute inset-0 z-10">
+      <Link href="/inversiones/all?tab=portfolio" className="absolute inset-0 z-10">
         <span className="sr-only">Go to Portfolio</span>
       </Link>
       

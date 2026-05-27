@@ -8,6 +8,7 @@ import type { AssetType, TxType } from "@/types/database";
 export type Investment = {
   id: string;
   user_id: string;
+  portfolio_id: string | null;
   asset_type: AssetType;
   ticker: string | null;
   tx_type: TxType;
@@ -24,6 +25,7 @@ export type Investment = {
 };
 
 export type InvestmentInsert = {
+  portfolio_id?: string | null;
   asset_type: AssetType;
   ticker?: string | null;
   tx_type: TxType;

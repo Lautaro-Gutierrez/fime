@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -29,6 +29,8 @@ import { useCreateInvestment } from "@/hooks/use-investments";
 import { toISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
+import { usePortfolios, type Portfolio } from "@/hooks/use-portfolios";
+import { PORTFOLIO_COLORS, PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "./portfolio-selector";
 
 // ARS-denominated asset types (need fx_rate conversion to USD).
 const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar", "on"];
@@ -56,10 +58,11 @@ type FormState = {
   broker: string;
   date: string;
   note: string;
+  portfolio_id: string;
   metadata: Record<string, string>;
 };
 
-function defaultForm(asset: AssetConfig, fxRates?: FxRates): FormState {
+function defaultForm(asset: AssetConfig, fxRates?: FxRates, defaultPortfolioId?: string): FormState {
   const isArsDenominated = ARS_DENOMINATED.includes(asset.id);
   const defaultFx = asset.id === "cedear" ? fxRates?.ccl : fxRates?.mep;
   return {
@@ -73,6 +76,7 @@ function defaultForm(asset: AssetConfig, fxRates?: FxRates): FormState {
     broker: "",
     date: toISODate(new Date()),
     note: "",
+    portfolio_id: defaultPortfolioId ?? "",
     metadata: {},
   };
 }
@@ -114,7 +118,7 @@ function parseNumber(input: string): number | null {
   return n;
 }
 
-export function NewTransactionDialog() {
+export function NewTransactionDialog({ defaultPortfolioId }: { defaultPortfolioId?: string }) {
   const [open, setOpen] = useState(false);
   const [asset, setAsset] = useState<AssetConfig | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
@@ -137,7 +141,7 @@ export function NewTransactionDialog() {
 
   function selectAsset(a: AssetConfig) {
     setAsset(a);
-    setForm(defaultForm(a, fx));
+    setForm(defaultForm(a, fx, defaultPortfolioId));
   }
 
   function back() {
@@ -147,6 +151,11 @@ export function NewTransactionDialog() {
 
   async function submit() {
     if (!asset || !form) return;
+    
+    if (!form.portfolio_id) {
+      toast.error("Seleccioná un portfolio.");
+      return;
+    }
 
     const qty = parseNumber(form.quantity);
     if (qty === null || qty === 0) {
@@ -214,6 +223,7 @@ export function NewTransactionDialog() {
         broker: form.broker.trim() || null,
         date: form.date,
         note: form.note.trim() || null,
+        portfolio_id: form.portfolio_id,
         metadata: form.metadata,
       });
       toast.success("Transacción registrada");
@@ -357,6 +367,15 @@ function TransactionForm({
 }) {
   const Icon = asset.icon;
   const canSwitchCurrency = asset.requiresPrice;
+  const { data: portfolios = [] } = usePortfolios();
+
+  // If there's no portfolio_id set, default to the first one available, preferably the default one
+  useEffect(() => {
+    if (!form.portfolio_id && portfolios.length > 0) {
+      const defaultP = portfolios.find(p => p.is_default) || portfolios[0];
+      setForm({ ...form, portfolio_id: defaultP.id });
+    }
+  }, [form.portfolio_id, portfolios, form, setForm]);
 
   const usdEquivalent = useMemo(() => {
     if (!asset.requiresPrice) return null;
@@ -442,6 +461,40 @@ function TransactionForm({
       </div>
 
       <div className="flex flex-col gap-4 overflow-y-auto p-5">
+        {/* Portfolio selector */}
+        {portfolios.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Portfolio
+            </Label>
+            <Select
+              value={form.portfolio_id}
+              onValueChange={(val) => update("portfolio_id", val as string)}
+            >
+              <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+                <SelectValue placeholder="Seleccionar portfolio" />
+              </SelectTrigger>
+              <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+                {portfolios.map((p) => {
+                  const PIcon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                  const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
+                  return (
+                    <SelectItem key={p.id} value={p.id} className="cursor-pointer focus:bg-white/10">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("flex size-5 items-center justify-center rounded-md bg-white/5", colorClass)}>
+                          <PIcon className="size-3" />
+                        </div>
+                        <span className="font-medium">{p.name}</span>
+                        {p.is_default && <span className="text-[10px] uppercase text-indigo-400/80">(Default)</span>}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Tipo de operación */}
         {asset.allowedTxTypes.length > 1 && (
           <div className="flex gap-2">

@@ -32,7 +32,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: "/", label: "Dashboard", short: "Inicio", icon: LayoutDashboard, enabled: true },
   { href: "/gastos", label: "Gastos", short: "Gastos", icon: Receipt, enabled: true },
-  { href: "/inversiones", label: "Inversiones", short: "Invers.", icon: TrendingUp, enabled: true },
+  { href: "/inversiones/all", label: "Inversiones", short: "Invers.", icon: TrendingUp, enabled: true },
   { href: "/ingresos", label: "Ingresos", short: "Ingr.", icon: Wallet, enabled: true },
   { href: "/metas", label: "Metas", short: "Metas", icon: Target, enabled: true },
   { href: "/config", label: "Configuración", short: "Conf.", icon: Settings, enabled: true },
@@ -68,12 +68,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
 
         <nav className="flex flex-1 flex-col gap-1">
-          {NAV.map((item) => (
-            <div key={item.href} className="contents">
-              {item.href === "/config" && <div className="my-3 h-px w-full bg-white/[0.06]" />}
-              <NavLink item={item} active={pathname === item.href} />
-            </div>
-          ))}
+          {NAV.map((item) => {
+            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.split('/')[1] ? `/${item.href.split('/')[1]}` : item.href);
+            return (
+              <div key={item.href} className="contents">
+                {item.href === "/config" && <div className="my-3 h-px w-full bg-white/[0.06]" />}
+                <NavLink item={item} active={isActive} />
+              </div>
+            );
+          })}
         </nav>
 
         {/* User profile */}
@@ -114,10 +117,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       {/* Bottom tabs (mobile) */}
       <nav id="mobile-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 md:hidden">
-        {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones", "/metas"].includes(n.href)).map(
+        {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones/all", "/metas"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;
-            const active = pathname === item.href;
+            const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.split('/')[1] ? `/${item.href.split('/')[1]}` : item.href);
             const cls = cn(
               "flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-[10px] transition-colors",
               active

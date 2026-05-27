@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Pencil, Plus, Trash2, Package } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, Trash2, Package, Briefcase } from "lucide-react";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,8 @@ import {
 } from "@/hooks/use-initial-positions";
 import { cn } from "@/lib/utils";
 import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
+import { usePortfolios } from "@/hooks/use-portfolios";
+import { PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "@/components/inversiones/portfolio-selector";
 
 // Gradient por asset (reusa convención M2).
 const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
@@ -94,7 +97,12 @@ export function InitialPositionsDialog() {
   const [asset, setAsset] = useState<AssetConfig | null>(null);
   const [editing, setEditing] = useState<InitialPosition | null>(null);
 
+  const params = useParams();
+  const routePortfolioId = params.portfolioId as string | undefined;
+  const activePortfolioId = routePortfolioId?.toUpperCase() === "ALL" ? "ALL" : routePortfolioId;
+
   const { data: positions = [] } = useInitialPositions();
+  const { data: portfolios = [] } = usePortfolios();
   const createMut = useCreateInitialPosition();
   const updateMut = useUpdateInitialPosition();
   const deleteMut = useDeleteInitialPosition();
@@ -212,7 +220,7 @@ export function InitialPositionsDialog() {
                 </div>
               ) : (
                 <div className="flex max-h-[280px] flex-col divide-y divide-white/5 overflow-y-auto rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
-                  {positions.map((p) => {
+                  {positions.filter(p => activePortfolioId === "ALL" || p.portfolio_id === activePortfolioId).map((p) => {
                     const a = ASSETS_BY_ID[p.asset_type];
                     const Icon = a.icon;
                     return (
@@ -326,6 +334,7 @@ export function InitialPositionsDialog() {
                         avg_cost_usd: payload.avg_cost_usd,
                         as_of_date: payload.as_of_date,
                         note: payload.note,
+                        portfolio_id: payload.portfolio_id,
                         metadata: payload.metadata,
                       },
                     });
@@ -343,6 +352,8 @@ export function InitialPositionsDialog() {
               }}
               submitting={createMut.isPending || updateMut.isPending}
               fxRates={fx}
+              portfolios={portfolios}
+              defaultPortfolioId={activePortfolioId === "ALL" ? undefined : activePortfolioId}
             />
           )}
         </AnimatePresence>
@@ -358,6 +369,7 @@ type FormPayload = {
   avg_cost_usd: number;
   as_of_date: string;
   note: string | null;
+  portfolio_id: string;
   metadata: Record<string, unknown>;
 };
 
@@ -375,6 +387,8 @@ function InitialPositionForm({
   onCancel: () => void;
   submitting: boolean;
   fxRates?: FxRates;
+  portfolios: any[];
+  defaultPortfolioId?: string;
 }) {
   const isArsDenominated = ["cedear", "stock_ar", "bond_ar", "on"].includes(asset.id);
   const defaultFx = asset.id === "cedear" ? fxRates?.ccl : fxRates?.mep;
@@ -407,6 +421,10 @@ function InitialPositionForm({
         )
       : {},
   );
+  
+  const [portfolioId, setPortfolioId] = useState<string>(
+    initial?.portfolio_id ?? defaultPortfolioId ?? (portfolios.find(p => p.is_default)?.id || portfolios[0]?.id || "")
+  );
 
   useEffect(() => {
     if (asset.id === "cedear" && ticker) {
@@ -423,6 +441,7 @@ function InitialPositionForm({
     const cost = parseNumber(avgCost);
     if (qty === null || cost === null) return false;
     if (asset.requiresTicker && !ticker.trim()) return false;
+    if (!portfolioId) return false;
     for (const field of asset.metadataFields) {
       if (field.required && !metadata[field.key]) return false;
     }
@@ -466,6 +485,7 @@ function InitialPositionForm({
       avg_cost_usd: cost,
       as_of_date: date,
       note: note.trim() || null,
+      portfolio_id: portfolioId,
       metadata: meta,
     });
   }
@@ -640,6 +660,37 @@ function InitialPositionForm({
           )}
         </div>
       ))}
+
+      {portfolios.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-xs text-muted-foreground">Portfolio</Label>
+          <Select
+            value={portfolioId}
+            onValueChange={(val) => setPortfolioId(val as string)}
+          >
+            <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+              <SelectValue placeholder="Seleccionar portfolio" />
+            </SelectTrigger>
+            <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+              {portfolios.map((p) => {
+                const PIcon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
+                return (
+                  <SelectItem key={p.id} value={p.id} className="cursor-pointer focus:bg-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("flex size-5 items-center justify-center rounded-md bg-white/5", colorClass)}>
+                        <PIcon className="size-3" />
+                      </div>
+                      <span className="font-medium">{p.name}</span>
+                      {p.is_default && <span className="text-[10px] uppercase text-indigo-400/80">(Default)</span>}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="date" className="text-xs text-muted-foreground">

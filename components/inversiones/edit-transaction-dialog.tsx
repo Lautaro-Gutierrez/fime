@@ -15,11 +15,21 @@ import { Label } from "@/components/ui/label";
 import { ASSETS_BY_ID, TX_TYPE_LABELS } from "@/lib/assets";
 import type { AssetType } from "@/types/database";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   type Investment,
   useDeleteInvestment,
   useUpdateInvestment,
 } from "@/hooks/use-investments";
+import { usePortfolios } from "@/hooks/use-portfolios";
+import { PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "./portfolio-selector";
 import { cn } from "@/lib/utils";
+import { Briefcase } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -94,9 +104,11 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
       ]),
     ),
   );
+  const [portfolioId, setPortfolioId] = useState(investment.portfolio_id ?? "");
 
   const update = useUpdateInvestment();
   const del = useDeleteInvestment();
+  const { data: portfolios = [] } = usePortfolios();
 
   useEffect(() => {
     setTicker(investment.ticker ?? "");
@@ -119,6 +131,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
         ]),
       ),
     );
+    setPortfolioId(investment.portfolio_id ?? "");
   }, [investment]);
 
   async function save() {
@@ -161,6 +174,7 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
           broker: broker.trim() || null,
           date,
           note: note.trim() || null,
+          portfolio_id: portfolioId,
           metadata,
         },
       });
@@ -233,6 +247,40 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
                   onChange={(e) => setTicker(e.target.value.toUpperCase())}
                   className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
                 />
+              </div>
+            )}
+
+            {/* Portfolio selector */}
+            {portfolios.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Portfolio
+                </Label>
+                <Select
+                  value={portfolioId}
+                  onValueChange={(val) => setPortfolioId(val as string)}
+                >
+                  <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+                    <SelectValue placeholder="Seleccionar portfolio" />
+                  </SelectTrigger>
+                  <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+                    {portfolios.map((p) => {
+                      const PIcon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+                      const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
+                      return (
+                        <SelectItem key={p.id} value={p.id} className="cursor-pointer focus:bg-white/10">
+                          <div className="flex items-center gap-2">
+                            <div className={cn("flex size-5 items-center justify-center rounded-md bg-white/5", colorClass)}>
+                              <PIcon className="size-3" />
+                            </div>
+                            <span className="font-medium">{p.name}</span>
+                            {p.is_default && <span className="text-[10px] uppercase text-indigo-400/80">(Default)</span>}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 

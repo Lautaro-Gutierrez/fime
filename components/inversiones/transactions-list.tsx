@@ -15,8 +15,12 @@ import { cn } from "@/lib/utils";
 import { EditTransactionDialog } from "@/components/inversiones/edit-transaction-dialog";
 import { AssetLogo } from "@/components/ui/asset-logo";
 
+import { usePortfolios } from "@/hooks/use-portfolios";
+import { PORTFOLIO_COLORS, PORTFOLIO_TEXT_COLORS } from "@/components/inversiones/portfolio-selector";
+
 type Props = {
   investments: Investment[];
+  showPortfolioBadge?: boolean;
 };
 
 function monthGroupLabel(yearMonth: string) {
@@ -28,7 +32,7 @@ function monthGroupLabel(yearMonth: string) {
   }).format(date);
 }
 
-export function TransactionsList({ investments }: Props) {
+export function TransactionsList({ investments, showPortfolioBadge = false }: Props) {
   const [editing, setEditing] = useState<Investment | null>(null);
 
   const groups = useMemo(() => {
@@ -73,6 +77,7 @@ export function TransactionsList({ investments }: Props) {
               month={month}
               items={items}
               onEdit={setEditing}
+              showPortfolioBadge={showPortfolioBadge}
             />
           ))}
         </AnimatePresence>
@@ -93,10 +98,12 @@ function MonthGroup({
   month,
   items,
   onEdit,
+  showPortfolioBadge,
 }: {
   month: string;
   items: Investment[];
   onEdit: (inv: Investment) => void;
+  showPortfolioBadge: boolean;
 }) {
   return (
     <motion.div
@@ -118,7 +125,7 @@ function MonthGroup({
       <ul className="flex flex-col gap-2">
         <AnimatePresence initial={false}>
           {items.map((inv) => (
-            <TransactionRow key={inv.id} inv={inv} onEdit={onEdit} />
+            <TransactionRow key={inv.id} inv={inv} onEdit={onEdit} showPortfolioBadge={showPortfolioBadge} />
           ))}
         </AnimatePresence>
       </ul>
@@ -129,14 +136,17 @@ function MonthGroup({
 function TransactionRow({
   inv,
   onEdit,
+  showPortfolioBadge,
 }: {
   inv: Investment;
   onEdit: (inv: Investment) => void;
+  showPortfolioBadge?: boolean;
 }) {
   const asset = ASSETS_BY_ID[inv.asset_type];
   const Icon = asset.icon;
   const deleteMutation = useDeleteInvestment();
   const recreateMutation = useCreateInvestment();
+  const { data: portfolios = [] } = usePortfolios();
 
   const x = useMotionValue(0);
   const bgOpacity = useTransform(x, [-120, 0], [1, 0]);
@@ -148,6 +158,8 @@ function TransactionRow({
 
   const displayTicker = inv.ticker ?? asset.short;
   const day = inv.date.slice(8, 10);
+  
+  const portfolio = showPortfolioBadge ? portfolios.find(p => p.id === inv.portfolio_id) : null;
 
   function performDelete() {
     const snapshot = { ...inv };
@@ -288,6 +300,17 @@ function TransactionRow({
                 <span className="truncate text-[10px] font-medium uppercase tracking-wider">
                   {inv.broker}
                 </span>
+              </>
+            )}
+            {portfolio && (
+              <>
+                <span className="text-muted-foreground/50">·</span>
+                <div className="flex items-center gap-1 overflow-hidden rounded-md border border-white/5 bg-white/5 px-1 py-0.5">
+                  <span className={cn("size-1.5 rounded-full", PORTFOLIO_COLORS[portfolio.color] || "bg-indigo-500")} />
+                  <span className="truncate text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {portfolio.name}
+                  </span>
+                </div>
               </>
             )}
           </div>

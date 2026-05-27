@@ -22,6 +22,7 @@ import {
 } from "@/lib/portfolio/twr";
 
 export type PortfolioSnapshot = {
+  portfolio_id: string;
   user_id: string;
   date: string;
   total_usd: number;
@@ -33,19 +34,41 @@ export type PortfolioSnapshot = {
 
 const SNAPSHOTS_KEY = ["portfolio_snapshots"] as const;
 
-function useSnapshots() {
+function useSnapshots(portfolioId: string | "ALL") {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
   const channelId = useId();
 
   const query = useQuery<PortfolioSnapshot[]>({
-    queryKey: SNAPSHOTS_KEY,
+    queryKey: [...SNAPSHOTS_KEY, portfolioId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("portfolio_snapshots")
         .select("*")
         .order("date", { ascending: true });
+      
+      if (portfolioId !== "ALL") {
+        q = q.eq("portfolio_id", portfolioId);
+      }
+      
+      const { data, error } = await q;
       if (error) throw error;
+      
+      if (portfolioId === "ALL") {
+        // Aggregate snapshots by date for "ALL" portfolios
+        const map = new Map<string, PortfolioSnapshot>();
+        for (const s of (data as PortfolioSnapshot[])) {
+          const existing = map.get(s.date);
+          if (existing) {
+            existing.total_usd += s.total_usd;
+            existing.cashflow_usd += s.cashflow_usd;
+          } else {
+            map.set(s.date, { ...s });
+          }
+        }
+        return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+      }
+      
       return data as PortfolioSnapshot[];
     },
   });
@@ -72,15 +95,25 @@ function useSnapshots() {
  * Combina investments + initial_positions + quotes + fx → holdings valuados.
  * Además actualiza el snapshot del día y compone la serie TWR vs SP500.
  */
-export function usePortfolio() {
+export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
   const supabase = useMemo(() => createClient(), []);
+  const queryClient = useQueryClient();
   const investmentsQ = useInvestments();
   const initialQ = useInitialPositions();
   const fxQ = useFxRates();
-  const snapshotsQ = useSnapshots();
+  const snapshotsQ = useSnapshots(portfolioId);
 
-  const investments = investmentsQ.data ?? [];
-  const initialPositions = initialQ.data ?? [];
+  const investments = useMemo(() => {
+    const all = investmentsQ.data ?? [];
+    if (portfolioId === "ALL") return all;
+    return all.filter((tx) => tx.portfolio_id === portfolioId);
+  }, [investmentsQ.data, portfolioId]);
+
+  const initialPositions = useMemo(() => {
+    const all = initialQ.data ?? [];
+    if (portfolioId === "ALL") return all;
+    return all.filter((ip) => ip.portfolio_id === portfolioId);
+  }, [initialQ.data, portfolioId]);
 
   // Holdings derivados (sin precios todavía — solo qty, avg_cost).
   const holdings = useMemo(
@@ -157,18 +190,21 @@ export function usePortfolio() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+      if (portfolioId === "ALL") return; // No upsert en la vista consolidada
       await supabase.from("portfolio_snapshots").upsert(
         {
+          portfolio_id: portfolioId,
           user_id: user.id,
           date: today,
           total_usd: totals.total_usd,
           cashflow_usd: todayCashflow,
         },
-        { onConflict: "user_id,date" },
+        { onConflict: "portfolio_id,date" },
       );
     })();
   }, [
     supabase,
+    portfolioId,
     totals.total_usd,
     investments,
     initialPositions.length,
@@ -180,8 +216,8 @@ export function usePortfolio() {
 
   // Reset: borra todo el historial de snapshots del usuario. Útil para
   // limpiar datos polucionados por bugs previos (ej. parseNumber ×100).
-  const queryClient = useQueryClient();
   async function resetHistory() {
+    if (portfolioId === "ALL") return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -189,7 +225,7 @@ export function usePortfolio() {
     await supabase
       .from("portfolio_snapshots")
       .delete()
-      .eq("user_id", user.id);
+      .eq("portfolio_id", portfolioId);
     await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
   }
 

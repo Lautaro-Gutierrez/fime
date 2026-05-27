@@ -8,6 +8,7 @@ import type { AssetType } from "@/types/database";
 export type InitialPosition = {
   id: string;
   user_id: string;
+  portfolio_id: string | null;
   asset_type: AssetType;
   ticker: string | null;
   quantity: number;
@@ -20,6 +21,7 @@ export type InitialPosition = {
 };
 
 export type InitialPositionInsert = {
+  portfolio_id?: string | null;
   asset_type: AssetType;
   ticker?: string | null;
   quantity: number;

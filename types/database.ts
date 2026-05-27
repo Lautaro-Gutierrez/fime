@@ -59,6 +59,42 @@ export type AccentColor = "amber" | "emerald" | "blue" | "rose" | "violet";
 export type Database = {
   public: {
     Tables: {
+      portfolios: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          icon: string;
+          is_default: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          color?: string;
+          icon?: string;
+          is_default?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          color?: string;
+          icon?: string;
+          is_default?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       expenses: {
         Row: {
           id: string;
@@ -105,6 +141,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
+          portfolio_id: string | null;
           asset_type: AssetType;
           ticker: string | null;
           tx_type: TxType;
@@ -122,6 +159,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
+          portfolio_id?: string | null;
           asset_type: AssetType;
           ticker?: string | null;
           tx_type: TxType;
@@ -139,6 +177,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
+          portfolio_id?: string | null;
           asset_type?: AssetType;
           ticker?: string | null;
           tx_type?: TxType;
@@ -159,6 +198,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
+          portfolio_id: string | null;
           asset_type: AssetType;
           ticker: string | null;
           quantity: number;
@@ -172,6 +212,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
+          portfolio_id?: string | null;
           asset_type: AssetType;
           ticker?: string | null;
           quantity: number;
@@ -185,6 +226,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
+          portfolio_id?: string | null;
           asset_type?: AssetType;
           ticker?: string | null;
           quantity?: number;
@@ -320,6 +362,7 @@ export type Database = {
       };
       portfolio_snapshots: {
         Row: {
+          portfolio_id: string;
           user_id: string;
           date: string;
           total_usd: number;
@@ -329,6 +372,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          portfolio_id: string;
           user_id: string;
           date: string;
           total_usd: number;
@@ -338,6 +382,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          portfolio_id?: string;
           user_id?: string;
           date?: string;
           total_usd?: number;
