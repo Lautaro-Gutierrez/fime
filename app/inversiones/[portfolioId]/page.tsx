@@ -154,18 +154,19 @@ function BitacoraTab({ portfolioId }: { portfolioId: string }) {
   const [filters, setFilters] = useState<FilterState>({
     assetTypes: [],
     ticker: "",
+    portfolioId: "",
   });
 
   const { data: investments = [], isLoading } = useInvestments();
 
-  // Filtramos por portfolio activo (si no es 'ALL') y luego aplicamos los filtros del UI
-  const filteredByPortfolio = useMemo(() => {
-    if (portfolioId === "ALL") return investments;
-    return investments.filter((inv) => inv.portfolio_id === portfolioId);
-  }, [investments, portfolioId]);
-
+  // Global Ledger: siempre mostramos TODAS las transacciones.
+  // El filtro por portfolio es opcional y local (dentro de la bitácora).
   const filtered = useMemo(() => {
-    return filteredByPortfolio.filter((inv) => {
+    return investments.filter((inv) => {
+      // Filtro local por portfolio (si el usuario lo activó)
+      if (filters.portfolioId && inv.portfolio_id !== filters.portfolioId) {
+        return false;
+      }
       if (
         filters.assetTypes.length > 0 &&
         !filters.assetTypes.includes(inv.asset_type)
@@ -178,9 +179,9 @@ function BitacoraTab({ portfolioId }: { portfolioId: string }) {
       }
       return true;
     });
-  }, [filteredByPortfolio, filters]);
+  }, [investments, filters]);
 
-  const totalOps = filteredByPortfolio.length;
+  const totalOps = investments.length;
   const filteredCount = filtered.length;
 
   return (
@@ -215,7 +216,7 @@ function BitacoraTab({ portfolioId }: { portfolioId: string }) {
         </motion.div>
       )}
 
-      {/* Lista */}
+      {/* Lista — siempre con badges de portfolio (Global Ledger) */}
       {isLoading ? (
         <div className="flex items-center justify-center rounded-xl border border-white/5 bg-card/40 p-12 backdrop-blur">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -224,7 +225,7 @@ function BitacoraTab({ portfolioId }: { portfolioId: string }) {
           </div>
         </div>
       ) : (
-        <TransactionsList investments={filtered} showPortfolioBadge={portfolioId === "ALL"} />
+        <TransactionsList investments={filtered} showPortfolioBadge />
       )}
     </div>
   );

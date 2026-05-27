@@ -1,15 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, X } from "lucide-react";
+import { Search, X, Briefcase } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ASSETS } from "@/lib/assets";
 import type { AssetType } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { usePortfolios } from "@/hooks/use-portfolios";
+import { PORTFOLIO_ICONS, PORTFOLIO_COLORS } from "@/components/inversiones/portfolio-selector";
 
 export type FilterState = {
   assetTypes: AssetType[];
   ticker: string;
+  portfolioId: string;
 };
 
 type Props = {
@@ -30,8 +33,10 @@ const ACTIVE_GLOW: Record<AssetType, string> = {
 };
 
 export function Filters({ state, onChange }: Props) {
+  const { data: portfolios = [] } = usePortfolios();
+
   const hasActive =
-    state.assetTypes.length > 0 || state.ticker.trim().length > 0;
+    state.assetTypes.length > 0 || state.ticker.trim().length > 0 || state.portfolioId.length > 0;
 
   function toggleAsset(id: AssetType) {
     if (state.assetTypes.includes(id)) {
@@ -42,6 +47,13 @@ export function Filters({ state, onChange }: Props) {
     } else {
       onChange({ ...state, assetTypes: [...state.assetTypes, id] });
     }
+  }
+
+  function togglePortfolio(id: string) {
+    onChange({
+      ...state,
+      portfolioId: state.portfolioId === id ? "" : id,
+    });
   }
 
   return (
@@ -69,8 +81,43 @@ export function Filters({ state, onChange }: Props) {
         )}
       </div>
 
-      {/* Asset chips */}
+      {/* Asset chips + Portfolio chips */}
       <div className="flex flex-wrap gap-1.5">
+        {/* Portfolio filter chips */}
+        {portfolios.length > 1 && portfolios.map((p) => {
+          const selected = state.portfolioId === p.id;
+          const Icon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
+          const colorBg = PORTFOLIO_COLORS[p.color] || "bg-indigo-500";
+          return (
+            <motion.button
+              key={`portfolio-${p.id}`}
+              onClick={() => togglePortfolio(p.id)}
+              whileTap={{ scale: 0.96 }}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                selected
+                  ? cn(
+                      "border-white/20 bg-white/10 text-white",
+                      "ring-1 ring-inset ring-white/10",
+                      "shadow-[0_0_20px_-4px_rgba(255,255,255,0.15)]",
+                    )
+                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground backdrop-blur hover:border-white/10 hover:bg-white/[0.03] backdrop-blur-xl hover:text-foreground",
+              )}
+            >
+              <span className={cn("size-2 rounded-full", colorBg)} />
+              {p.name}
+            </motion.button>
+          );
+        })}
+
+        {/* Divider between portfolio and asset chips */}
+        {portfolios.length > 1 && (
+          <div className="flex items-center px-0.5">
+            <div className="h-4 w-px bg-white/10" />
+          </div>
+        )}
+
+        {/* Asset type chips */}
         {ASSETS.map((a) => {
           const selected = state.assetTypes.includes(a.id);
           const Icon = a.icon;
@@ -99,7 +146,7 @@ export function Filters({ state, onChange }: Props) {
         })}
         {hasActive && (
           <button
-            onClick={() => onChange({ assetTypes: [], ticker: "" })}
+            onClick={() => onChange({ assetTypes: [], ticker: "", portfolioId: "" })}
             className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
           >
             <X className="size-3" />
