@@ -65,7 +65,7 @@ export function useGoals() {
   const query = useQuery<Goal[]>({
     queryKey: GOALS_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("goals")
         .select("*")
         .order("priority", { ascending: false })
@@ -105,7 +105,7 @@ export function useCreateGoal() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("goals")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -125,7 +125,7 @@ export function useUpdateGoal() {
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: GoalUpdate }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("goals")
         .update(patch)
         .eq("id", id)
@@ -146,7 +146,8 @@ export function useDeleteGoal() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("goals").delete().eq("id", id);
+      const { error } = await (supabase as any)
+        .from("goals").delete().eq("id", id);
       if (error) throw error;
       return id;
     },

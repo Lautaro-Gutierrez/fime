@@ -53,7 +53,7 @@ export function useExpenses(month: Date) {
     queryFn: async () => {
       const from = toISODate(firstOfMonth(month));
       const to = toISODate(lastOfMonth(month));
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("expenses")
         .select("*")
         .gte("date", from)
@@ -94,7 +94,7 @@ export function useCreateExpense() {
     mutationFn: async (input: ExpenseInsert) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("expenses")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -120,7 +120,7 @@ export function useUpdateExpense() {
       id: string;
       patch: ExpenseUpdate;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("expenses")
         .update(patch)
         .eq("id", id)
@@ -141,7 +141,8 @@ export function useDeleteExpense() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("expenses").delete().eq("id", id);
+      const { error } = await (supabase as any)
+        .from("expenses").delete().eq("id", id);
       if (error) throw error;
       return id;
     },

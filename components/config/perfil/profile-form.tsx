@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 import { AvatarPicker } from "@/components/config/perfil/avatar-picker";
+import { PasskeySection } from "@/components/config/perfil/passkey-section";
 import { cn } from "@/lib/utils";
 
 export function ProfileForm() {
@@ -229,17 +230,8 @@ export function ProfileForm() {
             )}
           </div>
 
-          {/* Passkeys placeholder */}
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/[0.03] backdrop-blur-xl px-4 py-3">
-            <KeyRound className="size-4 text-muted-foreground/50" />
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-medium text-muted-foreground/70">Passkeys</span>
-              <span className="text-[10px] text-muted-foreground/50">Autenticación biométrica sin contraseña</span>
-            </div>
-            <span className="rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-              pronto
-            </span>
-          </div>
+          {/* Passkeys Section */}
+          <PasskeySection />
         </div>
       </motion.div>
 

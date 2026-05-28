@@ -44,13 +44,13 @@ export function useCreditCards() {
   const query = useQuery<CreditCard[]>({
     queryKey: CREDIT_CARDS_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("credit_cards")
         .select("*")
         .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as CreditCard[];
+      return data as unknown as CreditCard[];
     },
   });
 
@@ -84,13 +84,13 @@ export function useCreateCreditCard() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("credit_cards")
         .insert({ ...input, user_id: user.id })
         .select()
         .single();
       if (error) throw error;
-      return data as CreditCard;
+      return data as unknown as CreditCard;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
@@ -104,14 +104,14 @@ export function useUpdateCreditCard() {
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: CreditCardUpdate }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("credit_cards")
         .update(patch)
         .eq("id", id)
         .select()
         .single();
       if (error) throw error;
-      return data as CreditCard;
+      return data as unknown as CreditCard;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
@@ -129,7 +129,7 @@ export function useArchiveCreditCard() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("credit_cards")
         .update({ archived_at: new Date().toISOString() })
         .eq("id", id);

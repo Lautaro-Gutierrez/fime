@@ -42,8 +42,7 @@ function useSnapshots(portfolioId: string | "ALL") {
   const query = useQuery<PortfolioSnapshot[]>({
     queryKey: [...SNAPSHOTS_KEY, portfolioId],
     queryFn: async () => {
-      let q = supabase
-        .from("portfolio_snapshots")
+      let q = (supabase as any).from("portfolio_snapshots")
         .select("*")
         .order("date", { ascending: true });
       
@@ -191,7 +190,8 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
       } = await supabase.auth.getUser();
       if (!user) return;
       if (portfolioId === "ALL") return; // No upsert en la vista consolidada
-      await supabase.from("portfolio_snapshots").upsert(
+      await (supabase as any)
+        .from("portfolio_snapshots").upsert(
         {
           portfolio_id: portfolioId,
           user_id: user.id,
@@ -222,8 +222,8 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase
-      .from("portfolio_snapshots")
+    await (supabase as any)
+        .from("portfolio_snapshots")
       .delete()
       .eq("portfolio_id", portfolioId);
     await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });

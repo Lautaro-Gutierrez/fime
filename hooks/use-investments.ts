@@ -51,7 +51,7 @@ export function useInvestments() {
   const query = useQuery<Investment[]>({
     queryKey: INVESTMENTS_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("investments")
         .select("*")
         .order("date", { ascending: false })
@@ -91,7 +91,7 @@ export function useCreateInvestment() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("investments")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -117,7 +117,7 @@ export function useUpdateInvestment() {
       id: string;
       patch: InvestmentUpdate;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("investments")
         .update(patch)
         .eq("id", id)
@@ -138,7 +138,7 @@ export function useDeleteInvestment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("investments")
         .delete()
         .eq("id", id);

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Wallet, Loader2 } from "lucide-react";
+import { Wallet, Loader2, Fingerprint } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,38 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [webAuthnSupported, setWebAuthnSupported] = useState(false);
+
+  useEffect(() => {
+    if (window.PublicKeyCredential) {
+      setWebAuthnSupported(true);
+    }
+  }, []);
+
+  async function handlePasskeyLogin() {
+    setPasskeyLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await (supabase.auth as any).signInWithPasskey();
+      if (error) throw error;
+      toast.success("Bienvenido");
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "NotAllowedError") {
+          // Usuario canceló el prompt biométrico - omitir error
+          return;
+        }
+        toast.error(err.message);
+      } else {
+        toast.error("Error al iniciar sesión con Passkey");
+      }
+    } finally {
+      setPasskeyLoading(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -148,6 +180,29 @@ export default function LoginPage() {
             </svg>
             Continuar con Google
           </Button>
+
+          {webAuthnSupported && (
+            <>
+              <Separator className="flex-1 mt-2" />
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="h-11 w-full gap-3 border-theme-500/30 bg-theme-500/5 hover:bg-theme-500/10 hover:border-theme-500/50"
+                onClick={handlePasskeyLogin}
+                disabled={passkeyLoading || loading}
+              >
+                {passkeyLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <>
+                    <Fingerprint className="size-4 text-theme-400" />
+                    Usar Passkey
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </form>
       </motion.div>
     </div>
