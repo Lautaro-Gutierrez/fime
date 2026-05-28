@@ -41,7 +41,7 @@ export function usePreferences() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("user_preferences")
         .select("*")
         .eq("user_id", user.id)
@@ -81,7 +81,7 @@ export function useUpdatePreferences() {
       if (!user) throw new Error("No autenticado");
 
       // Lazy upsert: try update first, if no rows affected, insert
-      const { data: updated, error: updateError } = await (supabase as any)
+      const { data: updated, error: updateError } = await supabase
         .from("user_preferences")
         .update(patch)
         .eq("user_id", user.id)
@@ -93,7 +93,7 @@ export function useUpdatePreferences() {
       if (updated) return updated as UserPreferences;
 
       // No row existed — create with defaults + patch
-      const { data: inserted, error: insertError } = await (supabase as any)
+      const { data: inserted, error: insertError } = await supabase
         .from("user_preferences")
         .insert({ user_id: user.id, ...patch })
         .select()

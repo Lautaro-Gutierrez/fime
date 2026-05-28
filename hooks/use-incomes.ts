@@ -55,7 +55,7 @@ export function useIncomes(month: Date) {
     queryFn: async () => {
       const from = toISODate(firstOfMonth(month));
       const to = toISODate(lastOfMonth(month));
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("incomes")
         .select("*")
         .gte("date", from)
@@ -96,7 +96,7 @@ export function useLastIncomeByCategory(category: IncomeCategory) {
   return useQuery<Income | null>({
     queryKey: ["incomes-last", category],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("incomes")
         .select("*")
         .eq("category", category)
@@ -119,7 +119,7 @@ export function useCreateIncome() {
     mutationFn: async (input: IncomeInsert) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("incomes")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -146,7 +146,7 @@ export function useUpdateIncome() {
       id: string;
       patch: IncomeUpdate;
     }) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("incomes")
         .update(patch)
         .eq("id", id)
@@ -168,7 +168,7 @@ export function useDeleteIncome() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("incomes").delete().eq("id", id);
       if (error) throw error;
       return id;

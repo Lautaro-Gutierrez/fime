@@ -44,7 +44,7 @@ export function useCreditCards() {
   const query = useQuery<CreditCard[]>({
     queryKey: CREDIT_CARDS_KEY,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("credit_cards")
         .select("*")
         .is("archived_at", null)
@@ -84,7 +84,7 @@ export function useCreateCreditCard() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("credit_cards")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -104,7 +104,7 @@ export function useUpdateCreditCard() {
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: CreditCardUpdate }) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("credit_cards")
         .update(patch)
         .eq("id", id)
@@ -129,7 +129,7 @@ export function useArchiveCreditCard() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("credit_cards")
         .update({ archived_at: new Date().toISOString() })
         .eq("id", id);

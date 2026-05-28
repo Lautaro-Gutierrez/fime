@@ -30,7 +30,7 @@ export function useTransferAsset() {
       
       if (!user) throw new Error("No autenticado");
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .rpc("transfer_asset", {
         p_user_id: user.id,
         p_source_portfolio: sourcePortfolioId,

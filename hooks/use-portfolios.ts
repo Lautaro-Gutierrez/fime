@@ -19,7 +19,7 @@ export function usePortfolios() {
   const query = useQuery<Portfolio[]>({
     queryKey: PORTFOLIOS_KEY,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("portfolios")
         .select("*")
         .order("sort_order", { ascending: true })
@@ -59,7 +59,7 @@ export function useCreatePortfolio() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("portfolios")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -79,7 +79,7 @@ export function useUpdatePortfolio() {
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: PortfolioUpdate }) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("portfolios")
         .update(patch)
         .eq("id", id)
@@ -100,7 +100,7 @@ export function useDeletePortfolio() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("portfolios")
         .delete()
         .eq("id", id);

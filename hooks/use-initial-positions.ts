@@ -45,7 +45,7 @@ export function useInitialPositions() {
   const query = useQuery<InitialPosition[]>({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("initial_positions")
         .select("*")
         .order("as_of_date", { ascending: false });
@@ -83,7 +83,7 @@ export function useCreateInitialPosition() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("initial_positions")
         .insert({ ...input, user_id: user.id })
         .select()
@@ -109,7 +109,7 @@ export function useUpdateInitialPosition() {
       id: string;
       patch: InitialPositionUpdate;
     }) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("initial_positions")
         .update(patch)
         .eq("id", id)
@@ -130,7 +130,7 @@ export function useDeleteInitialPosition() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("initial_positions")
         .delete()
         .eq("id", id);
