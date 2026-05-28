@@ -43,7 +43,7 @@ export function PasskeySection() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data, error } = await (supabase.auth as any).passkey.listPasskeys();
+      const { data, error } = await (supabase.auth as any).passkey.list();
       if (error) throw error;
       
       // Asegurarse de que data no es null
@@ -62,7 +62,7 @@ export function PasskeySection() {
     setRegistering(true);
     try {
       // Inicia el proceso de registro nativo
-      const { data, error } = await (supabase.auth as any).passkey.registerPasskey();
+      const { data, error } = await (supabase.auth as any).registerPasskey();
       
       if (error) {
         throw error;
@@ -92,9 +92,10 @@ export function PasskeySection() {
 
   async function handleDelete(id: string) {
     try {
-       // Por ahora el SDK experimental no parece documentar una funcion explicita para eliminar un passkey. 
-       // Intentaremos usar admin o métodos directos si existen, o simplemente actualizamos el UI.
-       toast.info("Por el momento, la gestión individual de passkeys debe hacerse desde la cuenta");
+       const { error } = await (supabase.auth as any).passkey.delete({ passkeyId: id });
+       if (error) throw error;
+       toast.success("Passkey eliminado");
+       loadPasskeys();
     } catch (err) {
        toast.error("Error al eliminar passkey");
     }

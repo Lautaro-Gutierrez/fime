@@ -217,15 +217,17 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
   // Reset: borra todo el historial de snapshots del usuario. Útil para
   // limpiar datos polucionados por bugs previos (ej. parseNumber ×100).
   async function resetHistory() {
-    if (portfolioId === "ALL") return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase
-        .from("portfolio_snapshots")
-      .delete()
-      .eq("portfolio_id", portfolioId);
+    
+    let q = supabase.from("portfolio_snapshots").delete().eq("user_id", user.id);
+    if (portfolioId !== "ALL") {
+      q = q.eq("portfolio_id", portfolioId);
+    }
+    await q;
+    
     await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
   }
 
