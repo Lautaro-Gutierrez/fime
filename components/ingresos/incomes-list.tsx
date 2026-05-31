@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, memo } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Trash2, PencilLine, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -14,13 +14,15 @@ import {
 import { INCOME_CATEGORIES_BY_ID } from "@/lib/income-categories";
 import { formatARS, formatUSD, fromISODate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { EditIncomeDialog } from "@/components/ingresos/edit-income-dialog";
+import dynamic from "next/dynamic";
+const EditIncomeDialog = dynamic(() => import("@/components/ingresos/edit-income-dialog").then((mod) => mod.EditIncomeDialog), { ssr: false });
 
 import { PrivateAmount } from "@/components/ui/private-amount";
 
 type Props = {
   incomes: Income[];
   filterCategory: string | null;
+  onAdd?: () => void;
 };
 
 function dayLabel(date: Date) {
@@ -29,8 +31,9 @@ function dayLabel(date: Date) {
   return format(date, "d 'de' LLLL", { locale: es });
 }
 
-export function IncomesList({ incomes, filterCategory }: Props) {
+export function IncomesList({ incomes, filterCategory, onAdd }: Props) {
   const [editing, setEditing] = useState<Income | null>(null);
+  const handleEdit = useCallback((i: Income) => setEditing(i), []);
 
   const filtered = useMemo(
     () =>
@@ -72,6 +75,14 @@ export function IncomesList({ incomes, filterCategory }: Props) {
               ? "No cargaste ingresos de esta categoría en el mes."
               : "Cargá tu primer ingreso del mes."}
           </p>
+          {onAdd && (
+            <button
+              onClick={onAdd}
+              className="mt-2 rounded-full bg-lime-500 px-4 py-2 text-sm font-medium text-lime-950 shadow-md transition-all hover:bg-lime-400 active:scale-95"
+            >
+              Cargar ingreso
+            </button>
+          )}
         </div>
       </motion.div>
     );
@@ -95,7 +106,7 @@ export function IncomesList({ incomes, filterCategory }: Props) {
                 key={date}
                 date={date}
                 items={items}
-                onEdit={setEditing}
+                onEdit={handleEdit}
               />
             ))}
           </AnimatePresence>
@@ -113,7 +124,7 @@ export function IncomesList({ incomes, filterCategory }: Props) {
   );
 }
 
-function DayGroup({
+const DayGroup = memo(function DayGroup({
   date,
   items,
   onEdit,
@@ -156,9 +167,9 @@ function DayGroup({
       </ul>
     </motion.div>
   );
-}
+});
 
-function IncomeRow({
+const IncomeRow = memo(function IncomeRow({
   income,
   onEdit,
 }: {
@@ -177,6 +188,9 @@ function IncomeRow({
   const isUsdOriginal = income.currency === "USD";
 
   function performDelete() {
+    if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50);
+    }
     const snapshot = { ...income };
     deleteMutation.mutate(income.id, {
       onSuccess: () => {
@@ -302,4 +316,4 @@ function IncomeRow({
       </motion.div>
     </motion.li>
   );
-}
+});

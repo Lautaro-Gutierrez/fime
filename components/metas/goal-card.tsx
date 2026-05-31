@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -51,7 +52,7 @@ function getQuickAmounts(target: number): number[] {
   return [10_000, 50_000, 100_000];
 }
 
-export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props) {
+export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props) {
   const cfg = GOALS_BY_ID[goal.goal_type];
   const Icon = cfg.icon;
   const currency = goal.currency;
@@ -219,7 +220,12 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
           {quickAmounts.map((amt) => (
             <button
               key={amt}
-              onClick={() => onQuickAdd(goal, amt)}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+                  window.navigator.vibrate(30);
+                }
+                onQuickAdd(goal, amt);
+              }}
               className="flex-1 rounded-xl border px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums transition hover:brightness-125"
               style={{
                 color: cfg.color,
@@ -234,4 +240,4 @@ export function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: Props
       )}
     </motion.article>
   );
-}
+});

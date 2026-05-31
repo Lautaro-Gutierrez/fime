@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, memo } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Trash2, PencilLine, Sparkles, CreditCard as CreditCardIcon, CalendarDays, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -16,7 +16,8 @@ import { CATEGORIES_BY_ID } from "@/lib/categories";
 import { formatARS, fromISODate, monthLabel, toISODate } from "@/lib/format";
 import { billingMonthForExpense, colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
-import { EditExpenseDialog } from "@/components/gastos/edit-expense-dialog";
+import dynamic from "next/dynamic";
+const EditExpenseDialog = dynamic(() => import("@/components/gastos/edit-expense-dialog").then((mod) => mod.EditExpenseDialog), { ssr: false });
 import { PrivateAmount } from "@/components/ui/private-amount";
 
 export type ViewMode = "calendar" | "card_billing";
@@ -27,6 +28,7 @@ type Props = {
   cards?: CreditCard[];
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
+  onAdd?: () => void;
 };
 
 function dayLabel(date: Date) {
@@ -35,8 +37,9 @@ function dayLabel(date: Date) {
   return format(date, "d 'de' LLLL", { locale: es });
 }
 
-export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = "calendar", onViewModeChange }: Props) {
+export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = "calendar", onViewModeChange, onAdd }: Props) {
   const [editing, setEditing] = useState<Expense | null>(null);
+  const handleEdit = useCallback((e: Expense) => setEditing(e), []);
 
   const cardsMap = useMemo(
     () => new Map(cards.map((c) => [c.id, c])),
@@ -140,6 +143,14 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
               ? "No cargaste gastos de esta categoría en el mes."
               : "Cargá tu primer gasto del mes."}
           </p>
+          {onAdd && (
+            <button
+              onClick={onAdd}
+              className="mt-2 rounded-full bg-theme-500 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-theme-600 active:scale-95"
+            >
+              Cargar gasto
+            </button>
+          )}
         </div>
       </motion.div>
     );
@@ -198,7 +209,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
                     date={date}
                     items={items}
                     cardsMap={cardsMap}
-                    onEdit={setEditing}
+                    onEdit={handleEdit}
                   />
                 ))
               : billingGroups && (
@@ -210,7 +221,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
                         billingLabel={group.billingLabel}
                         items={group.items}
                         cardsMap={cardsMap}
-                        onEdit={setEditing}
+                        onEdit={handleEdit}
                       />
                     ))}
                     {(billingGroups as { cardGroups: { card: CreditCard; billingLabel: string; items: Expense[] }[]; dayGroups: [string, Expense[]][] }).dayGroups.map(([date, items]) => (
@@ -219,7 +230,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
                         date={date}
                         items={items}
                         cardsMap={cardsMap}
-                        onEdit={setEditing}
+                        onEdit={handleEdit}
                       />
                     ))}
                   </>
@@ -240,7 +251,7 @@ export function ExpensesList({ expenses, filterCategory, cards = [], viewMode = 
 }
 
 /* ── Card Billing Group ── */
-function CardBillingGroup({
+const CardBillingGroup = memo(function CardBillingGroup({
   card,
   billingLabel,
   items,
@@ -292,10 +303,10 @@ function CardBillingGroup({
       </ul>
     </motion.div>
   );
-}
+});
 
 /* ── Day Group (calendario) ── */
-function DayGroup({
+const DayGroup = memo(function DayGroup({
   date,
   items,
   cardsMap,
@@ -348,10 +359,10 @@ function DayGroup({
       </ul>
     </motion.div>
   );
-}
+});
 
 /* ── Expense Row ── */
-function ExpenseRow({
+const ExpenseRow = memo(function ExpenseRow({
   expense,
   onEdit,
   isFuture,
@@ -376,6 +387,9 @@ function ExpenseRow({
   const iconScale = useTransform(x, [-120, -40], [1, 0.6]);
 
   function performDelete() {
+    if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50);
+    }
     const snapshot = { ...expense };
     deleteMutation.mutate(expense.id, {
       onSuccess: () => {
@@ -508,4 +522,4 @@ function ExpenseRow({
       </motion.div>
     </motion.li>
   );
-}
+});

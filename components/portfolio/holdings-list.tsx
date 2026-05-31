@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { ASSETS_BY_ID } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
@@ -23,7 +24,7 @@ function TypeBadge({ type, asset }: { type: string, asset: any }) {
   );
 }
 
-function HoldingRow({ holding: h, portfolioId, onTransfer }: { holding: ValuedHolding, portfolioId?: string, onTransfer?: (h: ValuedHolding) => void }) {
+const HoldingRow = memo(function HoldingRow({ holding: h, portfolioId, onTransfer }: { holding: ValuedHolding, portfolioId?: string, onTransfer?: (h: ValuedHolding) => void }) {
   const asset = ASSETS_BY_ID[h.asset_type];
   const Icon = asset.icon;
 
@@ -82,7 +83,7 @@ function HoldingRow({ holding: h, portfolioId, onTransfer }: { holding: ValuedHo
         <div className="w-[40px] shrink-0 flex justify-end opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <Button variant="ghost" size="icon" className="size-8 text-white/50 hover:text-white">
+              <Button variant="ghost" size="icon" className="size-8 text-white/50 hover:text-white" aria-label="Opciones de posición">
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenu.Trigger>
@@ -108,7 +109,7 @@ function HoldingRow({ holding: h, portfolioId, onTransfer }: { holding: ValuedHo
       )}
     </div>
   );
-}
+});
 
 export function HoldingsList({ holdings, portfolioId, onTransfer }: Props) {
   if (holdings.length === 0) return null;

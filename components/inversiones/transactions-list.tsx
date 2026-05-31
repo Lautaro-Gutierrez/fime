@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, memo } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,8 @@ import {
 import { ASSETS_BY_ID, TX_TYPE_LABELS } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { EditTransactionDialog } from "@/components/inversiones/edit-transaction-dialog";
+import dynamic from "next/dynamic";
+const EditTransactionDialog = dynamic(() => import("@/components/inversiones/edit-transaction-dialog").then((mod) => mod.EditTransactionDialog), { ssr: false });
 import { AssetLogo } from "@/components/ui/asset-logo";
 
 import { usePortfolios } from "@/hooks/use-portfolios";
@@ -34,6 +35,7 @@ function monthGroupLabel(yearMonth: string) {
 
 export function TransactionsList({ investments, showPortfolioBadge = false }: Props) {
   const [editing, setEditing] = useState<Investment | null>(null);
+  const handleEdit = useCallback((inv: Investment) => setEditing(inv), []);
 
   const groups = useMemo(() => {
     const map = new Map<string, Investment[]>();
@@ -76,7 +78,7 @@ export function TransactionsList({ investments, showPortfolioBadge = false }: Pr
               key={month}
               month={month}
               items={items}
-              onEdit={setEditing}
+              onEdit={handleEdit}
               showPortfolioBadge={showPortfolioBadge}
             />
           ))}
@@ -94,7 +96,7 @@ export function TransactionsList({ investments, showPortfolioBadge = false }: Pr
   );
 }
 
-function MonthGroup({
+const MonthGroup = memo(function MonthGroup({
   month,
   items,
   onEdit,
@@ -131,9 +133,9 @@ function MonthGroup({
       </ul>
     </motion.div>
   );
-}
+});
 
-function TransactionRow({
+const TransactionRow = memo(function TransactionRow({
   inv,
   onEdit,
   showPortfolioBadge,
@@ -162,6 +164,9 @@ function TransactionRow({
   const portfolio = showPortfolioBadge ? portfolios.find(p => p.id === inv.portfolio_id) : null;
 
   function performDelete() {
+    if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50);
+    }
     const snapshot = { ...inv };
     deleteMutation.mutate(inv.id, {
       onSuccess: () => {
@@ -334,4 +339,4 @@ function TransactionRow({
       </motion.div>
     </motion.li>
   );
-}
+});

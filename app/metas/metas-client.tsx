@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/layout/shell";
 import { MetasHeader } from "@/components/metas/header";
 import { QuestBoard } from "@/components/metas/quest-board";
-import { NewGoalDialog } from "@/components/metas/new-goal-dialog";
-import { EditGoalDialog } from "@/components/metas/edit-goal-dialog";
+import dynamic from "next/dynamic";
+const NewGoalDialog = dynamic(() => import("@/components/metas/new-goal-dialog").then((mod) => mod.NewGoalDialog), { ssr: false });
+const EditGoalDialog = dynamic(() => import("@/components/metas/edit-goal-dialog").then((mod) => mod.EditGoalDialog), { ssr: false });
 import {
   useGoals,
   useUpdateGoal,
@@ -59,6 +60,8 @@ export default function MetasClient() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Goal | null>(null);
+
+  const handleEdit = useCallback((g: Goal) => setEditing(g), []);
 
   // Build ProgressContext con datos de M1/M3/M4.
   const ctx: ProgressContext = useMemo(() => {
@@ -114,7 +117,7 @@ export default function MetasClient() {
   const mainCount = activeGoals.filter((g) => g.quest_type === "main").length;
   const sideCount = activeGoals.filter((g) => g.quest_type === "side").length;
 
-  async function handleQuickAdd(g: Goal, delta: number) {
+  const handleQuickAdd = useCallback(async (g: Goal, delta: number) => {
     try {
       await updateGoal.mutateAsync({
         id: g.id,
@@ -124,15 +127,15 @@ export default function MetasClient() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al actualizar");
     }
-  }
+  }, [updateGoal]);
 
-  async function handleDelete(g: Goal) {
+  const handleDelete = useCallback(async (g: Goal) => {
     try {
       await deleteGoal.mutateAsync(g.id);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al borrar");
     }
-  }
+  }, [deleteGoal]);
 
   return (
     <Shell>
@@ -161,7 +164,7 @@ export default function MetasClient() {
           <QuestBoard
             goals={activeGoals}
             progressByGoalId={progressByGoalId}
-            onEdit={(g) => setEditing(g)}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             onQuickAdd={handleQuickAdd}
             onCreate={() => setCreateOpen(true)}

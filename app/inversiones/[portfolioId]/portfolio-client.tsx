@@ -13,7 +13,8 @@ import { usePortfolios } from "@/hooks/use-portfolios";
 
 // Bitácora components
 import { FxStrip } from "@/components/inversiones/fx-strip";
-import { NewTransactionDialog } from "@/components/inversiones/new-transaction-dialog";
+import dynamic from "next/dynamic";
+const NewTransactionDialog = dynamic(() => import("@/components/inversiones/new-transaction-dialog").then((mod) => mod.NewTransactionDialog), { ssr: false });
 import { TransactionsList } from "@/components/inversiones/transactions-list";
 import { Filters, type FilterState } from "@/components/inversiones/filters";
 import { useInvestments } from "@/hooks/use-investments";
@@ -23,8 +24,8 @@ import { PortfolioHeader } from "@/components/portfolio/header";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { HoldingsList } from "@/components/portfolio/holdings-list";
 import { PerformanceChart } from "@/components/portfolio/performance-chart";
-import { InitialPositionsDialog } from "@/components/portfolio/initial-positions-dialog";
-import { TransferAssetDialog } from "@/components/portfolio/transfer-asset-dialog";
+const InitialPositionsDialog = dynamic(() => import("@/components/portfolio/initial-positions-dialog").then((mod) => mod.InitialPositionsDialog), { ssr: false });
+const TransferAssetDialog = dynamic(() => import("@/components/portfolio/transfer-asset-dialog").then((mod) => mod.TransferAssetDialog), { ssr: false });
 import { usePortfolio } from "@/hooks/use-portfolio";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
 
