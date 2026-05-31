@@ -1,60 +1,88 @@
-"use client";
-
 import { Suspense } from "react";
-import { Shell } from "@/components/layout/shell";
-import { HeroKpis } from "@/components/dashboard/hero-kpis";
-import { CashflowSankey } from "@/components/dashboard/cashflow-sankey";
-import { PortfolioSnapshot } from "@/components/dashboard/portfolio-snapshot";
-import { AlertsPanel } from "@/components/dashboard/alerts-panel";
-import { GoalsStrip } from "@/components/dashboard/goals-strip";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/server";
+import DashboardClient from "./dashboard-client";
+import { firstOfMonth, toISODate, lastOfMonth, monthKey } from "@/lib/format";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const queryClient = new QueryClient();
+  
+  // Constantes de fechas necesarias para expenses e incomes
+  const currentMonth = new Date();
+  const from = toISODate(firstOfMonth(currentMonth));
+  const to = toISODate(lastOfMonth(currentMonth));
+  const mKey = monthKey(currentMonth);
+
+  // Prefetch de las consultas principales para evitar waterfalls en el cliente
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: ["expenses", user.id, mKey],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("expenses")
+          .select("*")
+          .gte("date", from)
+          .lte("date", to)
+          .order("date", { ascending: false })
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ["incomes", user.id, mKey],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("incomes")
+          .select("*")
+          .gte("date", from)
+          .lte("date", to)
+          .order("date", { ascending: false })
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ["investments", user.id],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("investments")
+          .select("*")
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ["goals", user.id],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("goals")
+          .select("*, goal_contributions(*)")
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ["portfolios", user.id],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("portfolios")
+          .select("*")
+          .order("created_at", { ascending: false });
+        return data || [];
+      },
+    })
+  ]);
+
   return (
-    <Shell>
-      <div className="flex flex-col gap-6 p-4 md:p-8 w-full max-w-7xl mx-auto overflow-x-hidden">
-        {/* 1. HERO - KPIs */}
-        <section className="w-full">
-          <Suspense fallback={<div className="h-40 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-            <HeroKpis />
-          </Suspense>
-        </section>
-
-        {/* 2. Row 2: Sankey (Left) + Portfolio Snapshot (Right) */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Suspense fallback={<div className="h-80 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-              <CashflowSankey />
-            </Suspense>
-          </div>
-          <div className="lg:col-span-1">
-            <Suspense fallback={<div className="h-80 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-              <PortfolioSnapshot />
-            </Suspense>
-          </div>
-        </section>
-
-        {/* 3. ALERTS PANEL */}
-        <section className="w-full">
-          <Suspense fallback={<div className="h-16 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-            <AlertsPanel />
-          </Suspense>
-        </section>
-
-        {/* 4. GOALS STRIP */}
-        <section className="w-full">
-          <Suspense fallback={<div className="h-32 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-            <GoalsStrip />
-          </Suspense>
-        </section>
-
-        {/* 5. Row 3: Activity */}
-        <section className="w-full pb-20">
-          <Suspense fallback={<div className="h-64 rounded-xl border border-white/5 bg-card/60 animate-pulse" />}>
-            <ActivityFeed />
-          </Suspense>
-        </section>
-      </div>
-    </Shell>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DashboardClient />
+    </HydrationBoundary>
   );
 }

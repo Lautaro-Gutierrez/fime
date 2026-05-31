@@ -4,20 +4,24 @@ import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
+import { useUserId } from "@/components/providers/user-provider";
 
 export type Portfolio = Database["public"]["Tables"]["portfolios"]["Row"];
 export type PortfolioInsert = Database["public"]["Tables"]["portfolios"]["Insert"];
 export type PortfolioUpdate = Database["public"]["Tables"]["portfolios"]["Update"];
 
-const PORTFOLIOS_KEY = ["portfolios"] as const;
+function portfoliosKey(userId: string) {
+  return ["portfolios", userId] as const;
+}
 
 export function usePortfolios() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
   const channelId = useId();
 
   const query = useQuery<Portfolio[]>({
-    queryKey: PORTFOLIOS_KEY,
+    queryKey: portfoliosKey(userId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("portfolios")
@@ -36,7 +40,7 @@ export function usePortfolios() {
         "postgres_changes",
         { event: "*", schema: "public", table: "portfolios" },
         () => {
-          queryClient.invalidateQueries({ queryKey: PORTFOLIOS_KEY });
+          queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
         },
       )
       .subscribe();
@@ -52,6 +56,7 @@ export function usePortfolios() {
 export function useCreatePortfolio() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (input: Omit<PortfolioInsert, "user_id">) => {
@@ -68,7 +73,7 @@ export function useCreatePortfolio() {
       return data as Portfolio;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PORTFOLIOS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
   });
 }
@@ -76,6 +81,7 @@ export function useCreatePortfolio() {
 export function useUpdatePortfolio() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: PortfolioUpdate }) => {
@@ -89,7 +95,7 @@ export function useUpdatePortfolio() {
       return data as Portfolio;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PORTFOLIOS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
   });
 }
@@ -97,6 +103,7 @@ export function useUpdatePortfolio() {
 export function useDeletePortfolio() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -108,7 +115,7 @@ export function useDeletePortfolio() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PORTFOLIOS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
   });
 }

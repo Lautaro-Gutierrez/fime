@@ -6,6 +6,8 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { PreferencesProvider } from "@/components/providers/preferences-provider";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { OnboardingOverlay } from "@/components/onboarding/onboarding-overlay";
+import { UserProvider } from "@/components/providers/user-provider";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -29,9 +31,12 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html
       lang="es"
@@ -55,14 +60,16 @@ export default function RootLayout({
       </head>
       <body className="min-h-dvh flex flex-col bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <QueryProvider>
-            <PreferencesProvider>
-              <OnboardingProvider>
-                {children}
-                <OnboardingOverlay />
-              </OnboardingProvider>
-            </PreferencesProvider>
-          </QueryProvider>
+          <UserProvider userId={user?.id}>
+            <QueryProvider>
+              <PreferencesProvider>
+                <OnboardingProvider>
+                  {children}
+                  <OnboardingOverlay />
+                </OnboardingProvider>
+              </PreferencesProvider>
+            </QueryProvider>
+          </UserProvider>
           <Toaster position="bottom-center" />
         </ThemeProvider>
       </body>

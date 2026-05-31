@@ -10,6 +10,7 @@ import {
   monthKey,
   toISODate,
 } from "@/lib/format";
+import { useUserId } from "@/components/providers/user-provider";
 
 export type Income = {
   id: string;
@@ -40,14 +41,15 @@ export type IncomeInsert = {
 
 export type IncomeUpdate = Partial<IncomeInsert>;
 
-function incomesKey(month: Date) {
-  return ["incomes", monthKey(month)] as const;
+function incomesKey(userId: string, month: Date) {
+  return ["incomes", userId, monthKey(month)] as const;
 }
 
 export function useIncomes(month: Date) {
   const supabase = useMemo(() => createClient(), []);
+  const userId = useUserId();
   const queryClient = useQueryClient();
-  const key = incomesKey(month);
+  const key = incomesKey(userId, month);
   const channelId = useId();
 
   const query = useQuery<Income[]>({
@@ -75,7 +77,7 @@ export function useIncomes(month: Date) {
         "postgres_changes",
         { event: "*", schema: "public", table: "incomes" },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["incomes"] });
+          queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
         },
       )
       .subscribe();
@@ -92,9 +94,10 @@ export function useIncomes(month: Date) {
 // Se usa para pre-rellenar el monto cuando el user clickea un template one-click.
 export function useLastIncomeByCategory(category: IncomeCategory) {
   const supabase = useMemo(() => createClient(), []);
+  const userId = useUserId();
 
   return useQuery<Income | null>({
-    queryKey: ["incomes-last", category],
+    queryKey: ["incomes-last", userId, category],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("incomes")
@@ -114,6 +117,7 @@ export function useLastIncomeByCategory(category: IncomeCategory) {
 export function useCreateIncome() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (input: IncomeInsert) => {
@@ -128,8 +132,8 @@ export function useCreateIncome() {
       return data as Income;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["incomes"] });
-      queryClient.invalidateQueries({ queryKey: ["incomes-last"] });
+      queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
     },
   });
 }
@@ -137,6 +141,7 @@ export function useCreateIncome() {
 export function useUpdateIncome() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async ({
@@ -156,8 +161,8 @@ export function useUpdateIncome() {
       return data as Income;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["incomes"] });
-      queryClient.invalidateQueries({ queryKey: ["incomes-last"] });
+      queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
     },
   });
 }
@@ -165,6 +170,7 @@ export function useUpdateIncome() {
 export function useDeleteIncome() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -174,8 +180,8 @@ export function useDeleteIncome() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["incomes"] });
-      queryClient.invalidateQueries({ queryKey: ["incomes-last"] });
+      queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
     },
   });
 }

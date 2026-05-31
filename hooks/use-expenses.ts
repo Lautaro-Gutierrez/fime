@@ -10,6 +10,7 @@ import {
   monthKey,
   toISODate,
 } from "@/lib/format";
+import { useUserId } from "@/components/providers/user-provider";
 
 export type Expense = {
   id: string;
@@ -36,17 +37,18 @@ export type ExpenseInsert = {
 
 export type ExpenseUpdate = Partial<ExpenseInsert>;
 
-function expensesKey(month: Date) {
-  return ["expenses", monthKey(month)] as const;
+function expensesKey(userId: string, month: Date) {
+  return ["expenses", userId, monthKey(month)] as const;
 }
 
 export function useExpenses(month: Date) {
   const supabase = useMemo(() => createClient(), []);
+  const userId = useUserId();
   const queryClient = useQueryClient();
   // ID único por instancia del hook — evita colisiones de canales Realtime
   // cuando varios componentes suscriben a la misma tabla simultáneamente.
   const channelId = useId();
-  const key = expensesKey(month);
+  const key = expensesKey(userId, month);
 
   const query = useQuery<Expense[]>({
     queryKey: key,
@@ -73,7 +75,7 @@ export function useExpenses(month: Date) {
         "postgres_changes",
         { event: "*", schema: "public", table: "expenses" },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["expenses"] });
+          queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
         },
       )
       .subscribe();
@@ -89,6 +91,7 @@ export function useExpenses(month: Date) {
 export function useCreateExpense() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (input: ExpenseInsert) => {
@@ -103,7 +106,7 @@ export function useCreateExpense() {
       return data as Expense;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
   });
 }
@@ -111,6 +114,7 @@ export function useCreateExpense() {
 export function useUpdateExpense() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async ({
@@ -130,7 +134,7 @@ export function useUpdateExpense() {
       return data as Expense;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
   });
 }
@@ -138,6 +142,7 @@ export function useUpdateExpense() {
 export function useDeleteExpense() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -147,7 +152,7 @@ export function useDeleteExpense() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
   });
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AssetType, TxType } from "@/types/database";
+import { useUserId } from "@/components/providers/user-provider";
 
 export type Investment = {
   id: string;
@@ -41,15 +42,18 @@ export type InvestmentInsert = {
 
 export type InvestmentUpdate = Partial<InvestmentInsert>;
 
-const INVESTMENTS_KEY = ["investments"] as const;
+function investmentsKey(userId: string) {
+  return ["investments", userId] as const;
+}
 
 export function useInvestments() {
   const supabase = useMemo(() => createClient(), []);
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const channelId = useId();
 
   const query = useQuery<Investment[]>({
-    queryKey: INVESTMENTS_KEY,
+    queryKey: investmentsKey(userId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investments")
@@ -68,7 +72,7 @@ export function useInvestments() {
         "postgres_changes",
         { event: "*", schema: "public", table: "investments" },
         () => {
-          queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+          queryClient.invalidateQueries({ queryKey: ["investments", userId] });
         },
       )
       .subscribe();
@@ -84,6 +88,7 @@ export function useInvestments() {
 export function useCreateInvestment() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (input: InvestmentInsert) => {
@@ -100,7 +105,7 @@ export function useCreateInvestment() {
       return data as Investment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
   });
 }
@@ -108,6 +113,7 @@ export function useCreateInvestment() {
 export function useUpdateInvestment() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async ({
@@ -127,7 +133,7 @@ export function useUpdateInvestment() {
       return data as Investment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
   });
 }
@@ -135,6 +141,7 @@ export function useUpdateInvestment() {
 export function useDeleteInvestment() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -146,7 +153,7 @@ export function useDeleteInvestment() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
   });
 }

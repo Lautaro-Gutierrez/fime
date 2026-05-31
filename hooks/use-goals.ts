@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { GoalStatus, GoalType, QuestType } from "@/types/database";
+import { useUserId } from "@/components/providers/user-provider";
 
 export type Goal = {
   id: string;
@@ -53,17 +54,20 @@ export type GoalInsert = {
 
 export type GoalUpdate = Partial<GoalInsert>;
 
-const GOALS_KEY = ["goals"] as const;
+function goalsKey(userId: string) {
+  return ["goals", userId] as const;
+}
 
 export function useGoals() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
   // Sufijo único por mount (fix M3: evita colisión cuando varios componentes
   // montan el hook en simultáneo y registran el mismo nombre de canal).
   const channelId = useId();
 
   const query = useQuery<Goal[]>({
-    queryKey: GOALS_KEY,
+    queryKey: goalsKey(userId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("goals")
@@ -82,7 +86,7 @@ export function useGoals() {
         "postgres_changes",
         { event: "*", schema: "public", table: "goals" },
         () => {
-          queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+          queryClient.invalidateQueries({ queryKey: ["goals", userId] });
         },
       )
       .subscribe();
@@ -98,6 +102,7 @@ export function useGoals() {
 export function useCreateGoal() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (input: GoalInsert) => {
@@ -114,7 +119,7 @@ export function useCreateGoal() {
       return data as Goal;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
   });
 }
@@ -122,6 +127,7 @@ export function useCreateGoal() {
 export function useUpdateGoal() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: GoalUpdate }) => {
@@ -135,7 +141,7 @@ export function useUpdateGoal() {
       return data as Goal;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
   });
 }
@@ -143,6 +149,7 @@ export function useUpdateGoal() {
 export function useDeleteGoal() {
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -152,7 +159,7 @@ export function useDeleteGoal() {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
   });
 }
