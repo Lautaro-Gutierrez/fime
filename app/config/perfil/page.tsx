@@ -1,4 +1,3 @@
-"use client";
 
 import { Shell } from "@/components/layout/shell";
 import { ConfigHeader } from "@/components/config/header";
