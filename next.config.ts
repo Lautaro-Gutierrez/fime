@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
 const nextConfig: NextConfig = {
   // Permite que dispositivos en la LAN (celular, tablet) accedan a los assets
   // de /_next/* durante desarrollo. Sin esto, solo localhost puede cargar la app.
@@ -10,4 +19,4 @@ const nextConfig: NextConfig = {
   devIndicators: false,
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

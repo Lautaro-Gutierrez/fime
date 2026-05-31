@@ -1,10 +1,34 @@
 "use client";
 
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { get, set, del } from "idb-keyval";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+
+// Crear un persister asíncrono para IndexedDB
+const idbValidKey = (key: string) => key;
+
+function createIDBPersister() {
+  if (typeof window === "undefined") return undefined;
+
+  return createAsyncStoragePersister({
+    storage: {
+      getItem: async (key) => {
+        return await get(idbValidKey(key));
+      },
+      setItem: async (key, value) => {
+        await set(idbValidKey(key), value);
+      },
+      removeItem: async (key) => {
+        await del(idbValidKey(key));
+      },
+    },
+  });
+}
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -40,10 +64,27 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         queries: {
           staleTime: 1000 * 30, // 30s — el realtime invalida igual cuando hay cambios
           refetchOnWindowFocus: false,
+          networkMode: "offlineFirst", // Permite leer la cache estando offline
+        },
+        mutations: {
+          networkMode: "offlineFirst", // Permite encolar mutaciones estando offline
         },
       },
     });
   });
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const [persister] = useState(() => createIDBPersister());
+
+  if (!persister) {
+    return <>{children}</>;
+  }
+
+  return (
+    <PersistQueryClientProvider
+      client={client}
+      persistOptions={{ persister }}
+    >
+      {children}
+    </PersistQueryClientProvider>
+  );
 }

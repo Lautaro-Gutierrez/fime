@@ -20,6 +20,7 @@ import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { MobileFab } from "@/components/layout/mobile-fab";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
 
 type NavItem = {
   href: string;
@@ -55,6 +56,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-svh w-full">
+      <OfflineIndicator />
       {/* Sidebar (desktop) */}
       <aside id="desktop-sidebar" className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 py-6 md:flex">
         <Link href="/" className="mb-10 flex items-center gap-3 px-2 group relative">

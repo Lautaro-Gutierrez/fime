@@ -26,6 +26,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.106.2
         version: 2.106.2
+      '@tanstack/query-async-storage-persister':
+        specifier: ^5.100.14
+        version: 5.100.14
       '@tanstack/react-query':
         specifier: ^5.99.0
         version: 5.99.0(react@19.2.4)
@@ -1179,6 +1182,9 @@ packages:
 
   '@tailwindcss/postcss@4.2.2':
     resolution: {integrity: sha512-n4goKQbW8RVXIbNKRB/45LzyUqN451deQK0nzIeauVEqjlI49slUlgKYJM2QyUzap/PcpnS7kzSUmPb1sCRvYQ==}
+
+  '@tanstack/query-async-storage-persister@5.100.14':
+    resolution: {integrity: sha512-otwoi4OsYoECIZBqDZ/crzyJFDXvzwCMg+T/Z+mforv9/GTqkYShddaItNC7SkFRq9VMIO3R3T71rfZfmb0NOA==}
 
   '@tanstack/query-core@5.100.14':
     resolution: {integrity: sha512-5X41dGpxgeaHISCRW2oYwcSycZeULZzAunaudXT9ov1KOTj9xwt0CH6hbwqP1/z74ZWF7rYFnDpyYH07XFcZew==}
@@ -4808,6 +4814,11 @@ snapshots:
       '@tailwindcss/oxide': 4.2.2
       postcss: 8.5.10
       tailwindcss: 4.2.2
+
+  '@tanstack/query-async-storage-persister@5.100.14':
+    dependencies:
+      '@tanstack/query-core': 5.100.14
+      '@tanstack/query-persist-client-core': 5.100.14
 
   '@tanstack/query-core@5.100.14': {}
 
