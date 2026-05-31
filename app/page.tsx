@@ -63,7 +63,7 @@ export default async function DashboardPage() {
       queryFn: async () => {
         const { data } = await supabase
           .from("goals")
-          .select("*, goal_contributions(*)")
+          .select("*")
           .order("created_at", { ascending: false });
         return data || [];
       },
