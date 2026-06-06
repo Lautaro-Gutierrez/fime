@@ -1,6 +1,6 @@
 export const CEDEAR_RATIOS: Record<string, number> = {
   // Principales índices / ETFs
-  SPY: 20,
+  SPY: 60,
   QQQ: 20,
   DIA: 20,
   IWM: 20,
