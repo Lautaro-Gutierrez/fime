@@ -1,0 +1,1 @@
+FINDSTR: No se puede abrir view-dashboard\ C:\Users\Lauti\.gemini\antigravity\brain\e7e123a5-017e-4087-b8f3-821d3ee778a0\.system_generated\logs\transcript.jsonl 
