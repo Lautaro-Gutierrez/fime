@@ -106,6 +106,7 @@ export type Database = {
           date: string; // YYYY-MM-DD
           note: string | null;
           card_id: string | null;
+          is_subscription: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -119,6 +120,7 @@ export type Database = {
           date?: string;
           note?: string | null;
           card_id?: string | null;
+          is_subscription?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -132,6 +134,7 @@ export type Database = {
           date?: string;
           note?: string | null;
           card_id?: string | null;
+          is_subscription?: boolean;
           created_at?: string;
           updated_at?: string;
         };
