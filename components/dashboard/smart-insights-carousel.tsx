@@ -15,10 +15,10 @@ export function SmartInsightsCarousel() {
           <Sparkles className="size-4" />
           <h3 className="text-sm font-medium uppercase tracking-widest">Smart Insights</h3>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-32 rounded-xl hidden md:block" />
-          <Skeleton className="h-32 rounded-xl hidden lg:block" />
+        <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <Skeleton className="h-32 min-w-[320px] rounded-xl" />
+          <Skeleton className="h-32 min-w-[320px] rounded-xl hidden md:block" />
+          <Skeleton className="h-32 min-w-[320px] rounded-xl hidden lg:block" />
         </div>
       </div>
     );
@@ -32,9 +32,11 @@ export function SmartInsightsCarousel() {
         <Sparkles className="size-4" />
         <h3 className="text-sm font-medium uppercase tracking-widest">Smart Insights</h3>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
         {insights.map((insight) => (
-          <SmartInsightCard key={insight.id} insight={insight} onDismiss={dismiss} />
+          <div key={insight.id} className="min-w-[320px] max-w-[340px] shrink-0">
+            <SmartInsightCard insight={insight} onDismiss={dismiss} />
+          </div>
         ))}
       </div>
     </div>
