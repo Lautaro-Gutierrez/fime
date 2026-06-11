@@ -73,12 +73,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Top: Logo + Nav */}
         <div>
           {/* Logo */}
-          <Link href="/" className="flex items-center justify-center px-4 py-7">
+          <Link href="/" className="flex items-center gap-3 px-5 pt-6 pb-6">
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
-              className="h-16 w-auto object-contain"
+              className="w-11 h-11 rounded-[14px] object-cover shadow-lg border border-white/[0.08]"
             />
+            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+              FiMe
+            </span>
           </Link>
 
           {/* Nav */}
@@ -128,12 +131,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Mobile Header */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between px-4 md:hidden"
              style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center gap-2">
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
-              className="h-10 w-auto object-contain"
+              className="w-8 h-8 rounded-[10px] object-cover shadow-md border border-white/[0.08]"
             />
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+              FiMe
+            </span>
           </Link>
           <Link href="/config" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/[0.06] transition-colors">
             <Settings className="size-5" />
@@ -191,8 +197,8 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
 
   const cls = cn(
-    "nav-item flex items-center gap-3 px-3 py-2.5 rounded-r-xl rounded-l-none text-sm font-medium w-full text-left",
-    active ? "active text-slate-300" : "text-slate-400",
+    "nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left",
+    active ? "active text-white" : "text-slate-400",
     !item.enabled && "opacity-40 cursor-not-allowed",
   );
 
