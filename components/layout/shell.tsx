@@ -75,13 +75,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Top: Logo + Nav */}
         <div>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 px-5 pt-6 pb-5">
+          <Link href="/" className="flex items-center gap-3 px-5 pt-6 pb-5">
             <Image 
               src={logoImg} 
               alt="FiMe Logo" 
-              className="w-9 h-9 object-contain"
+              className="w-12 h-12 object-contain"
             />
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className="text-2xl font-bold tracking-tight text-white">
               Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
             </span>
           </Link>
@@ -131,15 +131,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* ═══════ MAIN CONTENT — from prototype line 143 ═══════ */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between px-4 md:hidden"
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between px-4 md:hidden"
              style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
             <Image 
               src={logoImg} 
               alt="FiMe Logo" 
-              className="w-7 h-7 object-contain"
+              className="w-9 h-9 object-contain"
             />
-            <span className="font-bold tracking-tight text-white">
+            <span className="text-xl font-bold tracking-tight text-white">
               Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
             </span>
           </Link>
