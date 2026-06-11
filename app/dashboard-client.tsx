@@ -98,7 +98,7 @@ export default function DashboardClient() {
 
   return (
     <Shell>
-      <div className="p-8 w-full max-w-7xl mx-auto">
+      <div className="view p-8 ambient-glow view-enter">
         <div className="relative z-10">
 
           {/* ═══════ 1. HEADER ═══════ */}

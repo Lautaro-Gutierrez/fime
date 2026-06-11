@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import logoImg from "@/app/Logo.png";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -74,16 +76,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div>
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 px-5 pt-6 pb-5">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #8b5cf6, #6366f1)" }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <Image 
+              src={logoImg} 
+              alt="FiMe Logo" 
+              className="w-9 h-9 object-contain"
+            />
             <span className="text-xl font-bold tracking-tight text-white">
               Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
             </span>
@@ -137,16 +134,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between px-4 md:hidden"
              style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <Link href="/" className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #8b5cf6, #6366f1)" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <Image 
+              src={logoImg} 
+              alt="FiMe Logo" 
+              className="w-7 h-7 object-contain"
+            />
             <span className="font-bold tracking-tight text-white">
               Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
             </span>
