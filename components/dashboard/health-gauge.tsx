@@ -122,9 +122,9 @@ export function HealthGauge() {
         <svg viewBox="0 0 200 100" className="absolute bottom-0 w-full">
           <defs>
             <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#D0005F" />
-              <stop offset="50%" stopColor="#8A3FFC" />
-              <stop offset="100%" stopColor="#00CFFF" />
+              <stop offset="0%" stopColor="#d946ef" />
+              <stop offset="50%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#06b6d4" />
             </linearGradient>
           </defs>
           {/* Background Arc */}
@@ -146,13 +146,13 @@ export function HealthGauge() {
             strokeDasharray="283"
             strokeDashoffset={283 - (283 * score) / 100}
             className="transition-all duration-1000 ease-out"
-            style={{ filter: "drop-shadow(0 0 4px rgba(0, 207, 255, 0.4))" }}
+            style={{ filter: "drop-shadow(0 0 4px rgba(139, 92, 246, 0.4))" }}
           />
         </svg>
         
         <div className="relative flex flex-col items-center pb-2">
           <span className="text-3xl font-bold tracking-tight text-white">{score}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/5 mt-1" style={{ color: score < 40 ? "#D0005F" : score < 70 ? "#8A3FFC" : "#00CFFF" }}>
+          <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/5 mt-1" style={{ color: score < 40 ? "#d946ef" : score < 70 ? "#8b5cf6" : "#06b6d4" }}>
             {label}
           </span>
         </div>

@@ -77,9 +77,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
-              className="w-11 h-11 rounded-[14px] object-cover shadow-lg border border-white/[0.08]"
+              className="w-10 h-10 object-contain drop-shadow-md"
             />
-            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
               FiMe
             </span>
           </Link>
@@ -135,9 +135,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
-              className="w-8 h-8 rounded-[10px] object-cover shadow-md border border-white/[0.08]"
+              className="w-8 h-8 object-contain drop-shadow-md"
             />
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-magenta to-brand-cyan bg-clip-text text-transparent">
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
               FiMe
             </span>
           </Link>
