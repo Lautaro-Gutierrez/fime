@@ -108,15 +108,25 @@ export function HealthGauge() {
   }
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-xl">
+    <div 
+      className="flex h-full flex-col justify-between rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5"
+      style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}
+    >
       <div className="flex items-center gap-2 text-white/60">
-        <Activity className="size-4" />
-        <h3 className="text-xs font-medium uppercase tracking-widest">Salud Financiera</h3>
+        <Activity className="size-4 animate-pulse" style={{ color: "#D0005F" }} />
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-white">Salud Financiera</h3>
       </div>
       
       <div className="relative mt-6 flex aspect-[2/1] w-full flex-col items-center justify-end overflow-hidden">
         {/* SVG Semi-circle gauge */}
         <svg viewBox="0 0 200 100" className="absolute bottom-0 w-full">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#D0005F" />
+              <stop offset="50%" stopColor="#8A3FFC" />
+              <stop offset="100%" stopColor="#00CFFF" />
+            </linearGradient>
+          </defs>
           {/* Background Arc */}
           <path
             d="M 10 100 A 90 90 0 0 1 190 100"
@@ -130,18 +140,21 @@ export function HealthGauge() {
           <path
             d="M 10 100 A 90 90 0 0 1 190 100"
             fill="none"
-            stroke="currentColor"
+            stroke="url(#gaugeGrad)"
             strokeWidth="16"
             strokeLinecap="round"
             strokeDasharray="283"
             strokeDashoffset={283 - (283 * score) / 100}
-            className={cn("transition-all duration-1000 ease-out", colorClass)}
+            className="transition-all duration-1000 ease-out"
+            style={{ filter: "drop-shadow(0 0 4px rgba(0, 207, 255, 0.4))" }}
           />
         </svg>
         
         <div className="relative flex flex-col items-center pb-2">
           <span className="text-3xl font-bold tracking-tight text-white">{score}</span>
-          <span className={cn("text-xs font-semibold uppercase tracking-wider", colorClass)}>{label}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/5 mt-1" style={{ color: score < 40 ? "#D0005F" : score < 70 ? "#8A3FFC" : "#00CFFF" }}>
+            {label}
+          </span>
         </div>
       </div>
     </div>

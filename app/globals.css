@@ -56,6 +56,9 @@
   --color-theme-700: var(--theme-700);
   --color-theme-800: var(--theme-800);
   --color-theme-900: var(--theme-900);
+  --color-brand-magenta: #D0005F;
+  --color-brand-purple: #8A3FFC;
+  --color-brand-cyan: #00CFFF;
 }
 
 :root {
@@ -314,10 +317,28 @@ html[data-density="compact"] {
 
 /* ── Nav item ── */
 .nav-item {
-  transition: background 0.18s ease, color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  border-left: 3px solid transparent;
 }
-.nav-item:hover { background: rgba(255,255,255,0.05); }
-.nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-left-color: #00CFFF;
+}
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(208, 0, 95, 0.1) 0%, rgba(0, 207, 255, 0.02) 100%);
+  color: #fff;
+  border-left-color: #D0005F;
+}
+
+/* ── Logo Gradients ── */
+.bg-logo-gradient {
+  background: linear-gradient(135deg, #D0005F 0%, #8A3FFC 50%, #00CFFF 100%);
+}
+.text-logo-gradient {
+  background: linear-gradient(135deg, #D0005F 0%, #8A3FFC 50%, #00CFFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
 /* ── Ambient glow ── */
 .ambient-glow { position: relative; }

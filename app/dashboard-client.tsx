@@ -203,7 +203,7 @@ export default function DashboardClient() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-white">Rendimiento</h3>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-violet-500" /><span className="text-slate-300 font-medium">Portfolio</span></div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: "linear-gradient(135deg, #D0005F, #00CFFF)" }} /><span className="text-slate-300 font-medium">Portfolio</span></div>
                   <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" /><span className="text-slate-400 font-medium">S&P 500</span></div>
                 </div>
               </div>
@@ -212,14 +212,18 @@ export default function DashboardClient() {
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                       <defs>
+                        <linearGradient id="portfolioStroke" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#D0005F" />
+                          <stop offset="100%" stopColor="#00CFFF" />
+                        </linearGradient>
                         <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#D0005F" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#D0005F" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="date" hide />
                       <YAxis hide />
-                      <Area type="monotone" dataKey="portfolio" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#portfolioGrad)" dot={false} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="portfolio" stroke="url(#portfolioStroke)" strokeWidth={2.5} fill="url(#portfolioGrad)" dot={false} isAnimationActive={false} />
                       <Line type="monotone" dataKey="sp500" stroke="#64748b" strokeWidth={2} strokeDasharray="4" dot={false} isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>

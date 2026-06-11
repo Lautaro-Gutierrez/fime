@@ -41,6 +41,11 @@ export function ProgressRing({
     strokeColor = "#10B981"; // overcumplió: verde brillante
   }
 
+  const gradientId = `brandGradient-${size}`;
+  const isBrandColor = !isInverted;
+  const finalStroke = isBrandColor ? `url(#${gradientId})` : strokeColor;
+  const shadowColor = isBrandColor ? "#D0005F" : strokeColor;
+
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg
@@ -50,6 +55,12 @@ export function ProgressRing({
         className="-rotate-90"
         aria-hidden
       >
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#D0005F" />
+            <stop offset="100%" stopColor="#00CFFF" />
+          </linearGradient>
+        </defs>
         {/* track */}
         <circle
           cx={size / 2}
@@ -66,14 +77,14 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={strokeColor}
+          stroke={finalStroke}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={dashOffset}
           style={{
             transition: "stroke-dashoffset 600ms cubic-bezier(0.16, 1, 0.3, 1), stroke 200ms",
-            filter: `drop-shadow(0 0 6px ${strokeColor}80)`,
+            filter: `drop-shadow(0 0 6px ${shadowColor}80)`,
           }}
         />
         {/* milestones (25/50/75) en el track */}
@@ -82,13 +93,16 @@ export function ProgressRing({
           const cx = size / 2 + r * Math.cos(angle);
           const cy = size / 2 + r * Math.sin(angle);
           const reached = safePct >= m;
+          const dotColor = reached 
+            ? (isBrandColor ? "#00CFFF" : strokeColor)
+            : "rgba(255,255,255,0.2)";
           return (
             <circle
               key={m}
               cx={cx}
               cy={cy}
               r={3}
-              fill={reached ? strokeColor : "rgba(255,255,255,0.2)"}
+              fill={dotColor}
               style={{ transition: "fill 200ms" }}
             />
           );

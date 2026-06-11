@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import logoImg from "@/app/Logo.png";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -75,15 +73,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Top: Logo + Nav */}
         <div>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 px-5 pt-6 pb-5">
-            <Image 
-              src={logoImg} 
+          <Link href="/" className="flex items-center justify-center px-4 py-7">
+            <img 
+              src="/Logo.png" 
               alt="FiMe Logo" 
-              className="w-12 h-12 object-contain"
+              className="h-16 w-auto object-contain"
             />
-            <span className="text-2xl font-bold tracking-tight text-white">
-              Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
-            </span>
           </Link>
 
           {/* Nav */}
@@ -133,15 +128,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Mobile Header */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between px-4 md:hidden"
              style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image 
-              src={logoImg} 
+          <Link href="/" className="flex items-center">
+            <img 
+              src="/Logo.png" 
               alt="FiMe Logo" 
-              className="w-9 h-9 object-contain"
+              className="h-10 w-auto object-contain"
             />
-            <span className="text-xl font-bold tracking-tight text-white">
-              Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
-            </span>
           </Link>
           <Link href="/config" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/[0.06] transition-colors">
             <Settings className="size-5" />
@@ -199,7 +191,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
 
   const cls = cn(
-    "nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left",
+    "nav-item flex items-center gap-3 px-3 py-2.5 rounded-r-xl rounded-l-none text-sm font-medium w-full text-left",
     active ? "active text-slate-300" : "text-slate-400",
     !item.enabled && "opacity-40 cursor-not-allowed",
   );
