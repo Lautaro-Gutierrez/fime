@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import logoImg from "@/app/icon1.png";
 import {
   LayoutDashboard,
   Receipt,
@@ -16,7 +14,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
-import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { MobileFab } from "@/components/layout/mobile-fab";
@@ -42,6 +39,7 @@ const NAV: NavItem[] = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { displayName } = usePrefsContext();
 
   async function handleLogout() {
     const supabase = createClient();
@@ -54,63 +52,115 @@ export function Shell({ children }: { children: React.ReactNode }) {
     router.refresh();
   }
 
+  // Initials for avatar
+  const initials = (displayName || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="flex min-h-svh w-full">
+    <div className="flex h-screen">
       <OfflineIndicator />
-      {/* Sidebar (desktop) */}
-      <aside id="desktop-sidebar" className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 py-6 md:flex">
-        <Link href="/" className="mb-10 flex items-center gap-3 px-2 group relative">
-          <div className="absolute inset-0 bg-theme-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Image 
-            src={logoImg} 
-            alt="FiMe Logo" 
-            className="size-9 rounded-lg shadow-sm relative z-10 ring-1 ring-white/10"
-          />
-          <span className="text-xl font-bold tracking-tight text-white drop-shadow-md relative z-10">FiMe</span>
-        </Link>
 
-        <nav className="flex flex-1 flex-col gap-1">
-          {NAV.map((item) => {
-            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.split('/')[1] ? `/${item.href.split('/')[1]}` : item.href);
-            return (
-              <div key={item.href} className="contents">
-                {item.href === "/config" && <div className="my-3 h-px w-full bg-white/[0.06]" />}
-                <NavLink item={item} active={isActive} />
-              </div>
-            );
-          })}
-        </nav>
+      {/* ═══════ SIDEBAR (desktop) — from prototype line 85 ═══════ */}
+      <aside
+        id="desktop-sidebar"
+        className="hidden md:flex flex-shrink-0 flex-col justify-between"
+        style={{ width: 220, background: "#15171E", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {/* Top: Logo + Nav */}
+        <div>
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 px-5 pt-6 pb-5">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #6366f1)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">
+              Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
+            </span>
+          </Link>
 
-        {/* User profile */}
-        <div className="mb-2 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2.5">
-          <UserBadge />
+          {/* Nav */}
+          <div className="px-3 mt-1">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold px-3 mb-2">Menú</p>
+            <nav className="flex flex-col gap-0.5" id="nav">
+              {NAV.map((item) => {
+                const isActive = item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href.split("/")[1] ? `/${item.href.split("/")[1]}` : item.href);
+                return (
+                  <NavLink key={item.href} item={item} active={isActive} />
+                );
+              })}
+            </nav>
+          </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <LogOut className="size-4" />
-          Cerrar sesión
-        </button>
+        {/* Bottom: User + Logout */}
+        <div className="px-4 pb-5">
+          <div className="border-t border-white/[0.06] pt-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
+              >
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{displayName || "Mi cuenta"}</p>
+                <p className="text-[11px] text-slate-500">Mi cuenta</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors w-full px-1"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
       </aside>
 
-      {/* Main Content Wrapper */}
+      {/* ═══════ MAIN CONTENT — from prototype line 143 ═══════ */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Mobile Header */}
-        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-xl px-4 md:hidden">
-          <Link href="/" className="flex items-center gap-2 group relative">
-            <div className="absolute inset-0 bg-theme-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Image src={logoImg} alt="FiMe" className="size-7 rounded shadow-sm relative z-10 ring-1 ring-white/10" />
-            <span className="font-bold tracking-tight text-white drop-shadow-md relative z-10">FiMe</span>
+        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between px-4 md:hidden"
+             style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <Link href="/" className="flex items-center gap-2">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #6366f1)" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <span className="font-bold tracking-tight text-white">
+              Fi<span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Me</span>
+            </span>
           </Link>
-          <Link href="/config" className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-white/5 transition-colors">
+          <Link href="/config" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/[0.06] transition-colors">
             <Settings className="size-5" />
           </Link>
         </div>
 
         {/* Content */}
-        <main className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0 w-full overflow-x-hidden">
+        <main
+          className="flex-1 overflow-y-auto pb-20 md:pb-0"
+          style={{ background: "#1A1D24" }}
+        >
           {children}
         </main>
       </div>
@@ -118,18 +168,22 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <MobileFab />
 
       {/* Bottom tabs (mobile) */}
-      <nav id="mobile-bottom-nav" className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-white/[0.03] backdrop-blur-xl px-2 py-2 md:hidden">
+      <nav
+        id="mobile-bottom-nav"
+        className="fixed inset-x-0 bottom-0 z-40 flex justify-around px-2 py-2 md:hidden"
+        style={{ background: "#15171E", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      >
         {NAV.filter((n) => ["/", "/gastos", "/ingresos", "/inversiones/all", "/metas"].includes(n.href)).map(
           (item) => {
             const Icon = item.icon;
-            const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href.split('/')[1] ? `/${item.href.split('/')[1]}` : item.href);
+            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href.split("/")[1] ? `/${item.href.split("/")[1]}` : item.href);
             const cls = cn(
               "flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-[10px] transition-colors",
               active
-                ? "text-theme-400"
+                ? "text-violet-400"
                 : item.enabled
-                  ? "text-muted-foreground hover:text-foreground"
-                  : "text-muted-foreground/40",
+                  ? "text-slate-400 hover:text-slate-300"
+                  : "text-slate-600",
             );
             return item.enabled ? (
               <Link key={item.href} href={item.href} className={cls}>
@@ -151,53 +205,27 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
-  const baseCls = cn(
-    "group flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition-all border-l-[3px] border-transparent",
-    active
-      ? "bg-white/[0.04] text-theme-400 border-theme-400"
-      : item.enabled
-        ? "text-muted-foreground hover:bg-white/[0.02] hover:text-foreground"
-        : "cursor-not-allowed text-muted-foreground/40",
+
+  const cls = cn(
+    "nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full text-left",
+    active ? "active text-slate-300" : "text-slate-400",
+    !item.enabled && "opacity-40 cursor-not-allowed",
   );
 
   if (!item.enabled) {
     return (
-      <div className={baseCls}>
-        <Icon className="size-4" />
-        <span className="flex-1">{item.label}</span>
-        <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] uppercase text-muted-foreground/70">
-          pronto
-        </span>
+      <div className={cls}>
+        <Icon className="w-[18px] h-[18px] opacity-70" />
+        <span>{item.label}</span>
       </div>
     );
   }
 
   return (
-    <Link href={item.href} className={baseCls}>
-      <Icon className="size-4" />
+    <Link href={item.href} className={cls}>
+      <Icon className="w-[18px] h-[18px] opacity-70" />
       <span>{item.label}</span>
     </Link>
   );
 }
 
-function UserBadge() {
-  const { displayName, avatarKey } = usePrefsContext();
-
-  return (
-    <>
-      <AvatarDisplay
-        avatarKey={avatarKey}
-        displayName={displayName}
-        size={32}
-        showInitials={false}
-        className="rounded-lg"
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium text-foreground">
-          {displayName || "Mi cuenta"}
-        </span>
-        <span className="text-[10px] text-muted-foreground/60">Plan personal</span>
-      </div>
-    </>
-  );
-}
