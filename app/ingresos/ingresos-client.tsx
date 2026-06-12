@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Sliders, CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { MonthSelector } from "@/components/ingresos/month-selector";
 import dynamic from "next/dynamic";
 const QuickAddIncome = dynamic(() => import("@/components/ingresos/quick-add").then(mod => mod.QuickAddIncome), { ssr: false });
 const EditIncomeDialog = dynamic(() => import("@/components/ingresos/edit-income-dialog").then((mod) => mod.EditIncomeDialog), { ssr: false });
-import { useIncomes, useUpdateIncome, type Income } from "@/hooks/use-incomes";
+import { useIncomes, type Income } from "@/hooks/use-incomes";
 import { useExpenses, sumExpensesByType } from "@/hooks/use-expenses";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -25,8 +25,13 @@ import {
 import { PrivateAmount } from "@/components/ui/private-amount";
 import { INCOME_CATEGORIES_BY_ID } from "@/lib/income-categories";
 import type { IncomeCategory } from "@/types/database";
-import { DistributionStep } from "@/components/ingresos/distribution-step";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const INCOME_CATEGORY_STYLES: Record<IncomeCategory, { inactive: string; active: string }> = {
   sueldo: {
@@ -74,6 +79,10 @@ const formatAxisLabel = (val: number) => {
 
 const formatBarLabel = (val: number) => {
   if (val === 0) return "$0";
+  if (val >= 1000000) {
+    const millions = val / 1000000;
+    return `$${millions.toFixed(1)}M`;
+  }
   if (val >= 1000) {
     return `$${Math.round(val / 1000).toLocaleString("es-AR")}k`;
   }
@@ -96,13 +105,73 @@ const getTopAxisValue = (maxVal: number) => {
 
 export default function IngresosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
-  const [editingDistribution, setEditingDistribution] = useState(false);
-  const [isSavingDist, setIsSavingDist] = useState(false);
   const [editing, setEditing] = useState<Income | null>(null);
+
+  // Global income distribution state
+  const [globalDist, setGlobalDist] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("fime_global_income_distribution");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (
+            typeof parsed.fixed_pct === "number" &&
+            typeof parsed.variable_pct === "number" &&
+            typeof parsed.invest_pct === "number" &&
+            typeof parsed.save_pct === "number" &&
+            parsed.fixed_pct + parsed.variable_pct + parsed.invest_pct + parsed.save_pct === 100
+          ) {
+            return parsed;
+          }
+        } catch (e) {}
+      }
+    }
+    return {
+      fixed_pct: 40,
+      variable_pct: 20,
+      invest_pct: 25,
+      save_pct: 15,
+    };
+  });
+
+  // Sync global distribution to localStorage
+  useEffect(() => {
+    localStorage.setItem("fime_global_income_distribution", JSON.stringify(globalDist));
+  }, [globalDist]);
+
+  // Config modal state
+  const [openConfig, setOpenConfig] = useState(false);
+  const [tempFixed, setTempFixed] = useState(globalDist.fixed_pct);
+  const [tempVariable, setTempVariable] = useState(globalDist.variable_pct);
+  const [tempInvest, setTempInvest] = useState(globalDist.invest_pct);
+  const [tempSave, setTempSave] = useState(globalDist.save_pct);
+
+  // Sync temporary variables when modal opens
+  useEffect(() => {
+    if (openConfig) {
+      setTempFixed(globalDist.fixed_pct);
+      setTempVariable(globalDist.variable_pct);
+      setTempInvest(globalDist.invest_pct);
+      setTempSave(globalDist.save_pct);
+    }
+  }, [openConfig, globalDist]);
+
+  const totalSum = (Number(tempFixed) || 0) + (Number(tempVariable) || 0) + (Number(tempInvest) || 0) + (Number(tempSave) || 0);
+
+  const handleSaveConfig = () => {
+    if (totalSum !== 100) return;
+    setGlobalDist({
+      fixed_pct: Number(tempFixed),
+      variable_pct: Number(tempVariable),
+      invest_pct: Number(tempInvest),
+      save_pct: Number(tempSave),
+    });
+    setOpenConfig(false);
+    toast.success("Distribución global configurada con éxito");
+  };
 
   const { data: incomes = [], isLoading } = useIncomes(month);
   const { data: expenses = [] } = useExpenses(month);
-  const updateIncome = useUpdateIncome();
 
   const realExpenses = useMemo(() => sumExpensesByType(expenses), [expenses]);
 
@@ -121,7 +190,7 @@ export default function IngresosClient() {
         source: "Sueldo YPF",
         date: `${monthYearStr}-02`,
         note: "Nómina mensual",
-        distribution: { fixed_pct: 40, variable_pct: 20, invest_pct: 25, save_pct: 15 },
+        distribution: null,
         created_at: "",
         user_id: "",
         fx_rate: null,
@@ -135,7 +204,7 @@ export default function IngresosClient() {
         source: "Rendimientos Inversiones",
         date: `${monthYearStr}-02`,
         note: "Rentabilidades trimestrales",
-        distribution: { fixed_pct: 25, variable_pct: 15, invest_pct: 40, save_pct: 20 },
+        distribution: null,
         created_at: "",
         user_id: "",
         fx_rate: null,
@@ -179,28 +248,6 @@ export default function IngresosClient() {
     return Math.min(100, Math.round((totalExpenses / totalIncomes) * 100));
   }, [totalIncomes, totalExpenses]);
 
-  const compositeDistribution = useMemo(() => {
-    if (totalIncomes === 0) return { fixed_pct: 50, variable_pct: 30, invest_pct: 10, save_pct: 10 };
-    // We compute the weighted distribution percentages
-    const validIncomes = activeIncomes.filter(i => i.distribution);
-    if (validIncomes.length === 0) {
-      return { fixed_pct: 40, variable_pct: 20, invest_pct: 25, save_pct: 15 };
-    }
-    const totalWithDist = validIncomes.reduce((s, i) => s + Number(i.amount_ars), 0);
-    return validIncomes.reduce(
-      (acc, i) => {
-        if (!i.distribution) return acc;
-        const w = Number(i.amount_ars) / totalWithDist;
-        acc.fixed_pct += i.distribution.fixed_pct * w;
-        acc.variable_pct += i.distribution.variable_pct * w;
-        acc.invest_pct += i.distribution.invest_pct * w;
-        acc.save_pct += i.distribution.save_pct * w;
-        return acc;
-      },
-      { fixed_pct: 0, variable_pct: 0, invest_pct: 0, save_pct: 0 }
-    );
-  }, [activeIncomes, totalIncomes]);
-
   const previousMonth = useMemo(
     () => new Date(month.getFullYear(), month.getMonth() - 1, 1),
     [month],
@@ -232,40 +279,15 @@ export default function IngresosClient() {
     return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
   }, [hasData, totalIncomes, previousTotal]);
 
-  const handleBulkUpdateDistribution = async (dist: { fixed_pct: number, variable_pct: number, invest_pct: number, save_pct: number }) => {
-    setIsSavingDist(true);
-    try {
-      await Promise.all(
-        incomes.map((inc) => 
-          updateIncome.mutateAsync({ id: inc.id, patch: { distribution: dist } })
-        )
-      );
-      toast.success("Distribución de ingresos actualizada");
-      setEditingDistribution(false);
-    } catch (error) {
-      toast.error("Hubo un error al guardar la distribución");
-    } finally {
-      setIsSavingDist(false);
-    }
-  };
-
-  // Theoretical distribution values mapping (Inversiones, Ahorro, G. Fijos, G. Var.)
+  // Dynamic distribution: totalIncomes * globalDist percentage
   const barValues = useMemo(() => {
-    if (!hasData) {
-      return {
-        invest: 1545000,
-        save: 2545000,
-        fixed: 1000000,
-        variable: 909000,
-      };
-    }
     return {
-      invest: Math.round(totalIncomes * (compositeDistribution.invest_pct / 100)),
-      save: Math.round(totalIncomes * (compositeDistribution.save_pct / 100)),
-      fixed: Math.round(totalIncomes * (compositeDistribution.fixed_pct / 100)),
-      variable: Math.round(totalIncomes * (compositeDistribution.variable_pct / 100)),
+      invest: Math.round(totalIncomes * (globalDist.invest_pct / 100)),
+      save: Math.round(totalIncomes * (globalDist.save_pct / 100)),
+      fixed: Math.round(totalIncomes * (globalDist.fixed_pct / 100)),
+      variable: Math.round(totalIncomes * (globalDist.variable_pct / 100)),
     };
-  }, [hasData, totalIncomes, compositeDistribution]);
+  }, [totalIncomes, globalDist]);
 
   const maxBarVal = Math.max(barValues.invest, barValues.save, barValues.fixed, barValues.variable);
   const topAxisVal = getTopAxisValue(maxBarVal);
@@ -401,31 +423,18 @@ export default function IngresosClient() {
           <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col justify-between min-h-[300px]">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Distribución Teórica</h3>
-              {hasData && !editingDistribution && (
-                <button
-                  onClick={() => setEditingDistribution(true)}
-                  className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/10 hover:text-white cursor-pointer"
-                  title="Modificar distribución total"
-                >
-                  <Sliders className="size-3.5" />
-                </button>
-              )}
+              <button
+                onClick={() => setOpenConfig(true)}
+                className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/10 hover:text-white cursor-pointer"
+                title="Configurar distribución global"
+              >
+                <Sliders className="size-3.5" />
+              </button>
             </div>
 
             {totalIncomes === 0 ? (
               <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
                 Sin ingresos este mes
-              </div>
-            ) : editingDistribution ? (
-              <div className="-mx-6 -mb-6 flex-1">
-                <DistributionStep
-                  amountArs={totalIncomes}
-                  initial={compositeDistribution}
-                  onBack={() => setEditingDistribution(false)}
-                  onConfirm={handleBulkUpdateDistribution}
-                  isSaving={isSavingDist}
-                  realExpenses={realExpenses}
-                />
               </div>
             ) : (
               <div className="w-full flex items-center justify-center flex-1">
@@ -551,6 +560,127 @@ export default function IngresosClient() {
           onClose={() => setEditing(null)}
         />
       )}
+
+      {/* Global distribution configuration modal */}
+      <Dialog open={openConfig} onOpenChange={setOpenConfig}>
+        <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-6 shadow-2xl">
+          <DialogTitle className="text-lg font-semibold tracking-tight text-white mb-2">
+            Configurar Distribución Global
+          </DialogTitle>
+          <p className="text-xs text-slate-400 mb-6">
+            Definí los porcentajes teóricos globales que querés asignar a cada categoría de tu pozo común. La suma debe ser exactamente 100%.
+          </p>
+
+          <div className="flex flex-col gap-4">
+            {/* G. Fijos */}
+            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-3 rounded-full bg-[#ef4444]" />
+                <span className="text-sm font-semibold text-slate-200">G. Fijos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempFixed}
+                  onChange={(e) => setTempFixed(Number(e.target.value))}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                />
+                <span className="text-slate-400 text-sm font-mono">%</span>
+              </div>
+            </div>
+
+            {/* G. Variables */}
+            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-3 rounded-full bg-[#f97316]" />
+                <span className="text-sm font-semibold text-slate-200">G. Variables</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempVariable}
+                  onChange={(e) => setTempVariable(Number(e.target.value))}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                />
+                <span className="text-slate-400 text-sm font-mono">%</span>
+              </div>
+            </div>
+
+            {/* Inversiones */}
+            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-3 rounded-full bg-[#10b981]" />
+                <span className="text-sm font-semibold text-slate-200">Inversiones</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempInvest}
+                  onChange={(e) => setTempInvest(Number(e.target.value))}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                />
+                <span className="text-slate-400 text-sm font-mono">%</span>
+              </div>
+            </div>
+
+            {/* Ahorro */}
+            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                <span className="text-sm font-semibold text-slate-200">Ahorro</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempSave}
+                  onChange={(e) => setTempSave(Number(e.target.value))}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                />
+                <span className="text-slate-400 text-sm font-mono">%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sum total and validation */}
+          <div className="mt-6 flex items-center justify-between px-1">
+            <span className="text-xs text-slate-400">Suma de Porcentajes:</span>
+            <span className={cn(
+              "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
+              totalSum === 100
+                ? "text-emerald-400 bg-emerald-500/10"
+                : "text-rose-400 bg-rose-500/10"
+            )}>
+              {totalSum}% {totalSum === 100 ? "✓ Suma 100%" : `≠ 100%`}
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 mt-7 pt-4 border-t border-white/[0.06]">
+            <Button
+              variant="outline"
+              onClick={() => setOpenConfig(false)}
+              className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={totalSum !== 100}
+              onClick={handleSaveConfig}
+              className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Guardar Configuración
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Shell>
   );
 }
