@@ -79,14 +79,7 @@ const formatAxisLabel = (val: number) => {
 
 const formatBarLabel = (val: number) => {
   if (val === 0) return "$0";
-  if (val >= 1000000) {
-    const millions = val / 1000000;
-    return `$${millions.toFixed(1)}M`;
-  }
-  if (val >= 1000) {
-    return `$${Math.round(val / 1000).toLocaleString("es-AR")}k`;
-  }
-  return `$${val}`;
+  return `$${Math.round(val / 1000).toLocaleString("es-AR")}k`;
 };
 
 const getTopAxisValue = (maxVal: number) => {
@@ -107,8 +100,13 @@ export default function IngresosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
   const [editing, setEditing] = useState<Income | null>(null);
 
-  // Global income distribution state
-  const [globalDist, setGlobalDist] = useState(() => {
+  // Global income distribution state (customizable, otherwise derived from real expenses vs incomes)
+  const [globalDist, setGlobalDist] = useState<{
+    fixed_pct: number;
+    variable_pct: number;
+    invest_pct: number;
+    save_pct: number;
+  } | null>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("fime_global_income_distribution");
       if (saved) {
@@ -126,56 +124,32 @@ export default function IngresosClient() {
         } catch (e) {}
       }
     }
-    return {
-      fixed_pct: 40,
-      variable_pct: 20,
-      invest_pct: 25,
-      save_pct: 15,
-    };
+    return null;
   });
 
-  // Sync global distribution to localStorage
+  // Sync custom global distribution to localStorage
   useEffect(() => {
-    localStorage.setItem("fime_global_income_distribution", JSON.stringify(globalDist));
-  }, [globalDist]);
-
-  // Config modal state
-  const [openConfig, setOpenConfig] = useState(false);
-  const [tempFixed, setTempFixed] = useState(globalDist.fixed_pct);
-  const [tempVariable, setTempVariable] = useState(globalDist.variable_pct);
-  const [tempInvest, setTempInvest] = useState(globalDist.invest_pct);
-  const [tempSave, setTempSave] = useState(globalDist.save_pct);
-
-  // Sync temporary variables when modal opens
-  useEffect(() => {
-    if (openConfig) {
-      setTempFixed(globalDist.fixed_pct);
-      setTempVariable(globalDist.variable_pct);
-      setTempInvest(globalDist.invest_pct);
-      setTempSave(globalDist.save_pct);
+    if (globalDist) {
+      localStorage.setItem("fime_global_income_distribution", JSON.stringify(globalDist));
+    } else {
+      localStorage.removeItem("fime_global_income_distribution");
     }
-  }, [openConfig, globalDist]);
-
-  const totalSum = (Number(tempFixed) || 0) + (Number(tempVariable) || 0) + (Number(tempInvest) || 0) + (Number(tempSave) || 0);
-
-  const handleSaveConfig = () => {
-    if (totalSum !== 100) return;
-    setGlobalDist({
-      fixed_pct: Number(tempFixed),
-      variable_pct: Number(tempVariable),
-      invest_pct: Number(tempInvest),
-      save_pct: Number(tempSave),
-    });
-    setOpenConfig(false);
-    toast.success("Distribución global configurada con éxito");
-  };
+  }, [globalDist]);
 
   const { data: incomes = [], isLoading } = useIncomes(month);
   const { data: expenses = [] } = useExpenses(month);
 
   const realExpenses = useMemo(() => sumExpensesByType(expenses), [expenses]);
-
   const hasData = incomes.length > 0;
+
+  // Derive dynamic expenses limits
+  const fixedExpensesAmt = useMemo(() => {
+    return hasData ? realExpenses.fixed : 1000000;
+  }, [hasData, realExpenses.fixed]);
+
+  const variableExpensesAmt = useMemo(() => {
+    return hasData ? realExpenses.variable : 909070;
+  }, [hasData, realExpenses.variable]);
 
   // Fallback mock incomes for visual demonstration matching prototype total of $6,000,000
   const mockIncomes = useMemo<Income[]>(() => {
@@ -239,6 +213,58 @@ export default function IngresosClient() {
     return 1909070; // Fallback mock expenses
   }, [hasData, realExpenses.total]);
 
+  // Dynamic distribution configuration: use customized or derive dynamically from actual month expenses
+  const activeDist = useMemo(() => {
+    if (globalDist) {
+      return globalDist;
+    }
+    if (totalIncomes > 0) {
+      const fixed_pct = Math.min(100, Math.round((fixedExpensesAmt / totalIncomes) * 100));
+      const variable_pct = Math.min(100 - fixed_pct, Math.round((variableExpensesAmt / totalIncomes) * 100));
+      const remainder = 100 - fixed_pct - variable_pct;
+      const invest_pct = Math.max(0, Math.round(remainder * 0.625));
+      const save_pct = Math.max(0, remainder - invest_pct);
+      return { fixed_pct, variable_pct, invest_pct, save_pct };
+    }
+    return {
+      fixed_pct: 40,
+      variable_pct: 20,
+      invest_pct: 25,
+      save_pct: 15,
+    };
+  }, [globalDist, totalIncomes, fixedExpensesAmt, variableExpensesAmt]);
+
+  // Config modal state
+  const [openConfig, setOpenConfig] = useState(false);
+  const [tempFixed, setTempFixed] = useState(activeDist.fixed_pct);
+  const [tempVariable, setTempVariable] = useState(activeDist.variable_pct);
+  const [tempInvest, setTempInvest] = useState(activeDist.invest_pct);
+  const [tempSave, setTempSave] = useState(activeDist.save_pct);
+
+  // Sync temporary variables when modal opens
+  useEffect(() => {
+    if (openConfig) {
+      setTempFixed(activeDist.fixed_pct);
+      setTempVariable(activeDist.variable_pct);
+      setTempInvest(activeDist.invest_pct);
+      setTempSave(activeDist.save_pct);
+    }
+  }, [openConfig, activeDist]);
+
+  const totalSum = (Number(tempFixed) || 0) + (Number(tempVariable) || 0) + (Number(tempInvest) || 0) + (Number(tempSave) || 0);
+
+  const handleSaveConfig = () => {
+    if (totalSum !== 100) return;
+    setGlobalDist({
+      fixed_pct: Number(tempFixed),
+      variable_pct: Number(tempVariable),
+      invest_pct: Number(tempInvest),
+      save_pct: Number(tempSave),
+    });
+    setOpenConfig(false);
+    toast.success("Distribución global configurada con éxito");
+  };
+
   const libre = useMemo(() => {
     return Math.max(0, totalIncomes - totalExpenses);
   }, [totalIncomes, totalExpenses]);
@@ -279,15 +305,15 @@ export default function IngresosClient() {
     return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
   }, [hasData, totalIncomes, previousTotal]);
 
-  // Dynamic distribution: totalIncomes * globalDist percentage
+  // Dynamic distribution: totalIncomes * activeDist percentage
   const barValues = useMemo(() => {
     return {
-      invest: Math.round(totalIncomes * (globalDist.invest_pct / 100)),
-      save: Math.round(totalIncomes * (globalDist.save_pct / 100)),
-      fixed: Math.round(totalIncomes * (globalDist.fixed_pct / 100)),
-      variable: Math.round(totalIncomes * (globalDist.variable_pct / 100)),
+      invest: Math.round(totalIncomes * (activeDist.invest_pct / 100)),
+      save: Math.round(totalIncomes * (activeDist.save_pct / 100)),
+      fixed: Math.round(totalIncomes * (activeDist.fixed_pct / 100)),
+      variable: Math.round(totalIncomes * (activeDist.variable_pct / 100)),
     };
-  }, [totalIncomes, globalDist]);
+  }, [totalIncomes, activeDist]);
 
   const maxBarVal = Math.max(barValues.invest, barValues.save, barValues.fixed, barValues.variable);
   const topAxisVal = getTopAxisValue(maxBarVal);
@@ -448,7 +474,7 @@ export default function IngresosClient() {
                   <line x1="40" y1="25" x2="370" y2="25" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
                   <line x1="40" y1="75" x2="370" y2="75" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
                   <line x1="40" y1="125" x2="370" y2="125" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
-                  <line x1="40" y1="175" x2="370" y2="175" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  <line x1="40" y1="175" x2="370" y2="175" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
                   
                   {/* Bars */}
                   {/* Inversiones */}
@@ -666,7 +692,9 @@ export default function IngresosClient() {
           <div className="flex justify-end gap-2 mt-7 pt-4 border-t border-white/[0.06]">
             <Button
               variant="outline"
-              onClick={() => setOpenConfig(false)}
+              onClick={() => {
+                setOpenConfig(false);
+              }}
               className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
             >
               Cancelar
