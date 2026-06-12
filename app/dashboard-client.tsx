@@ -525,7 +525,7 @@ export default function DashboardClient() {
               {chartData.length > 1 ? (
                 <div className="h-56 w-full mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                       <defs>
                         <linearGradient id="portfolioStroke" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#d946ef" />
@@ -545,7 +545,7 @@ export default function DashboardClient() {
                         dy={10} 
                       />
                       <YAxis 
-                        width={45}
+                        width={60}
                         axisLine={false} 
                         tickLine={false} 
                         tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
