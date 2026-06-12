@@ -64,14 +64,39 @@ export default function DashboardClient() {
   const chartData = useMemo(() => {
     if (!portfolio.returnSeries || portfolio.returnSeries.length === 0) return [];
     
-    return portfolio.returnSeries.map(pt => {
-      // Usamos dd MMM (ej. 01 jun, 05 jun) para evitar meses repetidos en datos diarios
-      const labelX = format(parseISO(pt.date), "dd MMM", { locale: es });
+    const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const now = new Date();
+    const months = Array.from({ length: 6 }).map((_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
       return {
-        date: pt.date,
-        portfolio: pt.portfolio_pct,
-        sp500: pt.sp500_pct ?? 0,
-        labelX,
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: MONTH_NAMES[d.getMonth()],
+      };
+    });
+
+    const sortedSeries = [...portfolio.returnSeries].sort((a, b) => a.date.localeCompare(b.date));
+    let lastPortfolioVal = 0;
+    let lastSp500Val = 0;
+
+    return months.map(m => {
+      const yearStr = m.year;
+      const monthStr = String(m.month + 1).padStart(2, '0');
+      const lastDay = new Date(m.year, m.month + 1, 0).getDate();
+      const monthEndStr = `${yearStr}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
+      
+      const pointsBeforeOrInMonth = sortedSeries.filter(pt => pt.date <= monthEndStr);
+      if (pointsBeforeOrInMonth.length > 0) {
+        const lastPt = pointsBeforeOrInMonth[pointsBeforeOrInMonth.length - 1];
+        lastPortfolioVal = lastPt.portfolio_pct;
+        lastSp500Val = lastPt.sp500_pct ?? 0;
+      }
+      
+      return {
+        date: `${m.year}-${monthStr}`,
+        portfolio: Number(lastPortfolioVal.toFixed(2)),
+        sp500: Number(lastSp500Val.toFixed(2)),
+        labelX: m.label,
       };
     });
   }, [portfolio.returnSeries]);
@@ -500,7 +525,7 @@ export default function DashboardClient() {
               {chartData.length > 1 ? (
                 <div className="h-56 w-full mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="portfolioStroke" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#d946ef" />
@@ -520,10 +545,10 @@ export default function DashboardClient() {
                         dy={10} 
                       />
                       <YAxis 
+                        width={45}
                         axisLine={false} 
                         tickLine={false} 
                         tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
-                        dx={-10}
                         tickFormatter={(value) => `${value}%`}
                         domain={['dataMin - 1', 'dataMax + 1']}
                       />
