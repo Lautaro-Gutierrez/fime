@@ -374,10 +374,10 @@ export default function DashboardClient() {
           </div>
 
           {/* ═══════ 4. WIDGETS ROW (grid-cols-3): Metas, Liquidez, Rendimiento ═══════ */}
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-4 mb-7 animate-fade-in delay-3">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7 animate-fade-in delay-3">
 
             {/* ── Col 1: Metas Principales ── */}
-            <div className="rounded-2xl p-6 border card-hover flex flex-col justify-between" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)", height: "100%" }}>
+            <div className="rounded-2xl p-6 border card-hover flex flex-col justify-between min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)", height: "100%" }}>
               <div>
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="text-sm font-semibold text-white">Metas Principales</h3>
@@ -405,11 +405,11 @@ export default function DashboardClient() {
                             <circle cx="40" cy="40" r="32" fill="none" stroke={`url(#donutGrad-${goal.id})`} strokeWidth="6" strokeDasharray="201.06" strokeDashoffset={offset} strokeLinecap="round"/>
                           </svg>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-sm font-bold text-white tnum">{pct.toFixed(0)}%</span>
+                            <span className="text-xl font-bold text-white tnum">{pct.toFixed(0)}%</span>
                           </div>
                         </div>
-                        <p className="text-xs text-white font-semibold leading-tight truncate w-full">{goal.name}</p>
-                        <p className="text-[10px] text-slate-500 mt-1 tnum truncate w-full">
+                        <p className="text-sm text-white font-semibold leading-tight truncate w-full">{goal.name}</p>
+                        <p className="text-xs text-slate-500 mt-1 tnum truncate w-full">
                           ${formatUSD(prog?.current || 0, false)} / ${formatUSD(goal.target_amount, false)}
                         </p>
                       </div>
@@ -426,7 +426,7 @@ export default function DashboardClient() {
             </div>
 
             {/* ── Col 2: Salud Financiera ── */}
-            <div className="rounded-2xl p-5 border card-hover flex flex-col items-center justify-between relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1F2229, rgba(16,185,129,0.03))", borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="rounded-2xl p-5 border card-hover flex flex-col items-center justify-between relative overflow-hidden min-h-[300px]" style={{ background: "linear-gradient(135deg, #1F2229, rgba(16,185,129,0.03))", borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="w-full flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-white">Salud Financiera</h3>
                 <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
@@ -435,7 +435,7 @@ export default function DashboardClient() {
               </div>
               
               {/* Semicircle Gauge */}
-              <div className="relative flex flex-col items-center justify-end w-52 h-28 overflow-hidden mb-2">
+              <div className="relative flex flex-col items-center justify-end w-64 h-32 overflow-hidden mb-2">
                 <svg viewBox="0 0 100 50" className="absolute top-0 left-0 w-full h-full">
                   <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" strokeLinecap="round"/>
                   <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="url(#brandGaugeGrad)" strokeWidth="10" strokeDasharray="125.6" strokeDashoffset={dashoffset} strokeLinecap="round"/>
@@ -448,30 +448,30 @@ export default function DashboardClient() {
                   </defs>
                 </svg>
                 <div className="absolute bottom-0 text-center">
-                  <span className="text-4xl font-extrabold text-white tnum tracking-tighter">{score}</span>
+                  <span className="text-6xl font-extrabold text-white tnum tracking-tighter">{score}</span>
                   <span className="text-sm text-slate-500 font-medium">/100</span>
                 </div>
               </div>
               
               <div className="text-center mt-3 z-10 relative">
-                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest ${gaugeBg} ${gaugeColor}`}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${gaugeBg} ${gaugeColor}`}>
                   {gaugeStatus}
                 </span>
-                <p className="text-[11px] text-slate-400 mt-2">{gaugeMsg}</p>
+                <p className="text-xs text-slate-400 mt-2">{gaugeMsg}</p>
               </div>
             </div>
 
             {/* ── Col 3: Rendimiento (Portfolio vs S&P 500) ── */}
-            <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="rounded-2xl p-6 border card-hover min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-white">Rendimiento</h3>
+                <h3 className="text-base font-semibold text-white">Rendimiento</h3>
                 <div className="flex items-center gap-3 text-[10px]">
                   <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: "linear-gradient(135deg, #d946ef, #06b6d4)" }} /><span className="text-slate-300 font-medium">Portfolio</span></div>
                   <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" /><span className="text-slate-400 font-medium">S&P 500</span></div>
                 </div>
               </div>
               {chartData.length > 1 ? (
-                <div className="h-[180px] w-full mt-2">
+                <div className="h-56 w-full mt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                       <defs>
@@ -489,14 +489,14 @@ export default function DashboardClient() {
                         dataKey="labelX" 
                         axisLine={true} 
                         tickLine={false} 
-                        tick={{ fill: "#64748b", fontSize: 9, fontFamily: "Inter" }}
+                        tick={{ fill: "#64748b", fontSize: 12, fontFamily: "Inter" }}
                         dy={10}
                         stroke="rgba(255,255,255,0.05)"
                       />
                       <YAxis 
                         axisLine={true} 
                         tickLine={false} 
-                        tick={{ fill: "#64748b", fontSize: 9, fontFamily: "Inter" }} 
+                        tick={{ fill: "#64748b", fontSize: 12, fontFamily: "Inter" }} 
                         tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
                         dx={-10}
                         stroke="rgba(255,255,255,0.05)"
