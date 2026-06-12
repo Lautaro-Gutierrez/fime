@@ -118,7 +118,7 @@ function parseNumber(input: string): number | null {
   return n;
 }
 
-export function NewTransactionDialog({ defaultPortfolioId }: { defaultPortfolioId?: string }) {
+export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { defaultPortfolioId?: string; customTrigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [asset, setAsset] = useState<AssetConfig | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
@@ -235,18 +235,17 @@ export function NewTransactionDialog({ defaultPortfolioId }: { defaultPortfolioI
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
+      <DialogTrigger asChild={!!customTrigger}>
+        {customTrigger || (
           <Button
-            id="inversiones-quick-add"
             size="lg"
-            className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
+            className="h-11 gap-2 rounded-xl bg-theme-600 px-6 font-semibold text-white transition-all hover:bg-theme-500 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)]"
           >
             <Plus className="size-4" />
-            Nueva operación
+            Nueva Operación
           </Button>
-        }
-      />
+        )}
+      </DialogTrigger>
 
       <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">

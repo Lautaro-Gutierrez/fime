@@ -2,9 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { Shell } from "@/components/layout/shell";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 
 // Portfolios
@@ -12,15 +10,12 @@ import { PortfolioSelector } from "@/components/inversiones/portfolio-selector";
 import { usePortfolios } from "@/hooks/use-portfolios";
 
 // Bitácora components
-import { FxStrip } from "@/components/inversiones/fx-strip";
 import dynamic from "next/dynamic";
 const NewTransactionDialog = dynamic(() => import("@/components/inversiones/new-transaction-dialog").then((mod) => mod.NewTransactionDialog), { ssr: false });
 import { TransactionsList } from "@/components/inversiones/transactions-list";
-import { Filters, type FilterState } from "@/components/inversiones/filters";
 import { useInvestments } from "@/hooks/use-investments";
 
 // Portfolio components
-import { PortfolioHeader } from "@/components/portfolio/header";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { HoldingsList } from "@/components/portfolio/holdings-list";
 import { PerformanceChart } from "@/components/portfolio/performance-chart";
@@ -28,6 +23,24 @@ const InitialPositionsDialog = dynamic(() => import("@/components/portfolio/init
 const TransferAssetDialog = dynamic(() => import("@/components/portfolio/transfer-asset-dialog").then((mod) => mod.TransferAssetDialog), { ssr: false });
 import { usePortfolio } from "@/hooks/use-portfolio";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
+
+import { formatUSD } from "@/lib/format";
+import { useQuery } from "@tanstack/react-query";
+import type { FxRates } from "@/lib/prices/types";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+async function fetchFx(): Promise<FxRates> {
+  const res = await fetch("/api/prices/fx", { cache: "no-store" });
+  if (!res.ok) throw new Error("No se pudieron cargar cotizaciones");
+  return res.json();
+}
 
 export default function PortfolioClient(props: {
   params: Promise<{ portfolioId: string }>;
@@ -55,22 +68,7 @@ export default function PortfolioClient(props: {
 }
 
 function InversionesContent({ portfolioId }: { portfolioId: string }) {
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "portfolio" ? "portfolio" : "bitacora";
-  const [activeTab, setActiveTab] = useState(initialTab);
-
-  const { currentStep, isActive } = useOnboarding();
   const { data: portfolios = [], isLoading: isLoadingPortfolios } = usePortfolios();
-
-  useEffect(() => {
-    if (isActive && currentStep) {
-      if (currentStep.id === "inv-initial") {
-        setActiveTab("portfolio");
-      } else if (currentStep.id === "inv-welcome" || currentStep.id === "inv-tabs") {
-        setActiveTab("bitacora");
-      }
-    }
-  }, [isActive, currentStep?.id]);
 
   const {
     holdings,
@@ -82,175 +80,20 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
     resetHistory,
   } = usePortfolio(portfolioId);
 
-  return (
-    <Shell>
-      <div className="relative flex flex-col gap-6 p-4 pb-10 sm:p-6 md:p-8">
-        {/* Ambient background glow */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.12),transparent_80%)]" />
+  const { data: investments = [], isLoading: isLoadingInvestments } = useInvestments();
 
-        {/* Hero header */}
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-col gap-1"
-        >
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-300/80">
-            Inversiones
-          </span>
-          <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold uppercase tracking-tight text-transparent sm:text-4xl">
-            Centro de Inversiones
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Bitácora de operaciones y resumen de portfolio
-          </p>
+  // Filtramos por portfolio en el historial
+  const filteredInvestments = useMemo(() => {
+    if (portfolioId === "ALL") return investments;
+    return investments.filter((inv) => inv.portfolio_id === portfolioId);
+  }, [investments, portfolioId]);
 
-          <div className="mt-4 flex items-center">
-            <PortfolioSelector
-              portfolios={portfolios}
-              activeId={portfolioId}
-              currentTotalUsd={totals.total_usd}
-              holdingsCount={holdings.length}
-              isLoading={isLoadingPortfolios}
-            />
-          </div>
-        </motion.div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList id="inv-tabs" className="w-full max-w-xs">
-            <TabsTrigger value="bitacora" className="flex-1">
-              Bitácora
-            </TabsTrigger>
-            <TabsTrigger value="portfolio" className="flex-1">
-              Portfolio
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="bitacora">
-            <BitacoraTab portfolioId={portfolioId} />
-          </TabsContent>
-
-          <TabsContent value="portfolio">
-            <PortfolioTab
-              portfolioId={portfolioId}
-              holdings={holdings}
-              totals={totals}
-              returnSeries={returnSeries}
-              isLoading={isLoadingPortfolioData}
-              isFetchingPrices={isFetchingPrices}
-              refetchPrices={refetchPrices}
-              resetHistory={resetHistory}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </Shell>
-  );
-}
-
-/* ── Bitácora Tab ── */
-function BitacoraTab({ portfolioId }: { portfolioId: string }) {
-  const [filters, setFilters] = useState<FilterState>({
-    assetTypes: [],
-    ticker: "",
-    portfolioId: "",
+  const { data: fx } = useQuery({
+    queryKey: ["fx-rates"],
+    queryFn: fetchFx,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: investments = [], isLoading } = useInvestments();
-
-  // Global Ledger: siempre mostramos TODAS las transacciones.
-  // El filtro por portfolio es opcional y local (dentro de la bitácora).
-  const filtered = useMemo(() => {
-    return investments.filter((inv) => {
-      // Filtro local por portfolio (si el usuario lo activó)
-      if (filters.portfolioId && inv.portfolio_id !== filters.portfolioId) {
-        return false;
-      }
-      if (
-        filters.assetTypes.length > 0 &&
-        !filters.assetTypes.includes(inv.asset_type)
-      ) {
-        return false;
-      }
-      if (filters.ticker.trim()) {
-        const needle = filters.ticker.trim().toUpperCase();
-        if (!inv.ticker?.toUpperCase().includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [investments, filters]);
-
-  const totalOps = investments.length;
-  const filteredCount = filtered.length;
-
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <NewTransactionDialog defaultPortfolioId={portfolioId === "ALL" ? undefined : portfolioId} />
-      </div>
-
-      {/* FX strip */}
-      <FxStrip />
-
-      {/* Filtros */}
-      <Filters state={filters} onChange={setFilters} />
-
-      {/* Contador */}
-      {totalOps > 0 && (
-        <motion.div
-          key={`${filteredCount}-${totalOps}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex items-center gap-2 px-1 text-xs"
-        >
-          <div className="flex items-center gap-2 rounded-full border border-white/5 bg-card/40 px-3 py-1 backdrop-blur">
-            <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-            <span className="font-mono tabular-nums text-muted-foreground">
-              {filteredCount === totalOps
-                ? `${totalOps} ${totalOps === 1 ? "operación" : "operaciones"}`
-                : `${filteredCount} de ${totalOps} operaciones`}
-            </span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Lista — siempre con badges de portfolio (Global Ledger) */}
-      {isLoading ? (
-        <div className="flex items-center justify-center rounded-xl border border-white/5 bg-card/40 p-12 backdrop-blur">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="size-2 animate-pulse rounded-full bg-indigo-400" />
-            Cargando operaciones...
-          </div>
-        </div>
-      ) : (
-        <TransactionsList investments={filtered} showPortfolioBadge />
-      )}
-    </div>
-  );
-}
-
-/* ── Portfolio Tab ── */
-function PortfolioTab({
-  portfolioId,
-  holdings,
-  totals,
-  returnSeries,
-  isLoading,
-  isFetchingPrices,
-  refetchPrices,
-  resetHistory,
-}: {
-  portfolioId: string;
-  holdings: any[];
-  totals: any;
-  returnSeries: any[];
-  isLoading: boolean;
-  isFetchingPrices: boolean;
-  refetchPrices: () => void;
-  resetHistory: () => Promise<void>;
-}) {
   const [transferHolding, setTransferHolding] = useState<ValuedHolding | null>(null);
 
   // Delta de "hoy" desde la serie TWR.
@@ -261,71 +104,184 @@ function PortfolioTab({
     return last - prev;
   }, [returnSeries]);
 
+  const newTxBtn = (
+    <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-indigo-500/20">
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 4v16m8-8H4"/></svg>
+      Nueva Operación
+    </button>
+  );
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header con total + refresh */}
-      <PortfolioHeader
-        totalUsd={totals.total_usd}
-        unrealizedPct={totals.unrealized_pnl_pct}
-        dailyPct={dailyPct}
-        isFetching={isFetchingPrices}
-        onRefresh={() => refetchPrices()}
-        holdingsCount={holdings.length}
-      />
-
-      {/* Action bar */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="flex flex-wrap items-center justify-between gap-3 px-1"
-      >
-        <div className="flex items-center gap-2 rounded-full border border-white/5 bg-card/40 px-3 py-1 text-xs backdrop-blur">
-          <span className="size-1.5 rounded-full bg-theme-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-          <span className="font-mono tabular-nums text-muted-foreground">
-            {holdings.length}{" "}
-            {holdings.length === 1 ? "posición" : "posiciones"} activas
-          </span>
-        </div>
-        <InitialPositionsDialog />
-      </motion.div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center rounded-xl border border-white/5 bg-card/40 p-12 backdrop-blur">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="size-2 animate-pulse rounded-full bg-fuchsia-400" />
-            Calculando holdings...
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Grid: Donut + Performance (desktop), stack (mobile) */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              <AllocationDonut holdings={holdings} />
-            </div>
-            <div className="lg:col-span-3">
-              <PerformanceChart series={returnSeries} onReset={resetHistory} />
+    <Shell>
+      <div className="relative z-10 flex flex-col gap-6 p-4 sm:p-6 md:p-8 ambient-glow">
+        {/* Header */}
+        <div className="mb-5 animate-fade-in">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">PORTFOLIO</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <h1 className="text-2xl font-bold text-white">Centro de Inversiones Profesional</h1>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              <PortfolioSelector
+                portfolios={portfolios}
+                activeId={portfolioId}
+                currentTotalUsd={totals.total_usd}
+                holdingsCount={holdings.length}
+                isLoading={isLoadingPortfolios}
+              />
+              
+              <NewTransactionDialog 
+                defaultPortfolioId={portfolioId === "ALL" ? undefined : portfolioId} 
+                customTrigger={newTxBtn} 
+              />
+              
+              <Sheet>
+                <SheetTrigger render={
+                  <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold text-white hover:bg-white/10 transition-colors">
+                    Ver Historial
+                  </button>
+                } />
+                <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#0A0D14] border-white/10 p-6 overflow-y-auto">
+                  <SheetHeader className="mb-6 text-left">
+                    <SheetTitle className="text-xl text-white">Historial de Operaciones</SheetTitle>
+                  </SheetHeader>
+                  <TransactionsList investments={filteredInvestments} showPortfolioBadge={portfolioId === "ALL"} />
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
+        </div>
 
-          {/* Holdings list */}
-          <HoldingsList 
-            holdings={holdings} 
-            portfolioId={portfolioId} 
-            onTransfer={setTransferHolding} 
-          />
+        {/* FX Strip */}
+        <div className="flex overflow-x-auto hide-scrollbar gap-3 mb-6 animate-fade-in delay-1 pb-1">
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-slate-400 font-medium">Oficial</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.oficial, false) : "—"}</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-slate-400 font-medium">MEP</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.mep, false) : "—"}</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-slate-400 font-medium">CCL</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.ccl, false) : "—"}</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-slate-400 font-medium">Blue</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.blue, false) : "—"}</span>
+          </div>
+          
+          <div className="w-px h-6 bg-white/[0.08] mx-1 self-center flex-shrink-0"></div>
+          
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-indigo-400 font-bold">AAPL</span>
+            <span className="text-xs text-white font-bold tnum">$215.30</span>
+            <span className="text-[10px] text-emerald-400 font-semibold">+1.5%</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-rose-400 font-bold">SPY</span>
+            <span className="text-xs text-white font-bold tnum">$540.25</span>
+            <span className="text-[10px] text-emerald-400 font-semibold">+0.8%</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <span className="text-[11px] text-amber-400 font-bold">TSLA</span>
+            <span className="text-xs text-white font-bold tnum">$195.50</span>
+            <span className="text-[10px] text-rose-400 font-semibold">-2.1%</span>
+          </div>
+        </div>
+        
+        {/* Portfolio Value Card */}
+        <div className="rounded-2xl p-6 mb-6 relative overflow-hidden animate-fade-in delay-1" style={{ background: "linear-gradient(135deg, #1a1040, #1F2229)", border: "1px solid rgba(139,92,246,0.15)" }}>
+          <div className="absolute inset-0 opacity-20">
+            <svg viewBox="0 0 600 120" className="w-full h-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="bgLine" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.3"/>
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,90 C50,85 100,70 150,60 C200,50 250,55 300,45 C350,35 400,25 450,20 C500,15 550,10 600,5 L600,120 L0,120 Z" fill="url(#bgLine)"/>
+              <path d="M0,90 C50,85 100,70 150,60 C200,50 250,55 300,45 C350,35 400,25 450,20 C500,15 550,10 600,5" fill="none" stroke="#8b5cf6" strokeWidth="1.5" opacity="0.5"/>
+            </svg>
+          </div>
+          <div className="relative z-10">
+            <p className="text-xs text-slate-400 mb-2 font-medium">Valor del Portfolio</p>
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl font-extrabold text-white tnum">{formatUSD(totals.total_usd)}</span>
+              {totals.unrealized_pnl_pct !== 0 && (
+                <span className={`font-bold text-lg tnum ${totals.unrealized_pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  {totals.unrealized_pnl_pct > 0 ? "+" : ""}{totals.unrealized_pnl_pct.toFixed(2)}%
+                </span>
+              )}
+            </div>
+            {dailyPct !== null && (
+              <p className="text-sm text-slate-400 mt-1">
+                ({dailyPct > 0 ? "+" : ""}{dailyPct.toFixed(2)}% hoy)
+              </p>
+            )}
+          </div>
+        </div>
 
-          {portfolioId !== "ALL" && (
-            <TransferAssetDialog
-              open={!!transferHolding}
-              onOpenChange={(v) => !v && setTransferHolding(null)}
-              holding={transferHolding}
-              sourcePortfolioId={portfolioId}
-            />
+        {/* Investment Insights */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 animate-fade-in delay-2">
+          <div className="rounded-2xl p-4 border card-hover" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.04))", borderColor: "rgba(139,92,246,0.15)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)" }}><svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg></div>
+              <span className="text-xs font-bold text-violet-400 uppercase tracking-wider">Diversificación</span>
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed">No tenés renta fija en tu portfolio. Considerá agregar bonos para reducir volatilidad.</p>
+          </div>
+          <div className="rounded-2xl p-4 border card-hover" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}><svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Buen Hábito</span>
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed">Estás haciendo DCA consistentemente. ¡Seguí así! Llevas 6 meses consecutivos aportando.</p>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 animate-fade-in delay-3">
+          {/* Portfolio Composition */}
+          <div className="lg:col-span-2 rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <h3 className="text-sm font-semibold text-white mb-4">Composición del Portfolio</h3>
+            {isLoadingPortfolioData ? (
+               <div className="flex h-[280px] items-center justify-center text-slate-500">Calculando...</div>
+            ) : (
+               <AllocationDonut holdings={holdings} />
+            )}
+          </div>
+          {/* Historial de Rendimiento */}
+          <div className="lg:col-span-3 rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">Historial de Rendimiento</h3>
+            </div>
+            {isLoadingPortfolioData ? (
+               <div className="flex h-[280px] items-center justify-center text-slate-500">Calculando...</div>
+            ) : (
+               <PerformanceChart series={returnSeries} onReset={resetHistory} />
+            )}
+          </div>
+        </div>
+
+        {/* Holdings Table */}
+        <div className="rounded-2xl p-5 border animate-fade-in delay-4" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+          <h3 className="text-sm font-semibold text-white mb-4">Holdings</h3>
+          {isLoadingPortfolioData ? (
+            <div className="p-8 text-center text-slate-500">Calculando holdings...</div>
+          ) : (
+            <HoldingsList holdings={holdings} portfolioId={portfolioId} onTransfer={setTransferHolding} />
           )}
-        </>
+        </div>
+      </div>
+      
+      {portfolioId !== "ALL" && (
+        <TransferAssetDialog
+          open={!!transferHolding}
+          onOpenChange={(v) => !v && setTransferHolding(null)}
+          holding={transferHolding}
+          sourcePortfolioId={portfolioId}
+        />
       )}
-    </div>
+    </Shell>
   );
 }

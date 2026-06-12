@@ -63,7 +63,7 @@ function parseAmount(input: string): number | null {
   return isFinite(n) && n > 0 ? n : null;
 }
 
-export function QuickAdd() {
+export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<ExpenseType>("variable");
@@ -147,17 +147,22 @@ export function QuickAdd() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
+        asChild={!!customTrigger}
         render={
-          <Button
-            id="gastos-quick-add"
-            size="lg"
-            className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
-          >
-            <Plus className="size-4" />
-            Nuevo gasto
-          </Button>
+          customTrigger ? null : (
+            <Button
+              id="gastos-quick-add"
+              size="lg"
+              className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
+            >
+              <Plus className="size-4" />
+              Nuevo gasto
+            </Button>
+          )
         }
-      />
+      >
+        {customTrigger}
+      </DialogTrigger>
 
       <DialogContent className="max-w-md overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <div className="relative flex flex-col gap-5 p-6">
