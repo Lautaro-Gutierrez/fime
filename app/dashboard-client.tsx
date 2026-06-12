@@ -12,7 +12,7 @@ import { useUpdatePreferences } from "@/hooks/use-preferences";
 import { formatUSD } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid } from "recharts";
+import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid, Tooltip } from "recharts";
 import Link from "next/link";
 import { useSmartInsights } from "@/hooks/use-smart-insights";
 
@@ -490,20 +490,25 @@ export default function DashboardClient() {
                       <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
                       <XAxis 
                         dataKey="labelX" 
-                        axisLine={true} 
+                        axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 12, fontFamily: "Inter" }}
+                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter" }}
                         dy={10}
                         stroke="rgba(255,255,255,0.05)"
                       />
                       <YAxis 
-                        axisLine={true} 
+                        axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 12, fontFamily: "Inter" }} 
+                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter" }} 
                         tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
                         dx={-10}
                         stroke="rgba(255,255,255,0.05)"
                         domain={[(dataMin) => Math.min(0, Math.floor(dataMin)), 'auto']}
+                      />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: "#1F2229", borderColor: "rgba(255,255,255,0.06)", borderRadius: "12px", color: "#e2e8f0" }} 
+                        itemStyle={{ color: "#e2e8f0" }} 
+                        formatter={(val) => [`${Number(val).toFixed(2)}%`]} 
                       />
                       <Area 
                         type="monotone" 
