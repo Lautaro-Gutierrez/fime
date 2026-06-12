@@ -35,16 +35,59 @@ import { PORTFOLIO_COLORS, PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "./port
 // ARS-denominated asset types (need fx_rate conversion to USD).
 const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar", "on"];
 
-// Gradient de fondo por asset en las cards del selector.
-const ASSET_CARD_GRADIENT: Record<AssetType, string> = {
-  crypto: "from-orange-500/20 via-orange-500/5 to-transparent",
-  stock_us: "from-indigo-500/20 via-indigo-500/5 to-transparent",
-  cedear: "from-cyan-500/20 via-cyan-500/5 to-transparent",
-  stock_ar: "from-sky-500/20 via-sky-500/5 to-transparent",
-  bond_ar: "from-teal-500/20 via-teal-500/5 to-transparent",
-  time_deposit: "from-theme-500/20 via-theme-500/5 to-transparent",
-  usd_cash: "from-green-500/20 via-green-500/5 to-transparent",
-  on: "from-violet-500/20 via-violet-500/5 to-transparent",
+// Matte style configuration for each asset card in the grid selector
+const ASSET_CARD_STYLES: Record<
+  AssetType,
+  { bg: string; text: string; hoverBg: string; border: string }
+> = {
+  crypto: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    hoverBg: "hover:bg-amber-500/20",
+    border: "border-white/[0.06] hover:border-amber-500/30",
+  },
+  stock_us: {
+    bg: "bg-indigo-500/10",
+    text: "text-indigo-400",
+    hoverBg: "hover:bg-indigo-500/20",
+    border: "border-white/[0.06] hover:border-indigo-500/30",
+  },
+  cedear: {
+    bg: "bg-teal-500/10",
+    text: "text-teal-400",
+    hoverBg: "hover:bg-teal-500/20",
+    border: "border-white/[0.06] hover:border-teal-500/30",
+  },
+  stock_ar: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    hoverBg: "hover:bg-emerald-500/20",
+    border: "border-white/[0.06] hover:border-emerald-500/30",
+  },
+  bond_ar: {
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+    hoverBg: "hover:bg-blue-500/20",
+    border: "border-white/[0.06] hover:border-blue-500/30",
+  },
+  on: {
+    bg: "bg-sky-500/10",
+    text: "text-sky-400",
+    hoverBg: "hover:bg-sky-500/20",
+    border: "border-white/[0.06] hover:border-sky-500/30",
+  },
+  time_deposit: {
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
+    hoverBg: "hover:bg-purple-500/20",
+    border: "border-white/[0.06] hover:border-purple-500/30",
+  },
+  usd_cash: {
+    bg: "bg-green-500/10",
+    text: "text-green-400",
+    hoverBg: "hover:bg-green-500/20",
+    border: "border-white/[0.06] hover:border-green-500/30",
+  },
 };
 
 type FormState = {
@@ -251,7 +294,7 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
         />
       )}
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px] shadow-2xl">
         <AnimatePresence mode="wait">
           {!asset ? (
             <motion.div
@@ -261,26 +304,24 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
               exit={{ opacity: 0 }}
               className="relative flex flex-col gap-5 p-6"
             >
-              {/* Background glow */}
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.1),transparent_60%)]" />
-
               <div className="relative flex items-start gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/15 ring-1 ring-indigo-500/30">
-                  <Sparkles className="size-4 text-indigo-300" />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  <Briefcase className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <DialogTitle className="text-lg font-semibold tracking-tight">
+                  <DialogTitle className="text-lg font-semibold tracking-tight text-white">
                     Nueva operación
                   </DialogTitle>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Elegí el tipo de activo para empezar.
                   </p>
                 </div>
               </div>
 
-              <div className="relative grid grid-cols-2 gap-2 md:grid-cols-3">
+              <div className="relative grid grid-cols-2 gap-2.5 md:grid-cols-3">
                 {ASSETS.map((a, idx) => {
                   const Icon = a.icon;
+                  const style = ASSET_CARD_STYLES[a.id];
                   return (
                     <motion.button
                       key={a.id}
@@ -291,24 +332,20 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
                       whileTap={{ scale: 0.97 }}
                       onClick={() => selectAsset(a)}
                       className={cn(
-                        "group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-3 text-left transition-all hover:border-white/10",
-                        ASSET_CARD_GRADIENT[a.id],
+                        "group relative flex min-h-[110px] flex-col justify-between rounded-2xl border p-3.5 text-left transition-all",
+                        style.bg,
+                        style.text,
+                        style.hoverBg,
+                        style.border
                       )}
                     >
-                      {/* Icon con glow */}
+                      {/* Icon */}
                       <div className="relative">
                         <div
                           className={cn(
-                            "absolute inset-0 rounded-xl opacity-60 blur-md",
-                            a.bgClass,
-                          )}
-                        />
-                        <div
-                          className={cn(
-                            "relative flex size-9 items-center justify-center rounded-xl ring-1",
-                            a.bgClass,
-                            a.textClass,
-                            a.borderClass,
+                            "relative flex size-9 items-center justify-center rounded-xl",
+                            style.bg,
+                            style.text
                           )}
                         >
                           <Icon className="size-4.5" />
@@ -317,16 +354,13 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
  
                       {/* Label */}
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[12px] font-bold leading-tight tracking-tight text-foreground">
+                        <span className="font-semibold text-slate-200 text-sm leading-tight tracking-tight">
                           {a.label}
                         </span>
-                        <span className="text-[8px] uppercase tracking-widest text-muted-foreground/50">
+                        <span className="text-xs text-slate-500">
                           {a.short}
                         </span>
                       </div>
-
-                      {/* Shimmer on hover */}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                     </motion.button>
                   );
                 })}
@@ -418,46 +452,34 @@ function TransactionForm({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0 }}
-      className="flex max-h-[85vh] flex-col"
+      className="flex max-h-[85vh] flex-col bg-[#1F2229]"
     >
-      {/* Header con glow del asset */}
-      <div
-        className={cn(
-          "relative flex items-center gap-3 overflow-hidden border-b border-white/5 bg-gradient-to-r p-4",
-          ASSET_CARD_GRADIENT[asset.id],
-        )}
-      >
+      {/* Header */}
+      <div className="relative flex items-center gap-3 overflow-hidden border-b border-white/[0.06] bg-[#1F2229] p-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={onBack}
-          className="relative size-9 shrink-0 rounded-full hover:bg-white/10"
+          className="relative size-9 shrink-0 rounded-full hover:bg-white/[0.04] text-slate-400 hover:text-white"
         >
           <ArrowLeft className="size-4" />
         </Button>
         <div className="relative shrink-0">
           <div
             className={cn(
-              "absolute inset-0 rounded-xl opacity-60 blur-md",
-              asset.bgClass,
-            )}
-          />
-          <div
-            className={cn(
-              "relative flex size-10 items-center justify-center rounded-xl ring-1",
-              asset.bgClass,
-              asset.textClass,
-              asset.borderClass,
+              "relative flex size-10 items-center justify-center rounded-xl",
+              ASSET_CARD_STYLES[asset.id].bg,
+              ASSET_CARD_STYLES[asset.id].text
             )}
           >
             <Icon className="size-5" />
           </div>
         </div>
         <div className="relative flex min-w-0 flex-col">
-          <DialogTitle className="text-base font-semibold tracking-tight">
+          <DialogTitle className="text-base font-semibold tracking-tight text-white">
             {asset.label}
           </DialogTitle>
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          <span className="text-[10px] uppercase tracking-widest text-slate-500 font-medium">
             Nueva operación
           </span>
         </div>
@@ -467,28 +489,28 @@ function TransactionForm({
         {/* Portfolio selector */}
         {portfolios.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
               Portfolio
             </Label>
             <Select
               value={form.portfolio_id}
               onValueChange={(val) => update("portfolio_id", val as string)}
             >
-              <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+              <SelectTrigger className="w-full h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
                 <SelectValue placeholder="Seleccionar portfolio" />
               </SelectTrigger>
-              <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+              <SelectContent className="border border-white/[0.06] bg-[#1F2229] text-white">
                 {portfolios.map((p) => {
                   const PIcon = PORTFOLIO_ICONS[p.icon as keyof typeof PORTFOLIO_ICONS] || Briefcase;
                   const colorClass = PORTFOLIO_TEXT_COLORS[p.color] || "text-indigo-400";
                   return (
-                    <SelectItem key={p.id} value={p.id} className="cursor-pointer focus:bg-white/10">
+                    <SelectItem key={p.id} value={p.id} className="cursor-pointer focus:bg-white/[0.04] focus:text-white">
                       <div className="flex items-center gap-2">
                         <div className={cn("flex size-5 items-center justify-center rounded-md bg-white/5", colorClass)}>
                           <PIcon className="size-3" />
                         </div>
                         <span className="font-medium">{p.name}</span>
-                        {p.is_default && <span className="text-[10px] uppercase text-indigo-400/80">(Default)</span>}
+                        {p.is_default && <span className="text-[10px] uppercase text-indigo-400/80 font-bold ml-1">(Default)</span>}
                       </div>
                     </SelectItem>
                   );
@@ -512,9 +534,9 @@ function TransactionForm({
                     "flex-1 rounded-xl border py-2.5 text-sm font-semibold uppercase tracking-wider transition-all",
                     active
                       ? isInflow
-                        ? "border-theme-500/40 bg-theme-500/15 text-theme-300 shadow-[0_0_20px_-6px_rgba(16,185,129,0.4)]"
-                        : "border-red-500/40 bg-red-500/15 text-red-300 shadow-[0_0_20px_-6px_rgba(239,68,68,0.4)]"
-                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:bg-white/[0.03] backdrop-blur-xl hover:text-foreground",
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                        : "border-red-500/20 bg-red-500/10 text-red-400"
+                      : "border-white/[0.06] bg-[#1A1D24] text-slate-400 hover:text-white hover:bg-[#232731]"
                   )}
                 >
                   {TX_TYPE_LABELS[tx]}
@@ -527,7 +549,7 @@ function TransactionForm({
         {/* Ticker */}
         {asset.requiresTicker && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ticker" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Label htmlFor="ticker" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
               Ticker
             </Label>
             <Input
@@ -535,7 +557,7 @@ function TransactionForm({
               placeholder={asset.id === "crypto" ? "BTC, ETH, SOL..." : "AAPL, GGAL, GD30..."}
               value={form.ticker}
               onChange={(e) => update("ticker", e.target.value.toUpperCase())}
-              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base uppercase backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] font-mono text-base uppercase text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
               autoFocus
             />
           </div>
@@ -543,7 +565,7 @@ function TransactionForm({
 
         {/* Cantidad */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="quantity" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Label htmlFor="quantity" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
             Cantidad
           </Label>
           <Input
@@ -553,7 +575,7 @@ function TransactionForm({
             placeholder="0"
             value={form.quantity}
             onChange={(e) => update("quantity", e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] font-mono text-base tabular-nums text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
           />
         </div>
 
@@ -561,18 +583,18 @@ function TransactionForm({
         {asset.requiresPrice && (
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="price" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <Label htmlFor="price" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                 Precio unitario
               </Label>
               {canSwitchCurrency && (
-                <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
+                <div className="flex gap-0.5 rounded-full border border-white/[0.06] bg-[#1A1D24] p-0.5 text-[10px] font-semibold">
                   <button
                     onClick={() => update("currency", "USD")}
                     className={cn(
                       "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                       form.currency === "USD"
-                        ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
-                        : "text-muted-foreground hover:text-foreground",
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                        : "text-slate-500 hover:text-white"
                     )}
                   >
                     USD
@@ -582,8 +604,8 @@ function TransactionForm({
                     className={cn(
                       "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                       form.currency === "ARS"
-                        ? "bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
-                        : "text-muted-foreground hover:text-foreground",
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                        : "text-slate-500 hover:text-white"
                     )}
                   >
                     ARS
@@ -592,7 +614,7 @@ function TransactionForm({
               )}
             </div>
             <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-sm text-muted-foreground">
+              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-sm text-slate-500">
                 $
               </span>
               <Input
@@ -602,13 +624,13 @@ function TransactionForm({
                 placeholder="0"
                 value={form.price}
                 onChange={(e) => update("price", e.target.value)}
-                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-8 font-mono text-base tabular-nums backdrop-blur focus-visible:border-white/20"
+                className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] pl-8 font-mono text-base tabular-nums text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
               />
             </div>
             {form.currency === "ARS" && (
               <div className="flex items-end gap-2 pt-1">
                 <div className="flex flex-1 flex-col gap-1">
-                  <Label htmlFor="fx" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <Label htmlFor="fx" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                     Tipo de cambio
                   </Label>
                   <Input
@@ -618,7 +640,7 @@ function TransactionForm({
                     placeholder="MEP"
                     value={form.fx_rate}
                     onChange={(e) => update("fx_rate", e.target.value)}
-                    className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                    className="h-10 rounded-xl border border-white/[0.06] bg-[#1A1D24] font-mono tabular-nums text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
                   />
                 </div>
                 {fxRates && (
@@ -630,7 +652,7 @@ function TransactionForm({
                         variant="outline"
                         size="sm"
                         onClick={() => update("fx_rate", defaultFx.toString())}
-                        className="h-10 rounded-xl border-theme-500/30 bg-theme-500/10 text-xs font-semibold text-theme-300 hover:bg-theme-500/20 hover:text-theme-200"
+                        className="h-10 rounded-xl border border-white/[0.06] bg-indigo-500/10 text-xs font-semibold text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
                       >
                         {fxLabel} {Math.round(defaultFx)}
                       </Button>
@@ -640,7 +662,7 @@ function TransactionForm({
               </div>
             )}
             {usdEquivalent !== null && form.currency === "ARS" && (
-              <p className="rounded-lg bg-white/5 px-3 py-1.5 font-mono text-xs text-muted-foreground">
+              <p className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-1.5 font-mono text-xs text-slate-400">
                 ≈ USD {usdEquivalent.toFixed(4)} por unidad
               </p>
             )}
@@ -652,7 +674,7 @@ function TransactionForm({
           <div key={field.key} className="flex flex-col gap-1.5">
             <Label
               htmlFor={field.key}
-              className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+              className="text-[10px] font-semibold uppercase tracking-widest text-slate-500"
             >
               {field.label}
               {field.required && <span className="ml-1 text-rose-400">*</span>}
@@ -662,12 +684,12 @@ function TransactionForm({
                 value={form.metadata[field.key] ?? ""}
                 onValueChange={(val) => updateMetadata(field.key, val as string)}
               >
-                <SelectTrigger className="w-full h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
+                <SelectTrigger className="w-full h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus:ring-0 focus:ring-offset-0 focus-visible:border-white/20 data-open:bg-white/5">
                   <SelectValue placeholder={field.placeholder ?? "Seleccionar"} />
                 </SelectTrigger>
-                <SelectContent className="border-white/10 bg-[#0f0f13] backdrop-blur-xl">
+                <SelectContent className="border border-white/[0.06] bg-[#1F2229] text-white">
                   {field.options?.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="focus:bg-white/10 cursor-pointer">
+                    <SelectItem key={opt.value} value={opt.value} className="focus:bg-white/[0.04] cursor-pointer">
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -685,7 +707,7 @@ function TransactionForm({
                 placeholder={field.placeholder}
                 value={form.metadata[field.key] ?? ""}
                 onChange={(e) => updateMetadata(field.key, e.target.value)}
-                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
               />
             )}
           </div>
@@ -693,7 +715,7 @@ function TransactionForm({
 
         {/* Fecha */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="date" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Label htmlFor="date" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
             Fecha
           </Label>
           <Input
@@ -701,14 +723,14 @@ function TransactionForm({
             type="date"
             value={form.date}
             onChange={(e) => update("date", e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
           />
         </div>
 
         {/* Opcionales: broker, fees, note */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="broker" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Label htmlFor="broker" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
               Broker
             </Label>
             <Input
@@ -716,11 +738,11 @@ function TransactionForm({
               placeholder="IEB, Balanz..."
               value={form.broker}
               onChange={(e) => update("broker", e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+              className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="fees" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Label htmlFor="fees" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
               Comisión (USD)
             </Label>
             <Input
@@ -730,13 +752,13 @@ function TransactionForm({
               placeholder="0"
               value={form.fees}
               onChange={(e) => update("fees", e.target.value)}
-              className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+              className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] font-mono tabular-nums text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="note" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Label htmlFor="note" className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
             Nota
           </Label>
           <Input
@@ -745,23 +767,24 @@ function TransactionForm({
             value={form.note}
             onChange={(e) => update("note", e.target.value)}
             maxLength={120}
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
           />
         </div>
       </div>
 
-      <div className="flex gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur">
+      {/* Footer */}
+      <div className="flex gap-2 border-t border-white/[0.06] bg-[#1F2229] p-4">
         <Button
           variant="outline"
           onClick={onBack}
-          className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
+          className="h-11 flex-1 rounded-xl border border-white/[0.06] bg-transparent text-slate-300 hover:bg-white/[0.04] hover:text-white"
         >
           Atrás
         </Button>
         <Button
           onClick={onSubmit}
           disabled={isPending}
-          className="h-11 flex-1 rounded-xl border border-white/[0.12] bg-white/[0.06] text-foreground transition-all hover:bg-white/[0.10] disabled:opacity-50"
+          className="h-11 flex-1 rounded-xl border-0 bg-gradient-to-r from-[#d946ef] to-[#06b6d4] text-white font-semibold transition-all hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? "Guardando..." : "Guardar operación"}
         </Button>

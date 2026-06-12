@@ -59,63 +59,77 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Props) {
   const data = useMemo(() => {
-    if (series.length === 0) return [];
+    const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const now = new Date();
+    const months = Array.from({ length: 6 }).map((_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: MONTH_NAMES[d.getMonth()],
+      };
+    });
 
-    const initialPortfolio = series[0].portfolio_pct;
-    // Chequeamos si la serie tiene datos reales del SP500 (al menos uno distinto de null y 0)
-    const hasRealSp500 = series.some((p) => p.sp500_pct !== null && p.sp500_pct !== 0);
-    const initialSp500 = hasRealSp500 ? (series[0].sp500_pct || 0) : 0;
+    const hasEnoughData = series.length >= 2;
 
+    if (!hasEnoughData) {
+      // Generate beautiful mock data representing a monthly view of the last 6 months
+      const mockPortfolioValues = [0.0, 2.4, 1.8, 4.5, 3.9, 7.2];
+      const mockSp500Values = [0.0, 1.1, 0.7, 2.8, 2.2, 4.1];
+      return months.map((m, index) => ({
+        date: `${m.year}-${String(m.month + 1).padStart(2, '0')}`,
+        portfolio: mockPortfolioValues[index],
+        sp500: mockSp500Values[index],
+        labelX: m.label,
+      }));
+    }
+
+    const sortedSeries = [...series].sort((a, b) => a.date.localeCompare(b.date));
+    const initialPortfolio = sortedSeries[0].portfolio_pct;
+    const hasRealSp500 = sortedSeries.some((p) => p.sp500_pct !== null && p.sp500_pct !== 0);
+    const initialSp500 = hasRealSp500 ? (sortedSeries[0].sp500_pct || 0) : 0;
+
+    let lastPortfolioVal = 0;
+    let lastSp500Val = 0;
     let mockSp500 = 0;
 
-    return series.map((p, index) => {
-      // 1. Normalización estricta Base 0 para Portfolio
-      const normalizedPortfolio = ((1 + p.portfolio_pct / 100) / (1 + initialPortfolio / 100) - 1) * 100;
-
-      // 2. Normalización y/o Mock para SP500
-      let normalizedSp500 = 0;
+    return months.map((m, index) => {
+      const yearStr = m.year;
+      const monthStr = String(m.month + 1).padStart(2, '0');
+      const lastDay = new Date(m.year, m.month + 1, 0).getDate();
+      const monthEndStr = `${yearStr}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
       
-      if (hasRealSp500) {
-         const currentSp500 = p.sp500_pct || 0;
-         normalizedSp500 = ((1 + currentSp500 / 100) / (1 + initialSp500 / 100) - 1) * 100;
+      const pointsBeforeOrInMonth = sortedSeries.filter(pt => pt.date <= monthEndStr);
+      if (pointsBeforeOrInMonth.length > 0) {
+        const lastPt = pointsBeforeOrInMonth[pointsBeforeOrInMonth.length - 1];
+        lastPortfolioVal = ((1 + lastPt.portfolio_pct / 100) / (1 + initialPortfolio / 100) - 1) * 100;
+        
+        if (hasRealSp500) {
+          const currentSp500 = lastPt.sp500_pct || 0;
+          lastSp500Val = ((1 + currentSp500 / 100) / (1 + initialSp500 / 100) - 1) * 100;
+        } else {
+          // Determinisitic mock variation
+          const hash = lastPt.date.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const dailyChange = ((hash * index * 17) % 270) / 100 - 1.2;
+          mockSp500 = ((1 + mockSp500 / 100) * (1 + dailyChange / 100) - 1) * 100;
+          lastSp500Val = mockSp500;
+        }
       } else {
-         if (index === 0) {
-            mockSp500 = 0;
-         } else {
-            // Hash simple basado en la fecha para que el mock sea determinista (siempre igual para la misma fecha)
-            const hash = p.date.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            // Variación diaria realista entre -1.2% y +1.5%
-            const dailyChange = ((hash * index * 17) % 270) / 100 - 1.2; 
-            mockSp500 = ((1 + mockSp500 / 100) * (1 + dailyChange / 100) - 1) * 100;
-         }
-         normalizedSp500 = mockSp500;
+        lastPortfolioVal = 0;
+        lastSp500Val = 0;
       }
 
       return {
-        date: p.date,
-        portfolio: normalizedPortfolio,
-        sp500: normalizedSp500,
+        date: `${m.year}-${monthStr}`,
+        portfolio: Number(lastPortfolioVal.toFixed(2)),
+        sp500: Number(lastSp500Val.toFixed(2)),
+        labelX: m.label,
       };
     });
   }, [series]);
 
-  if (series.length < 2) {
-    return (
-      <div className="glass-card rounded-2xl p-6 h-full flex flex-col items-center justify-center gap-3 bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
-        <div className="flex size-11 items-center justify-center rounded-2xl bg-violet-500/15 ring-1 ring-violet-500/30">
-          <Activity className="size-5 text-violet-300" />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Acumulando historial de rendimiento
-        </p>
-        <p className="max-w-xs text-center text-xs text-muted-foreground/70">
-          El gráfico se activa a partir del segundo día de uso. Tu tenencia de
-          hoy quedó registrada como punto inicial.
-        </p>
-      </div>
-    );
-  }
-
+  // Even if there are less than 2 actual points, we'll bypass the fallback banner
+  // to always show the beautiful mock monthly performance chart as requested
   const last = data[data.length - 1];
   const portfolioLast = last.portfolio;
   const sp500Last = last.sp500 ?? 0;
@@ -127,7 +141,7 @@ export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Pro
           {onlyPortfolio ? "Historial de Rendimiento" : "Performance vs S&P 500"}
         </h3>
         
-        {onReset && (
+        {onReset && series.length >= 2 && (
           <button
             onClick={() => {
               if (
@@ -181,12 +195,10 @@ export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Pro
               vertical={false}
             />
             <XAxis 
-              dataKey="date" 
+              dataKey="labelX" 
               axisLine={false}
               tickLine={false}
               tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
-              minTickGap={40}
-              tickFormatter={(v: string) => v.slice(5)}
             />
             <YAxis 
               yAxisId="left"
