@@ -24,6 +24,7 @@ export type Expense = {
   card_id: string | null;
   created_at: string;
   updated_at: string;
+  is_subscription: boolean;
 };
 
 export type ExpenseInsert = {
@@ -33,6 +34,7 @@ export type ExpenseInsert = {
   date: string;
   note?: string | null;
   card_id?: string | null;
+  is_subscription?: boolean;
 };
 
 export type ExpenseUpdate = Partial<ExpenseInsert>;

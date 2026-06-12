@@ -5,17 +5,22 @@ import { Shell } from "@/components/layout/shell";
 import dynamic from "next/dynamic";
 const QuickAdd = dynamic(() => import("@/components/gastos/quick-add").then((mod) => mod.QuickAdd), { ssr: false });
 import { MonthSelector } from "@/components/gastos/month-selector";
-import { useExpenses, sumExpensesByType } from "@/hooks/use-expenses";
+import { useExpenses, sumExpensesByType, type Expense } from "@/hooks/use-expenses";
 import {
   firstOfMonth,
   formatUSD
 } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export default function GastosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
   const [dismissedInsights, setDismissedInsights] = useState<Record<string, boolean>>({});
+
+  // Controlled modal state
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const { data: expenses = [], isLoading } = useExpenses(month);
 
@@ -30,8 +35,26 @@ export default function GastosClient() {
 
   const dismissInsight = (id: string) => setDismissedInsights(prev => ({ ...prev, [id]: true }));
 
+  const handleNewExpense = () => {
+    setEditingExpense(null);
+    setModalOpen(true);
+  };
+
+  const handleEditExpense = (exp: Expense) => {
+    setEditingExpense(exp);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setEditingExpense(null);
+  };
+
   const quickAddBtn = (
-    <button className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-rose-500/20">
+    <button 
+      onClick={handleNewExpense}
+      className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-rose-500/20"
+    >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
       Nuevo Gasto
     </button>
@@ -62,16 +85,20 @@ export default function GastosClient() {
           note: item.note,
           card_id: null,
           created_at: "",
-          updated_at: ""
+          updated_at: "",
+          is_subscription: false
         });
       }
-      return sorted;
+      return sorted.map(exp => ({
+        ...exp,
+        raw: exp.id.startsWith("demo-") ? null : exp
+      }));
     }
 
     return [
-      { id: "demo-t1", note: "Alquiler Departamento", category: "alquiler", amount: 508000 },
-      { id: "demo-t2", note: "Seguro Auto Anual", category: "servicios", amount: 150000 },
-      { id: "demo-t3", note: "Supermercado Jumbo", category: "comida", amount: 85200 }
+      { id: "demo-t1", note: "Alquiler Departamento", category: "alquiler", amount: 508000, raw: null },
+      { id: "demo-t2", note: "Seguro Auto Anual", category: "servicios", amount: 150000, raw: null },
+      { id: "demo-t3", note: "Supermercado Jumbo", category: "comida", amount: 85200, raw: null }
     ];
   }, [expenses]);
 
@@ -81,7 +108,7 @@ export default function GastosClient() {
     const found = expenses.filter(exp => {
       const noteLower = (exp.note || "").toLowerCase();
       const catLower = exp.category.toLowerCase();
-      return subsKeywords.some(keyword => noteLower.includes(keyword) || catLower.includes(keyword));
+      return exp.is_subscription || subsKeywords.some(keyword => noteLower.includes(keyword) || catLower.includes(keyword));
     });
     
     if (found.length > 0) {
@@ -98,15 +125,16 @@ export default function GastosClient() {
           category: exp.category.replace(/_/g, " "),
           amount: exp.amount,
           letter,
-          bgStyle
+          bgStyle,
+          raw: exp.id.startsWith("demo-") ? null : exp
         };
       });
     }
     
     return [
-      { id: "demo-s1", name: "Netflix", category: "Entretenimiento", amount: 15400, letter: "N", bgStyle: "bg-rose-500/10 text-rose-500" },
-      { id: "demo-s2", name: "Spotify", category: "Entretenimiento", amount: 4200, letter: "S", bgStyle: "bg-emerald-500/10 text-emerald-500" },
-      { id: "demo-s3", name: "Gimnasio SportClub", category: "Salud", amount: 35000, letter: "G", bgStyle: "bg-blue-500/10 text-blue-500" }
+      { id: "demo-s1", name: "Netflix", category: "Entretenimiento", amount: 15400, letter: "N", bgStyle: "bg-rose-500/10 text-rose-500", raw: null },
+      { id: "demo-s2", name: "Spotify", category: "Entretenimiento", amount: 4200, letter: "S", bgStyle: "bg-emerald-500/10 text-emerald-500", raw: null },
+      { id: "demo-s3", name: "Gimnasio SportClub", category: "Salud", amount: 35000, letter: "G", bgStyle: "bg-blue-500/10 text-blue-500", raw: null }
     ];
   }, [expenses]);
 
@@ -128,16 +156,17 @@ export default function GastosClient() {
           monthYear,
           amount: exp.amount,
           status,
-          statusClass
+          statusClass,
+          raw: exp.id.startsWith("demo-") ? null : exp
         };
       });
     }
 
     return [
-      { id: "demo-b1", day: "20", name: "Electricity Bill", monthYear: "May 20", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400" },
-      { id: "demo-b2", day: "22", name: "Internet Service", monthYear: "May 22", amount: 65000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400" },
-      { id: "demo-b3", day: "25", name: "Water Bill", monthYear: "May 25", amount: 45000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400" },
-      { id: "demo-b4", day: "01", name: "Car Insurance", monthYear: "June 01", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400" }
+      { id: "demo-b1", day: "20", name: "Electricity Bill", monthYear: "May 20", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", raw: null },
+      { id: "demo-b2", day: "22", name: "Internet Service", monthYear: "May 22", amount: 65000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", raw: null },
+      { id: "demo-b3", day: "25", name: "Water Bill", monthYear: "May 25", amount: 45000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", raw: null },
+      { id: "demo-b4", day: "01", name: "Car Insurance", monthYear: "June 01", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", raw: null }
     ];
   }, [expenses]);
 
@@ -157,7 +186,7 @@ export default function GastosClient() {
     let totalSum = 0;
     
     expenses.forEach(exp => {
-      const cat = exp.category;
+      const cat = exp.is_subscription ? "suscripciones" : exp.category;
       const current = totalsByCategory.get(cat) ?? 0;
       totalsByCategory.set(cat, current + exp.amount);
       totalSum += exp.amount;
@@ -171,6 +200,7 @@ export default function GastosClient() {
       tarjeta_credito: { stroke: "#a855f7", bg: "bg-purple-500" },
       educacion: { stroke: "#14b8a6", bg: "bg-teal-500" },
       imprevistos: { stroke: "#ec4899", bg: "bg-pink-500" },
+      suscripciones: { stroke: "#F43F5E", bg: "bg-rose-500" },
     };
 
     const list = Array.from(totalsByCategory.entries()).map(([cat, amount]) => {
@@ -184,6 +214,7 @@ export default function GastosClient() {
       if (cat === "servicios") name = "Servicios";
       if (cat === "impuestos") name = "Impuestos";
       if (cat === "tarjeta_credito") name = "Tarjeta Crédito";
+      if (cat === "suscripciones") name = "Suscripciones";
       
       return {
         name,
@@ -219,8 +250,19 @@ export default function GastosClient() {
     if (expenses.length > 0) {
       const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
       
-      const list = sorted.slice(0, 6).map(exp => {
-        const cat = exp.category;
+      const list: Array<{
+        id: string;
+        name: string;
+        date: string;
+        amount: number;
+        status: string;
+        statusClass: string;
+        bgClass: string;
+        textClass: string;
+        iconSvg: React.ReactNode;
+        raw: Expense | null;
+      }> = sorted.slice(0, 6).map(exp => {
+        const cat = exp.is_subscription ? "suscripciones" : exp.category;
         let bgClass = "bg-indigo-500/10";
         let textClass = "text-indigo-400";
         let iconSvg = (
@@ -263,6 +305,12 @@ export default function GastosClient() {
           iconSvg = (
             <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
           );
+        } else if (cat === "suscripciones") {
+          bgClass = "bg-rose-500/10";
+          textClass = "text-rose-400";
+          iconSvg = (
+            <svg className="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          );
         }
 
         const dateStr = format(parseISO(exp.date), "dd MMM", { locale: es });
@@ -277,17 +325,18 @@ export default function GastosClient() {
           statusClass: exp.type === "fixed" ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400",
           bgClass,
           textClass,
-          iconSvg
+          iconSvg,
+          raw: exp
         };
       });
 
       const fallbacks = [
-        { id: "demo-m1", name: "Alquiler", date: "01 Jun", amount: 508000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-indigo-500/10", textClass: "text-indigo-400", iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg> },
-        { id: "demo-m2", name: "Supermercado", date: "31 May", amount: 85200, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-emerald-500/10", textClass: "text-emerald-400", iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg> },
-        { id: "demo-m3", name: "Electricidad", date: "20 May", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-sky-500/10", textClass: "text-sky-400", iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> },
-        { id: "demo-m4", name: "Transporte", date: "28 May", amount: 45500, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-amber-500/10", textClass: "text-amber-400", iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> },
-        { id: "demo-m5", name: "Netflix", date: "25 May", amount: 15990, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-pink-500/10", textClass: "text-pink-400", iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> },
-        { id: "demo-m6", name: "Seguro Auto", date: "01 Jun", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-violet-500/10", textClass: "text-violet-400", iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> }
+        { id: "demo-m1", name: "Alquiler", date: "01 Jun", amount: 508000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-indigo-500/10", textClass: "text-indigo-400", iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>, raw: null },
+        { id: "demo-m2", name: "Supermercado", date: "31 May", amount: 85200, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-emerald-500/10", textClass: "text-emerald-400", iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>, raw: null },
+        { id: "demo-m3", name: "Electricidad", date: "20 May", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-sky-500/10", textClass: "text-sky-400", iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>, raw: null },
+        { id: "demo-m4", name: "Transporte", date: "28 May", amount: 45500, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-amber-500/10", textClass: "text-amber-400", iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>, raw: null },
+        { id: "demo-m5", name: "Netflix", date: "25 May", amount: 15990, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-pink-500/10", textClass: "text-pink-400", iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>, raw: null },
+        { id: "demo-m6", name: "Seguro Auto", date: "01 Jun", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-violet-500/10", textClass: "text-violet-400", iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>, raw: null }
       ];
       while (list.length < 6) {
         list.push(fallbacks[list.length]);
@@ -305,7 +354,8 @@ export default function GastosClient() {
         statusClass: "bg-emerald-500/15 text-emerald-400",
         bgClass: "bg-indigo-500/10",
         textClass: "text-indigo-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>,
+        raw: null
       },
       {
         id: "demo-m2",
@@ -316,7 +366,8 @@ export default function GastosClient() {
         statusClass: "bg-emerald-500/15 text-emerald-400",
         bgClass: "bg-emerald-500/10",
         textClass: "text-emerald-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>,
+        raw: null
       },
       {
         id: "demo-m3",
@@ -327,7 +378,8 @@ export default function GastosClient() {
         statusClass: "bg-rose-500/15 text-rose-400",
         bgClass: "bg-sky-500/10",
         textClass: "text-sky-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+        raw: null
       },
       {
         id: "demo-m4",
@@ -338,7 +390,8 @@ export default function GastosClient() {
         statusClass: "bg-emerald-500/15 text-emerald-400",
         bgClass: "bg-amber-500/10",
         textClass: "text-amber-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>,
+        raw: null
       },
       {
         id: "demo-m5",
@@ -349,7 +402,8 @@ export default function GastosClient() {
         statusClass: "bg-emerald-500/15 text-emerald-400",
         bgClass: "bg-pink-500/10",
         textClass: "text-pink-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+        raw: null
       },
       {
         id: "demo-m6",
@@ -360,7 +414,8 @@ export default function GastosClient() {
         statusClass: "bg-rose-500/15 text-rose-400",
         bgClass: "bg-violet-500/10",
         textClass: "text-violet-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>,
+        raw: null
       }
     ];
   }, [expenses]);
@@ -378,7 +433,7 @@ export default function GastosClient() {
             </div>
             <div className="flex items-center gap-3">
               <MonthSelector month={month} onChange={setMonth} />
-              <QuickAdd customTrigger={quickAddBtn} />
+              {quickAddBtn}
             </div>
           </div>
         </div>
@@ -486,23 +541,33 @@ export default function GastosClient() {
               {isLoading ? (
                 <div className="text-center text-slate-500 text-sm mt-4">Cargando...</div>
               ) : (
-                calendarBills.map(bill => (
-                  <div key={bill.id} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.04]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-white/[0.03] flex items-center justify-center border border-white/[0.05]">
-                        <p className="text-xs font-bold text-slate-300">{bill.day}</p>
+                calendarBills.map(bill => {
+                  const isClickeable = !!bill.raw;
+                  return (
+                    <div 
+                      key={bill.id}
+                      onClick={() => isClickeable && handleEditExpense(bill.raw!)}
+                      className={cn(
+                        "flex items-center justify-between p-2.5 rounded-xl border border-transparent transition-colors",
+                        isClickeable ? "cursor-pointer hover:bg-white/[0.04] hover:border-white/[0.04]" : ""
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white/[0.03] flex items-center justify-center border border-white/[0.05]">
+                          <p className="text-xs font-bold text-slate-300">{bill.day}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-200 font-medium capitalize truncate max-w-[120px]">{bill.name}</p>
+                          <p className="text-[11px] text-slate-500">{bill.monthYear}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-slate-200 font-medium capitalize truncate max-w-[120px]">{bill.name}</p>
-                        <p className="text-[11px] text-slate-500">{bill.monthYear}</p>
+                      <div className="text-right">
+                        <p className="text-sm text-white tnum font-bold">{formatUSD(bill.amount, false)}</p>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold mt-1 inline-block ${bill.statusClass}`}>{bill.status}</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-white tnum font-bold">{formatUSD(bill.amount, false)}</p>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold mt-1 inline-block ${bill.statusClass}`}>{bill.status}</span>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -523,8 +588,16 @@ export default function GastosClient() {
                 const styleClass = bgStyles[idx] || "bg-slate-500/10 text-slate-400";
                 const catLabel = exp.category.replace(/_/g, " ");
                 const noteLabel = exp.note || catLabel;
+                const isClickeable = !!exp.raw;
                 return (
-                  <div key={exp.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div 
+                    key={exp.id} 
+                    onClick={() => isClickeable && handleEditExpense(exp.raw!)}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors",
+                      isClickeable && "cursor-pointer hover:bg-white/[0.06] border-white/[0.08]"
+                    )}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${styleClass}`}>
                         {idx + 1}
@@ -548,20 +621,30 @@ export default function GastosClient() {
               Suscripciones Activas
             </h3>
             <div className="flex flex-col gap-3 flex-1">
-              {subscriptions.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${sub.bgStyle}`}>
-                      {sub.letter}
+              {subscriptions.map((sub) => {
+                const isClickeable = !!sub.raw;
+                return (
+                  <div 
+                    key={sub.id} 
+                    onClick={() => isClickeable && handleEditExpense(sub.raw!)}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors",
+                      isClickeable && "cursor-pointer hover:bg-white/[0.06] border-white/[0.08]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${sub.bgStyle}`}>
+                        {sub.letter}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white truncate max-w-[140px]">{sub.name}</p>
+                        <p className="text-[11px] text-slate-500 capitalize">{sub.category}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white truncate max-w-[140px]">{sub.name}</p>
-                      <p className="text-[11px] text-slate-500 capitalize">{sub.category}</p>
-                    </div>
+                    <span className="text-base font-bold text-white tnum">{formatUSD(sub.amount, false)}</span>
                   </div>
-                  <span className="text-base font-bold text-white tnum">{formatUSD(sub.amount, false)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -610,26 +693,44 @@ export default function GastosClient() {
           <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <h3 className="text-sm font-semibold text-white mb-4">Movimientos Recientes</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-              {recentMovements.map((mov) => (
-                <div key={mov.id} className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${mov.bgClass}`}>
-                    {mov.iconSvg}
+              {recentMovements.map((mov) => {
+                const isClickeable = !!mov.raw;
+                return (
+                  <div 
+                    key={mov.id} 
+                    onClick={() => isClickeable && handleEditExpense(mov.raw!)}
+                    className={cn(
+                      "flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0 transition-colors",
+                      isClickeable && "cursor-pointer hover:bg-white/[0.04] px-2 rounded-xl -mx-2"
+                    )}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${mov.bgClass}`}>
+                      {mov.iconSvg}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-white font-medium truncate capitalize">{mov.name}</p>
+                      <p className="text-[10px] text-slate-600">{mov.date}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs text-rose-400 font-semibold tnum">-{formatUSD(mov.amount, false)}</p>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${mov.statusClass}`}>
+                        {mov.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-white font-medium truncate capitalize">{mov.name}</p>
-                    <p className="text-[10px] text-slate-600">{mov.date}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xs text-rose-400 font-semibold tnum">-{formatUSD(mov.amount, false)}</p>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${mov.statusClass}`}>
-                      {mov.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
+
+        {/* Unified Gasto Modal (Nuevo/Editar) */}
+        <QuickAdd
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          expenseToEdit={editingExpense}
+          onClose={handleCloseModal}
+        />
       </div>
     </Shell>
   );

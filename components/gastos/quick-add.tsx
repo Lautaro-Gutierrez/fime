@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, CalendarDays, StickyNote, Sparkles, CreditCard as CreditCardIcon, ArrowLeft } from "lucide-react";
+import { Plus, CalendarDays, StickyNote, Sparkles, CreditCard as CreditCardIcon, ArrowLeft, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,20 +20,21 @@ import {
   lastOfMonth,
   toISODate,
 } from "@/lib/format";
-import { useCreateExpense } from "@/hooks/use-expenses";
+import { useCreateExpense, useUpdateExpense, useDeleteExpense, type Expense } from "@/hooks/use-expenses";
 import { useCreditCards } from "@/hooks/use-credit-cards";
 import { colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
 
-// Gradient de fondo por categoría en las cards del grid.
-const CATEGORY_CARD_GRADIENT: Record<ExpenseCategory, string> = {
-  alquiler: "from-blue-500/20 via-blue-500/5 to-transparent",
-  servicios: "from-theme-500/20 via-theme-500/5 to-transparent",
-  impuestos: "from-red-500/20 via-red-500/5 to-transparent",
-  comida: "from-theme-500/20 via-theme-500/5 to-transparent",
-  tarjeta_credito: "from-violet-500/20 via-violet-500/5 to-transparent",
-  educacion: "from-cyan-500/20 via-cyan-500/5 to-transparent",
-  imprevistos: "from-pink-500/20 via-pink-500/5 to-transparent",
+// Estilo de categoría con fondo pastel y estados activo/inactivo coherentes
+const CATEGORY_STYLES: Record<ExpenseCategory | "suscripciones", { inactive: string; active: string; text: string }> = {
+  alquiler: { inactive: "bg-blue-500/10 text-blue-400 border-transparent hover:bg-blue-500/15", active: "bg-blue-500/20 text-blue-300 border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.2)]", text: "text-blue-400" },
+  servicios: { inactive: "bg-amber-500/10 text-amber-400 border-transparent hover:bg-amber-500/15", active: "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.2)]", text: "text-amber-400" },
+  impuestos: { inactive: "bg-red-500/10 text-red-400 border-transparent hover:bg-red-500/15", active: "bg-red-500/20 text-red-300 border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.2)]", text: "text-red-400" },
+  comida: { inactive: "bg-emerald-500/10 text-emerald-400 border-transparent hover:bg-emerald-500/15", active: "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.2)]", text: "text-emerald-400" },
+  tarjeta_credito: { inactive: "bg-violet-500/10 text-violet-400 border-transparent hover:bg-violet-500/15", active: "bg-violet-500/20 text-violet-300 border-violet-500/50 shadow-[0_0_12px_rgba(139,92,246,0.2)]", text: "text-violet-400" },
+  educacion: { inactive: "bg-cyan-500/10 text-cyan-400 border-transparent hover:bg-cyan-500/15", active: "bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]", text: "text-cyan-400" },
+  imprevistos: { inactive: "bg-pink-500/10 text-pink-400 border-transparent hover:bg-pink-500/15", active: "bg-pink-500/20 text-pink-300 border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.2)]", text: "text-pink-400" },
+  suscripciones: { inactive: "bg-rose-500/10 text-rose-400 border-transparent hover:bg-rose-500/15", active: "bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.2)]", text: "text-rose-400" },
 };
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").
@@ -63,31 +64,77 @@ function parseAmount(input: string): number | null {
   return isFinite(n) && n > 0 ? n : null;
 }
 
-export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function QuickAdd({
+  customTrigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  expenseToEdit,
+  onClose,
+}: {
+  customTrigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  expenseToEdit?: Expense | null;
+  onClose?: () => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  
+  const setOpen = (o: boolean) => {
+    if (isControlled) {
+      controlledOnOpenChange?.(o);
+      if (!o) onClose?.();
+    } else {
+      setInternalOpen(o);
+    }
+  };
+
   const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState<ExpenseCategory | "suscripciones" | "">("");
   const [type, setType] = useState<ExpenseType>("variable");
   const [date, setDate] = useState(toISODate(new Date()));
   const [note, setNote] = useState("");
   const [showExtras, setShowExtras] = useState(false);
-  // Segundo paso: selección de tarjeta
   const [pickingCard, setPickingCard] = useState(false);
   const [cardId, setCardId] = useState<string | null>(null);
 
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+  const deleteExpense = useDeleteExpense();
   const { data: cards = [] } = useCreditCards();
 
+  // Sincronizar datos al abrir en modo edición o creación
   useEffect(() => {
-    if (!open) {
-      setAmount("");
-      setType("variable");
-      setDate(toISODate(new Date()));
-      setNote("");
-      setShowExtras(false);
-      setPickingCard(false);
-      setCardId(null);
+    if (open) {
+      if (expenseToEdit) {
+        setAmount(String(expenseToEdit.amount));
+        setType(expenseToEdit.type);
+        setDate(expenseToEdit.date);
+        setNote(expenseToEdit.note ?? "");
+        setCardId(expenseToEdit.card_id);
+        
+        if (expenseToEdit.is_subscription) {
+          setCategory("suscripciones");
+        } else {
+          setCategory(expenseToEdit.category);
+        }
+        
+        setShowExtras(!!expenseToEdit.note || expenseToEdit.date !== toISODate(new Date()));
+        setPickingCard(false);
+      } else {
+        setAmount("");
+        setCategory("");
+        setType("variable");
+        setDate(toISODate(new Date()));
+        setNote("");
+        setShowExtras(false);
+        setPickingCard(false);
+        setCardId(null);
+      }
     }
-  }, [open]);
+  }, [open, expenseToEdit]);
 
   const today = new Date();
   const maxDate = toISODate(lastOfMonth(today));
@@ -102,53 +149,98 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
     setDate(value);
   }
 
-  async function submit(category: ExpenseCategory, selectedCardId?: string | null) {
+  async function submit(selectedCategory?: ExpenseCategory | "suscripciones", selectedCardId?: string | null) {
+    const finalCategory = selectedCategory || category;
+    if (!finalCategory) {
+      toast.error("Seleccioná una categoría.");
+      return;
+    }
+
     const value = parseAmount(amount);
     if (value === null) {
       toast.error("Ingresá un monto válido.");
       return;
     }
 
+    let dbCategory: ExpenseCategory;
+    let isSubscription = false;
+
+    if (finalCategory === "suscripciones") {
+      dbCategory = "servicios";
+      isSubscription = true;
+    } else {
+      dbCategory = finalCategory;
+      isSubscription = false;
+    }
+
     try {
-      await createExpense.mutateAsync({
-        amount: value,
-        category,
-        type,
-        date,
-        note: note.trim() || null,
-        card_id: category === "tarjeta_credito" ? (selectedCardId ?? null) : null,
-      });
-      toast.success("Gasto registrado");
+      if (expenseToEdit) {
+        await updateExpense.mutateAsync({
+          id: expenseToEdit.id,
+          patch: {
+            amount: value,
+            category: dbCategory,
+            type,
+            date,
+            note: note.trim() || null,
+            card_id: dbCategory === "tarjeta_credito" ? (selectedCardId !== undefined ? selectedCardId : cardId) : null,
+            is_subscription: isSubscription,
+          },
+        });
+        toast.success("Gasto actualizado");
+      } else {
+        await createExpense.mutateAsync({
+          amount: value,
+          category: dbCategory,
+          type,
+          date,
+          note: note.trim() || null,
+          card_id: dbCategory === "tarjeta_credito" ? (selectedCardId !== undefined ? selectedCardId : cardId) : null,
+          is_subscription: isSubscription,
+        });
+        toast.success("Gasto registrado");
+      }
       setOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al guardar");
     }
   }
 
-  function handleCategoryClick(category: ExpenseCategory) {
-    if (category === "tarjeta_credito" && cards.length > 0) {
-      // Abrir segundo paso de selección de tarjeta
+  function handleCategoryClick(catId: ExpenseCategory | "suscripciones") {
+    setCategory(catId);
+    if (catId === "tarjeta_credito" && cards.length > 0) {
       setPickingCard(true);
-      return;
     }
-    if (category === "tarjeta_credito" && cards.length === 0) {
-      toast.info("Podés agregar tarjetas en Configuración → Tarjetas");
-    }
-    submit(category);
   }
 
   function handleCardSelect(selectedCardId: string) {
     setCardId(selectedCardId);
-    submit("tarjeta_credito", selectedCardId);
+    setPickingCard(false);
+  }
+
+  function handleDelete() {
+    if (!expenseToEdit) return;
+    if (confirm("¿Seguro que querés eliminar este gasto?")) {
+      deleteExpense.mutate(expenseToEdit.id, {
+        onSuccess: () => {
+          toast.success("Gasto eliminado");
+          setOpen(false);
+        },
+        onError: (err) => {
+          toast.error(err instanceof Error ? err.message : "Error al eliminar");
+        }
+      });
+    }
   }
 
   const isToday = date === toISODate(new Date());
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {customTrigger ? (
+      {customTrigger && !isControlled && (
         <DialogTrigger render={customTrigger as React.ReactElement} />
-      ) : (
+      )}
+      {!customTrigger && !isControlled && (
         <DialogTrigger
           render={
             <Button
@@ -163,32 +255,33 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
         />
       )}
 
-      <DialogContent className="max-w-md overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0">
         <div className="relative flex flex-col gap-5 p-6">
-          {/* Background glow */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_60%)]" />
-
           <div className="relative flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-theme-500/15 ring-1 ring-theme-500/30">
-              <Sparkles className="size-4 text-theme-300" />
+              {expenseToEdit ? (
+                <Pencil className="size-4 text-theme-300" />
+              ) : (
+                <Sparkles className="size-4 text-theme-300" />
+              )}
             </div>
             <div className="flex flex-col gap-0.5">
-              <DialogTitle className="text-lg font-semibold tracking-tight">
-                Nuevo gasto
+              <DialogTitle className="text-lg font-semibold tracking-tight text-white">
+                {expenseToEdit ? "Editar gasto" : "Nuevo gasto"}
               </DialogTitle>
-              <p className="text-xs text-muted-foreground">
-                Monto primero, después tapea la categoría.
+              <p className="text-xs text-slate-400">
+                {expenseToEdit ? "Modificá los detalles de tu registro." : "Monto primero, después seleccioná la categoría."}
               </p>
             </div>
           </div>
 
-          {/* Monto hero */}
+          {/* Monto Input Rediseñado */}
           <div className="relative flex flex-col gap-2">
-            <Label htmlFor="amount" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Label htmlFor="amount" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
               Monto · ARS
             </Label>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-2xl text-muted-foreground">
+            <div className="relative rounded-2xl p-[1px] transition-all bg-white/[0.04] focus-within:bg-gradient-to-r focus-within:from-[#d946ef] focus-within:to-[#06b6d4]">
+              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-2xl text-slate-400">
                 $
               </span>
               <Input
@@ -199,7 +292,7 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                 placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-16 rounded-2xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-theme-500/40 focus-visible:ring-theme-500/20"
+                className="h-16 w-full rounded-[15px] border-0 bg-[#1A1D24] pl-10 font-mono text-3xl font-bold tabular-nums text-white focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           </div>
@@ -212,7 +305,7 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 !isToday
                   ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
-                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:text-foreground",
+                  : "border-white/5 bg-white/[0.03] text-slate-400 hover:border-white/10 hover:text-white",
               )}
             >
               <CalendarDays className="size-3.5" />
@@ -224,7 +317,7 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                 "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all",
                 note
                   ? "border-theme-500/30 bg-theme-500/10 text-theme-300"
-                  : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/10 hover:text-foreground",
+                  : "border-white/5 bg-white/[0.03] text-slate-400 hover:border-white/10 hover:text-white",
               )}
             >
               <StickyNote className="size-3.5" />
@@ -240,7 +333,7 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
               className="relative flex flex-col gap-3 overflow-hidden"
             >
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="date" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Label htmlFor="date" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                   Fecha
                 </Label>
                 <Input
@@ -249,11 +342,11 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                   value={date}
                   max={maxDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-[#1A1D24] text-white focus-visible:border-white/20"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="note" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Label htmlFor="note" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                   Nota
                 </Label>
                 <Input
@@ -263,33 +356,33 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                  className="h-11 rounded-xl border-white/5 bg-[#1A1D24] text-white focus-visible:border-white/20"
                 />
               </div>
             </motion.div>
           )}
 
-          {/* Toggle Fijo / Variable — afecta al Sankey de Ingresos */}
+          {/* Toggle Fijo / Variable Rediseñado */}
           <div className="relative flex items-center justify-between gap-3">
             <div className="flex flex-col gap-0.5">
-              <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                 Tipo
               </Label>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[10px] text-slate-500">
                 {type === "fixed"
                   ? "Recurrente mensual (alquiler, servicios)"
                   : "Discrecional del mes"}
               </span>
             </div>
-            <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
+            <div className="flex gap-0.5 rounded-full bg-[#1A1D24] p-1 text-[11px] font-semibold">
               <button
                 type="button"
                 onClick={() => setType("variable")}
                 className={cn(
-                  "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
+                  "rounded-full px-4 py-1.5 uppercase tracking-widest transition-all",
                   type === "variable"
-                    ? "bg-theme-500/10 border border-theme-500/20 text-theme-300"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-white/[0.08] text-white"
+                    : "text-slate-400 hover:text-white",
                 )}
               >
                 Variable
@@ -298,10 +391,10 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                 type="button"
                 onClick={() => setType("fixed")}
                 className={cn(
-                  "rounded-full px-3 py-1.5 uppercase tracking-widest transition-all",
+                  "rounded-full px-4 py-1.5 uppercase tracking-widest transition-all",
                   type === "fixed"
-                    ? "bg-theme-500/10 border border-theme-500/20 text-theme-300"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-white/[0.08] text-white"
+                    : "text-slate-400 hover:text-white",
                 )}
               >
                 Fijo
@@ -317,16 +410,20 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                 exit={{ opacity: 0, x: -20 }}
                 className="relative flex flex-col gap-2"
               >
-                <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                   Categoría
                 </Label>
                 <div className="grid grid-cols-4 gap-2">
                   {CATEGORIES.map((cat, idx) => {
                     const Icon = cat.icon;
-                    const disabled = createExpense.isPending || !amount;
+                    const style = CATEGORY_STYLES[cat.id];
+                    const isActive = category === cat.id;
+                    const activeClass = isActive ? style.active : style.inactive;
+                    const disabled = !amount;
                     return (
                       <motion.button
                         key={cat.id}
+                        type="button"
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: idx * 0.02 }}
@@ -335,33 +432,17 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                         onClick={() => handleCategoryClick(cat.id)}
                         disabled={disabled}
                         className={cn(
-                          "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br p-1.5 text-center transition-all hover:border-white/10",
-                          CATEGORY_CARD_GRADIENT[cat.id],
+                          "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border p-1.5 text-center transition-all",
+                          activeClass,
                           disabled && "cursor-not-allowed opacity-40",
                         )}
                         aria-label={cat.label}
                       >
-                        {/* Icon con glow */}
-                        <div className="relative">
-                          <div
-                            className={cn(
-                              "absolute inset-0 rounded-lg opacity-60 blur-md",
-                              cat.bgClass,
-                            )}
-                          />
-                          <div
-                            className={cn(
-                              "relative flex size-8 items-center justify-center rounded-lg ring-1",
-                              cat.bgClass,
-                              cat.textClass,
-                              cat.borderClass,
-                            )}
-                          >
-                            <Icon className="size-4" />
-                          </div>
-                        </div>
-                        <span className="text-[9px] font-semibold leading-tight tracking-tight text-foreground/90">
-                          {cat.short}
+                        <Icon className="size-5" />
+                        <span className="text-[9px] font-semibold leading-tight tracking-tight mt-1 text-white/90">
+                          {cat.id === "tarjeta_credito" && cardId
+                            ? `T. (${cards.find(c => c.id === cardId)?.name.slice(0, 4)})`
+                            : cat.short}
                         </span>
                       </motion.button>
                     );
@@ -381,15 +462,29 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                   <button
                     type="button"
                     onClick={() => setPickingCard(false)}
-                    className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl text-muted-foreground transition-colors hover:border-white/10 hover:text-foreground"
+                    className="flex size-7 items-center justify-center rounded-lg border border-white/[0.08] bg-[#1A1D24] text-slate-400 transition-colors hover:border-white/10 hover:text-white"
                   >
                     <ArrowLeft className="size-3.5" />
                   </button>
-                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     ¿Con qué tarjeta?
                   </Label>
                 </div>
                 <div className="flex flex-col gap-1.5">
+                  <motion.button
+                    type="button"
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setCardId(null);
+                      setPickingCard(false);
+                    }}
+                    className="flex items-center gap-3 rounded-xl border border-dashed border-white/[0.1] bg-[#1A1D24] px-4 py-3 text-left text-slate-400 hover:border-white/20 hover:text-white"
+                  >
+                    <CreditCardIcon className="size-4" />
+                    <span className="text-sm font-semibold tracking-tight">Sin tarjeta de crédito</span>
+                  </motion.button>
+
                   {cards.map((card, idx) => {
                     const cardColor = colorFromHex(card.color);
                     return (
@@ -401,10 +496,8 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                         whileHover={{ y: -1 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleCardSelect(card.id)}
-                        disabled={createExpense.isPending}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-4 py-3 text-left transition-all hover:border-white/10",
-                          createExpense.isPending && "cursor-not-allowed opacity-40",
+                          "flex items-center gap-3 rounded-xl border border-white/[0.08] bg-[#1A1D24] px-4 py-3 text-left transition-all hover:border-white/10",
                         )}
                       >
                         <div
@@ -412,11 +505,11 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
                           style={{ backgroundColor: cardColor.hex, boxShadow: `0 0 8px ${cardColor.hex}40` }}
                         />
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <span className="truncate text-sm font-semibold tracking-tight text-foreground">
+                          <span className="truncate text-sm font-semibold tracking-tight text-white">
                             {card.name}
                           </span>
                           {card.last_four && (
-                            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+                            <span className="font-mono text-[10px] tabular-nums text-slate-500">
                               •••• {card.last_four}
                             </span>
                           )}
@@ -429,6 +522,39 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Footer Rediseñado con Botones */}
+        <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#1A1D24] px-6 py-4 rounded-b-[24px]">
+          {expenseToEdit ? (
+            <Button
+              variant="ghost"
+              onClick={handleDelete}
+              disabled={deleteExpense.isPending || updateExpense.isPending}
+              className="h-10 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 font-semibold"
+            >
+              <Trash2 className="size-4 mr-2" />
+              Eliminar
+            </Button>
+          ) : (
+            <div />
+          )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => submit()}
+              disabled={createExpense.isPending || updateExpense.isPending || !category || !amount}
+              className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg transition-all"
+            >
+              {createExpense.isPending || updateExpense.isPending ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

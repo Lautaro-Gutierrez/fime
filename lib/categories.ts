@@ -6,12 +6,13 @@ import {
   CreditCard,
   GraduationCap,
   AlertTriangle,
+  Play,
   type LucideIcon,
 } from "lucide-react";
 import type { ExpenseCategory } from "@/types/database";
 
 export type CategoryConfig = {
-  id: ExpenseCategory;
+  id: ExpenseCategory | "suscripciones";
   label: string;
   short: string;
   color: string;
@@ -92,10 +93,20 @@ export const CATEGORIES: CategoryConfig[] = [
     borderClass: "border-pink-500/30",
     icon: AlertTriangle,
   },
+  {
+    id: "suscripciones",
+    label: "Suscripciones",
+    short: "Suscrip.",
+    color: "#F43F5E",
+    bgClass: "bg-rose-500/15",
+    textClass: "text-rose-400",
+    borderClass: "border-rose-500/30",
+    icon: Play,
+  },
 ];
 
-export const CATEGORIES_BY_ID: Record<ExpenseCategory, CategoryConfig> =
+export const CATEGORIES_BY_ID: Record<ExpenseCategory | "suscripciones", CategoryConfig> =
   Object.fromEntries(CATEGORIES.map((c) => [c.id, c])) as Record<
-    ExpenseCategory,
+    ExpenseCategory | "suscripciones",
     CategoryConfig
   >;
