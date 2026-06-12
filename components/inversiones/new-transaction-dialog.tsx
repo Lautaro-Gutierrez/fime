@@ -235,17 +235,21 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild={!!customTrigger}>
-        {customTrigger || (
-          <Button
-            size="lg"
-            className="h-11 gap-2 rounded-xl bg-theme-600 px-6 font-semibold text-white transition-all hover:bg-theme-500 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)]"
-          >
-            <Plus className="size-4" />
-            Nueva Operación
-          </Button>
-        )}
-      </DialogTrigger>
+      {customTrigger ? (
+        <DialogTrigger render={customTrigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger
+          render={
+            <Button
+              size="lg"
+              className="h-11 gap-2 rounded-xl bg-theme-600 px-6 font-semibold text-white transition-all hover:bg-theme-500 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)]"
+            >
+              <Plus className="size-4" />
+              Nueva Operación
+            </Button>
+          }
+        />
+      )}
 
       <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <AnimatePresence mode="wait">

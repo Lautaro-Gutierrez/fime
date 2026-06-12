@@ -207,7 +207,7 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
             <p className="text-xs text-slate-400 mb-2 font-medium">Valor del Portfolio</p>
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-extrabold text-white tnum">{formatUSD(totals.total_usd)}</span>
-              {totals.unrealized_pnl_pct !== 0 && (
+              {totals.unrealized_pnl_pct !== null && totals.unrealized_pnl_pct !== 0 && (
                 <span className={`font-bold text-lg tnum ${totals.unrealized_pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {totals.unrealized_pnl_pct > 0 ? "+" : ""}{totals.unrealized_pnl_pct.toFixed(2)}%
                 </span>

@@ -146,10 +146,11 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        asChild={!!customTrigger}
-        render={
-          customTrigger ? null : (
+      {customTrigger ? (
+        <DialogTrigger render={customTrigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger
+          render={
             <Button
               id="gastos-quick-add"
               size="lg"
@@ -158,11 +159,9 @@ export function QuickAdd({ customTrigger }: { customTrigger?: React.ReactNode })
               <Plus className="size-4" />
               Nuevo gasto
             </Button>
-          )
-        }
-      >
-        {customTrigger}
-      </DialogTrigger>
+          }
+        />
+      )}
 
       <DialogContent className="max-w-md overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
         <div className="relative flex flex-col gap-5 p-6">
