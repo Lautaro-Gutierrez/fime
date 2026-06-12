@@ -24,6 +24,7 @@ const ACTIVE_GRADIENT: Record<ExpenseCategory, string> = {
   tarjeta_credito: "from-violet-500/10 via-transparent to-transparent",
   educacion: "from-cyan-500/10 via-transparent to-transparent",
   imprevistos: "from-pink-500/10 via-transparent to-transparent",
+  suscripciones: "from-rose-500/10 via-transparent to-transparent",
 };
 
 export function CategoryCards({ expenses, activeCategory, onSelect }: Props) {

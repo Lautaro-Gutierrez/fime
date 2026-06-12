@@ -5,7 +5,8 @@ export type ExpenseCategory =
   | "comida"
   | "tarjeta_credito"
   | "educacion"
-  | "imprevistos";
+  | "imprevistos"
+  | "suscripciones";
 
 export type ExpenseType = "fixed" | "variable";
 

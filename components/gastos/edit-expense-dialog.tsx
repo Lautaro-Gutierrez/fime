@@ -43,6 +43,7 @@ const CATEGORY_HEADER_GRADIENT: Record<ExpenseCategory, string> = {
   tarjeta_credito: "from-violet-500/20 via-violet-500/5 to-transparent",
   educacion: "from-cyan-500/20 via-cyan-500/5 to-transparent",
   imprevistos: "from-pink-500/20 via-pink-500/5 to-transparent",
+  suscripciones: "from-rose-500/20 via-rose-500/5 to-transparent",
 };
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").

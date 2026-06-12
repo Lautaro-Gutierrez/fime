@@ -14,6 +14,29 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
+function getSubscriptionStyles(name: string): { letter: string; bgStyle: string } {
+  const cleanName = name.trim();
+  const letter = cleanName ? cleanName.charAt(0).toUpperCase() : "?";
+  
+  let hash = 0;
+  for (let i = 0; i < cleanName.length; i++) {
+    hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const colors = [
+    "bg-rose-500/10 text-rose-400",
+    "bg-blue-500/10 text-blue-400",
+    "bg-emerald-500/10 text-emerald-400",
+    "bg-amber-500/10 text-amber-400",
+    "bg-violet-500/10 text-violet-400",
+    "bg-cyan-500/10 text-cyan-400",
+    "bg-pink-500/10 text-pink-400"
+  ];
+  
+  const bgStyle = colors[Math.abs(hash) % colors.length];
+  return { letter, bgStyle };
+}
+
 export default function GastosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
   const [dismissedInsights, setDismissedInsights] = useState<Record<string, boolean>>({});
@@ -104,38 +127,26 @@ export default function GastosClient() {
 
   /* ───── Subscriptions Calculation ───── */
   const subscriptions = useMemo(() => {
-    const subsKeywords = ["netflix", "spotify", "gimnasio", "youtube", "disney", "hbo", "prime", "suscripcion", "suscripción"];
     const found = expenses.filter(exp => {
-      const noteLower = (exp.note || "").toLowerCase();
-      const catLower = exp.category.toLowerCase();
-      return exp.is_subscription || subsKeywords.some(keyword => noteLower.includes(keyword) || catLower.includes(keyword));
+      return exp.is_subscription || exp.category === "suscripciones";
     });
     
-    if (found.length > 0) {
-      return found.map(exp => {
-        const note = exp.note || exp.category;
-        const letter = note.charAt(0).toUpperCase();
-        let bgStyle = "bg-rose-500/10 text-rose-500";
-        if (note.toLowerCase().includes("spotify")) bgStyle = "bg-emerald-500/10 text-emerald-500";
-        else if (note.toLowerCase().includes("gimnasio")) bgStyle = "bg-blue-500/10 text-blue-500";
-        
-        return {
-          id: exp.id,
-          name: note,
-          category: exp.category.replace(/_/g, " "),
-          amount: exp.amount,
-          letter,
-          bgStyle,
-          raw: exp.id.startsWith("demo-") ? null : exp
-        };
-      });
-    }
+    const sorted = [...found].sort((a, b) => b.amount - a.amount);
     
-    return [
-      { id: "demo-s1", name: "Netflix", category: "Entretenimiento", amount: 15400, letter: "N", bgStyle: "bg-rose-500/10 text-rose-500", raw: null },
-      { id: "demo-s2", name: "Spotify", category: "Entretenimiento", amount: 4200, letter: "S", bgStyle: "bg-emerald-500/10 text-emerald-500", raw: null },
-      { id: "demo-s3", name: "Gimnasio SportClub", category: "Salud", amount: 35000, letter: "G", bgStyle: "bg-blue-500/10 text-blue-500", raw: null }
-    ];
+    return sorted.map(exp => {
+      const name = exp.note || "Suscripción";
+      const { letter, bgStyle } = getSubscriptionStyles(name);
+      
+      return {
+        id: exp.id,
+        name,
+        category: "Suscripciones",
+        amount: exp.amount,
+        letter,
+        bgStyle,
+        raw: exp
+      };
+    });
   }, [expenses]);
 
   /* ───── Bills for Calendar ───── */
@@ -621,30 +632,36 @@ export default function GastosClient() {
               Suscripciones Activas
             </h3>
             <div className="flex flex-col gap-3 flex-1">
-              {subscriptions.map((sub) => {
-                const isClickeable = !!sub.raw;
-                return (
-                  <div 
-                    key={sub.id} 
-                    onClick={() => isClickeable && handleEditExpense(sub.raw!)}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors",
-                      isClickeable && "cursor-pointer hover:bg-white/[0.06] border-white/[0.08]"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${sub.bgStyle}`}>
-                        {sub.letter}
+              {subscriptions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
+                  <p className="text-xs text-slate-500">No hay suscripciones registradas.</p>
+                </div>
+              ) : (
+                subscriptions.map((sub) => {
+                  const isClickeable = !!sub.raw;
+                  return (
+                    <div 
+                      key={sub.id} 
+                      onClick={() => isClickeable && handleEditExpense(sub.raw!)}
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors",
+                        isClickeable && "cursor-pointer hover:bg-white/[0.06] border-white/[0.08]"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${sub.bgStyle}`}>
+                          {sub.letter}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white truncate max-w-[140px]">{sub.name}</p>
+                          <p className="text-[11px] text-slate-500 capitalize">{sub.category}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white truncate max-w-[140px]">{sub.name}</p>
-                        <p className="text-[11px] text-slate-500 capitalize">{sub.category}</p>
-                      </div>
+                      <span className="text-base font-bold text-white tnum">{formatUSD(sub.amount, false)}</span>
                     </div>
-                    <span className="text-base font-bold text-white tnum">{formatUSD(sub.amount, false)}</span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
