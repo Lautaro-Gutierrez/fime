@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Shell } from "@/components/layout/shell";
 import { usePortfolio } from "@/hooks/use-portfolio";
+import { usePortfolios } from "@/hooks/use-portfolios";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useGoals } from "@/hooks/use-goals";
@@ -21,7 +22,9 @@ export default function DashboardClient() {
   const { mutate: updatePrefs } = useUpdatePreferences();
   const toggleStealthMode = () => updatePrefs({ stealth_mode: !isStealthMode });
 
-  const portfolio = usePortfolio();
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState<string>("ALL");
+  const { data: portfolios = [] } = usePortfolios();
+  const portfolio = usePortfolio(selectedPortfolioId);
   const currentMonth = useMemo(() => new Date(), []);
   const incomesQ = useIncomes(currentMonth);
   const expensesQ = useExpenses(currentMonth);
@@ -515,12 +518,26 @@ export default function DashboardClient() {
 
             {/* ── Col 3: Rendimiento (Portfolio vs S&P 500) ── */}
             <div className="rounded-2xl p-6 border card-hover min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold text-white">Rendimiento</h3>
-                <div className="flex items-center gap-3 text-[10px]">
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: "linear-gradient(135deg, #d946ef, #06b6d4)" }} /><span className="text-slate-300 font-medium">Portfolio</span></div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" /><span className="text-slate-400 font-medium">S&P 500</span></div>
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-white">Rendimiento</h3>
+                  <div className="flex items-center gap-3 text-[10px]">
+                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: "linear-gradient(135deg, #d946ef, #06b6d4)" }} /><span className="text-slate-300 font-medium">Portfolio</span></div>
+                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" /><span className="text-slate-400 font-medium">S&P 500</span></div>
+                  </div>
                 </div>
+                <select
+                  value={selectedPortfolioId}
+                  onChange={(e) => setSelectedPortfolioId(e.target.value)}
+                  className="w-full h-8 rounded-lg bg-[#1A1D24] border border-white/[0.06] px-2.5 text-xs font-semibold text-slate-300 transition-colors focus:border-white/20 focus:outline-none"
+                >
+                  <option value="ALL">Consolidado (Todos)</option>
+                  {portfolios.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               {chartData.length > 1 ? (
                 <div className="h-56 w-full mt-2">

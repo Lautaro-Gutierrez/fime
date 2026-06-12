@@ -105,8 +105,8 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
   }, [returnSeries]);
 
   const newTxBtn = (
-    <button className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-indigo-500/20">
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 4v16m8-8H4"/></svg>
+    <button className="flex items-center gap-2 bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-fuchsia-500/20 border-0">
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
       Nueva Operación
     </button>
   );
@@ -136,11 +136,11 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
               
               <Sheet>
                 <SheetTrigger render={
-                  <button className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold text-white hover:bg-white/10 transition-colors">
+                  <button className="px-4 py-2.5 bg-white/[0.04] border border-white/[0.06] rounded-xl text-sm font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white transition-colors">
                     Ver Historial
                   </button>
                 } />
-                <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#0A0D14] border-white/10 p-6 overflow-y-auto">
+                <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-[#1F2229] border-l border-white/[0.06] p-6 overflow-y-auto">
                   <SheetHeader className="mb-6 text-left">
                     <SheetTitle className="text-xl text-white">Historial de Operaciones</SheetTitle>
                   </SheetHeader>
@@ -258,7 +258,7 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
             {isLoadingPortfolioData ? (
                <div className="flex h-[280px] items-center justify-center text-slate-500">Calculando...</div>
             ) : (
-               <PerformanceChart series={returnSeries} onReset={resetHistory} />
+               <PerformanceChart series={returnSeries} onReset={resetHistory} onlyPortfolio={true} />
             )}
           </div>
         </div>

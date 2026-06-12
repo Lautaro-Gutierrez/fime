@@ -13,10 +13,12 @@ import {
 } from "recharts";
 import { Activity, RotateCcw } from "lucide-react";
 import type { ReturnPoint } from "@/lib/portfolio/twr";
+import { cn } from "@/lib/utils";
 
 type Props = {
   series: ReturnPoint[];
   onReset?: () => void | Promise<void>;
+  onlyPortfolio?: boolean;
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -55,7 +57,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function PerformanceChart({ series, onReset }: Props) {
+export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Props) {
   const data = useMemo(() => {
     if (series.length === 0) return [];
 
@@ -121,7 +123,9 @@ export function PerformanceChart({ series, onReset }: Props) {
   return (
     <div className="glass-card rounded-2xl p-6 h-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 className="text-lg font-semibold text-white">Performance vs S&P 500</h3>
+        <h3 className="text-lg font-semibold text-white">
+          {onlyPortfolio ? "Historial de Rendimiento" : "Performance vs S&P 500"}
+        </h3>
         
         {onReset && (
           <button
@@ -145,24 +149,32 @@ export function PerformanceChart({ series, onReset }: Props) {
       
       <div className="flex flex-wrap items-center gap-6 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-0.5 bg-violet-400 rounded-full" />
+          <div className={cn("w-3 h-0.5 rounded-full", onlyPortfolio ? "bg-gradient-to-r from-[#d946ef] to-[#06b6d4]" : "bg-violet-400")} />
           <span className="text-xs text-white/60">Mi Portfolio</span>
           <span className={`text-xs font-semibold tabular-nums ${portfolioLast >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
             {portfolioLast >= 0 ? "+" : ""}{portfolioLast.toFixed(1)}%
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-0.5 bg-amber-400 rounded-full border-dashed" style={{ borderStyle: "dashed", borderWidth: "1px", borderColor: "#fbbf24", backgroundColor: "transparent" }} />
-          <span className="text-xs text-white/60">S&P 500</span>
-          <span className={`text-xs font-semibold tabular-nums ${sp500Last >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-            {sp500Last >= 0 ? "+" : ""}{sp500Last.toFixed(1)}%
-          </span>
-        </div>
+        {!onlyPortfolio && (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-0.5 bg-amber-400 rounded-full border-dashed" style={{ borderStyle: "dashed", borderWidth: "1px", borderColor: "#fbbf24", backgroundColor: "transparent" }} />
+            <span className="text-xs text-white/60">S&P 500</span>
+            <span className={`text-xs font-semibold tabular-nums ${sp500Last >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              {sp500Last >= 0 ? "+" : ""}{sp500Last.toFixed(1)}%
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
+            <defs>
+              <linearGradient id="portfolioLineStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#d946ef" />
+                <stop offset="100%" stopColor="#06b6d4" />
+              </linearGradient>
+            </defs>
             <CartesianGrid
               stroke="rgba(255,255,255,0.04)"
               strokeDasharray="3 3"
@@ -190,26 +202,28 @@ export function PerformanceChart({ series, onReset }: Props) {
               yAxisId="left"
               type="monotone"
               dataKey="portfolio"
-              stroke="#a78bfa"
+              stroke={onlyPortfolio ? "url(#portfolioLineStroke)" : "#a78bfa"}
               strokeWidth={2.5}
               dot={false}
-              activeDot={{ r: 4, fill: "#a78bfa", stroke: "#09090b", strokeWidth: 2 }}
+              activeDot={{ r: 4, fill: onlyPortfolio ? "#06b6d4" : "#a78bfa", stroke: "#09090b", strokeWidth: 2 }}
               isAnimationActive
               animationDuration={600}
             />
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="sp500"
-              stroke="#fbbf24"
-              strokeWidth={2}
-              strokeDasharray="6 4"
-              dot={false}
-              activeDot={{ r: 4, fill: "#fbbf24", stroke: "#09090b", strokeWidth: 2 }}
-              isAnimationActive
-              animationDuration={600}
-              connectNulls
-            />
+            {!onlyPortfolio && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="sp500"
+                stroke="#fbbf24"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                dot={false}
+                activeDot={{ r: 4, fill: "#fbbf24", stroke: "#09090b", strokeWidth: 2 }}
+                isAnimationActive
+                animationDuration={600}
+                connectNulls
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
