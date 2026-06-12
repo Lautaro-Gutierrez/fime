@@ -213,33 +213,34 @@ export default function IngresosClient() {
     return 1909070; // Fallback mock expenses
   }, [hasData, realExpenses.total]);
 
-  // Dynamic distribution configuration: use customized or derive dynamically from actual month expenses
+  // Dynamic distribution configuration: fixed_pct and variable_pct are derived from actual/mock expenses.
+  // invest_pct and save_pct are configured by the user (or split 62.5% / 37.5% of the remainder).
   const activeDist = useMemo(() => {
+    const fixed_pct = totalIncomes > 0 ? Math.min(100, Math.round((fixedExpensesAmt / totalIncomes) * 100)) : 40;
+    const variable_pct = totalIncomes > 0 ? Math.min(100 - fixed_pct, Math.round((variableExpensesAmt / totalIncomes) * 100)) : 20;
+    const remainder = 100 - fixed_pct - variable_pct;
+
     if (globalDist) {
-      return globalDist;
+      const customSum = (globalDist.invest_pct || 0) + (globalDist.save_pct || 0);
+      if (customSum > 0) {
+        const ratioInvest = globalDist.invest_pct / customSum;
+        const invest_pct = Math.max(0, Math.round(remainder * ratioInvest));
+        const save_pct = Math.max(0, remainder - invest_pct);
+        return { fixed_pct, variable_pct, invest_pct, save_pct };
+      }
     }
-    if (totalIncomes > 0) {
-      const fixed_pct = Math.min(100, Math.round((fixedExpensesAmt / totalIncomes) * 100));
-      const variable_pct = Math.min(100 - fixed_pct, Math.round((variableExpensesAmt / totalIncomes) * 100));
-      const remainder = 100 - fixed_pct - variable_pct;
-      const invest_pct = Math.max(0, Math.round(remainder * 0.625));
-      const save_pct = Math.max(0, remainder - invest_pct);
-      return { fixed_pct, variable_pct, invest_pct, save_pct };
-    }
-    return {
-      fixed_pct: 40,
-      variable_pct: 20,
-      invest_pct: 25,
-      save_pct: 15,
-    };
+
+    const invest_pct = Math.max(0, Math.round(remainder * 0.625));
+    const save_pct = Math.max(0, remainder - invest_pct);
+    return { fixed_pct, variable_pct, invest_pct, save_pct };
   }, [globalDist, totalIncomes, fixedExpensesAmt, variableExpensesAmt]);
 
   // Config modal state
   const [openConfig, setOpenConfig] = useState(false);
   const [tempFixed, setTempFixed] = useState(activeDist.fixed_pct);
   const [tempVariable, setTempVariable] = useState(activeDist.variable_pct);
-  const [tempInvest, setTempInvest] = useState(activeDist.invest_pct);
-  const [tempSave, setTempSave] = useState(activeDist.save_pct);
+  const [tempInvest, setTempInvest] = useState<number | "">(activeDist.invest_pct);
+  const [tempSave, setTempSave] = useState<number | "">(activeDist.save_pct);
 
   // Sync temporary variables when modal opens
   useEffect(() => {
@@ -251,6 +252,34 @@ export default function IngresosClient() {
     }
   }, [openConfig, activeDist]);
 
+  const maxAllowed = Math.max(0, 100 - tempFixed - tempVariable);
+
+  const handleInvestChange = (valStr: string) => {
+    if (valStr === "") {
+      setTempInvest("");
+      setTempSave(maxAllowed);
+      return;
+    }
+    const val = Number(valStr);
+    const cleanVal = isNaN(val) ? 0 : val;
+    const newInvest = Math.min(maxAllowed, Math.max(0, cleanVal));
+    setTempInvest(newInvest);
+    setTempSave(maxAllowed - newInvest);
+  };
+
+  const handleSaveChange = (valStr: string) => {
+    if (valStr === "") {
+      setTempSave("");
+      setTempInvest(maxAllowed);
+      return;
+    }
+    const val = Number(valStr);
+    const cleanVal = isNaN(val) ? 0 : val;
+    const newSave = Math.min(maxAllowed, Math.max(0, cleanVal));
+    setTempSave(newSave);
+    setTempInvest(maxAllowed - newSave);
+  };
+
   const totalSum = (Number(tempFixed) || 0) + (Number(tempVariable) || 0) + (Number(tempInvest) || 0) + (Number(tempSave) || 0);
 
   const handleSaveConfig = () => {
@@ -258,8 +287,8 @@ export default function IngresosClient() {
     setGlobalDist({
       fixed_pct: Number(tempFixed),
       variable_pct: Number(tempVariable),
-      invest_pct: Number(tempInvest),
-      save_pct: Number(tempSave),
+      invest_pct: Number(tempInvest) || 0,
+      save_pct: Number(tempSave) || 0,
     });
     setOpenConfig(false);
     toast.success("Distribución global configurada con éxito");
@@ -594,7 +623,7 @@ export default function IngresosClient() {
             Configurar Distribución Global
           </DialogTitle>
           <p className="text-xs text-slate-400 mb-6">
-            Definí los porcentajes teóricos globales que querés asignar a cada categoría de tu pozo común. La suma debe ser exactamente 100%.
+            Los porcentajes de Gastos Fijos y Variables se derivan automáticamente de tus gastos reales cargados del mes y no se pueden modificar. Podés ajustar cómo distribuir el resto entre Inversiones y Ahorro.
           </p>
 
           <div className="flex flex-col gap-4">
@@ -606,12 +635,10 @@ export default function IngresosClient() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={tempFixed}
-                  onChange={(e) => setTempFixed(Number(e.target.value))}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                  type="text"
+                  disabled
+                  value={`${tempFixed}`}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
                 />
                 <span className="text-slate-400 text-sm font-mono">%</span>
               </div>
@@ -625,12 +652,10 @@ export default function IngresosClient() {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={tempVariable}
-                  onChange={(e) => setTempVariable(Number(e.target.value))}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                  type="text"
+                  disabled
+                  value={`${tempVariable}`}
+                  className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
                 />
                 <span className="text-slate-400 text-sm font-mono">%</span>
               </div>
@@ -646,9 +671,9 @@ export default function IngresosClient() {
                 <input
                   type="number"
                   min="0"
-                  max="100"
+                  max={maxAllowed}
                   value={tempInvest}
-                  onChange={(e) => setTempInvest(Number(e.target.value))}
+                  onChange={(e) => handleInvestChange(e.target.value)}
                   className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
                 />
                 <span className="text-slate-400 text-sm font-mono">%</span>
@@ -665,9 +690,9 @@ export default function IngresosClient() {
                 <input
                   type="number"
                   min="0"
-                  max="100"
+                  max={maxAllowed}
                   value={tempSave}
-                  onChange={(e) => setTempSave(Number(e.target.value))}
+                  onChange={(e) => handleSaveChange(e.target.value)}
                   className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
                 />
                 <span className="text-slate-400 text-sm font-mono">%</span>
