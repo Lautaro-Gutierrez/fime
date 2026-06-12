@@ -188,6 +188,30 @@ export default function DashboardClient() {
 
   const isLoading = portfolio.isLoading || incomesQ.isLoading || expensesQ.isLoading || goalsQ.isLoading;
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-[#1F2229] border border-white/[0.06] rounded-xl p-3 shadow-xl">
+          <p className="text-xs text-slate-400 mb-2 font-medium capitalize">{label}</p>
+          <div className="flex flex-col gap-1.5">
+            {payload.map((entry: any, index: number) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
+                  <span className="text-xs text-slate-300 font-semibold">{entry.name === "portfolio" ? "Portfolio" : "S&P 500"}</span>
+                </div>
+                <span className="text-sm font-bold text-white tnum ml-auto">
+                  {Number(entry.value).toFixed(2)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Shell>
       <div className="view p-8 ambient-glow view-enter">
@@ -492,24 +516,20 @@ export default function DashboardClient() {
                         dataKey="labelX" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter" }}
+                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter", fontWeight: 500 }}
                         dy={10}
                         stroke="rgba(255,255,255,0.05)"
                       />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter" }} 
+                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter", fontWeight: 500 }} 
                         tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
                         dx={-10}
                         stroke="rgba(255,255,255,0.05)"
                         domain={[(dataMin) => Math.min(0, Math.floor(dataMin)), 'auto']}
                       />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: "#1F2229", borderColor: "rgba(255,255,255,0.06)", borderRadius: "12px", color: "#e2e8f0" }} 
-                        itemStyle={{ color: "#e2e8f0" }} 
-                        formatter={(val) => [`${Number(val).toFixed(2)}%`]} 
-                      />
+                      <Tooltip content={<CustomTooltip />} />
                       <Area 
                         type="monotone" 
                         dataKey="portfolio" 
