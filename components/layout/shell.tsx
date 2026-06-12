@@ -72,17 +72,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
       >
         {/* Top: Logo + Nav */}
         <div>
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 px-5 pt-6 pb-6">
+          <div className="flex items-center gap-3 px-5 pt-6 pb-6 border-b border-transparent">
+            {/* Logo directo, sin divs envolventes que arruinen la transparencia */}
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
-              className="w-10 h-10 object-contain drop-shadow-md"
+              className="w-11 h-11 object-contain drop-shadow-xl"
             />
+            {/* Texto de la marca con gradiente */}
             <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
               FiMe
             </span>
-          </Link>
+          </div>
 
           {/* Nav */}
           <div className="px-3 mt-1">
@@ -131,7 +132,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {/* Mobile Header */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between px-4 md:hidden"
              style={{ background: "#15171E", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <Link href="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {/* Logo directo, sin divs envolventes que arruinen la transparencia */}
             <img 
               src="/Logo.png" 
               alt="FiMe Logo" 
@@ -140,7 +142,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
               FiMe
             </span>
-          </Link>
+          </div>
           <Link href="/config" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/[0.06] transition-colors">
             <Settings className="size-5" />
           </Link>
