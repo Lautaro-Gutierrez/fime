@@ -409,8 +409,11 @@ export default function DashboardClient() {
                           </div>
                         </div>
                         <p className="text-sm text-white font-semibold leading-tight truncate w-full">{goal.name}</p>
-                        <p className="text-xs text-slate-500 mt-1 tnum truncate w-full">
-                          ${formatUSD(prog?.current || 0, false)} / ${formatUSD(goal.target_amount, false)}
+                        <p className="text-xs text-slate-300 mt-1 tnum truncate w-full">
+                          {formatUSD(prog?.current || 0, false)} / {formatUSD(goal.target_amount, false)}
+                        </p>
+                        <p className="text-xs text-amber-400 font-medium tnum mt-0.5 truncate w-full">
+                          {formatUSD(Math.max(0, goal.target_amount - (prog?.current || 0)), false)} restantes
                         </p>
                       </div>
                     );
@@ -489,18 +492,18 @@ export default function DashboardClient() {
                         dataKey="labelX" 
                         axisLine={true} 
                         tickLine={false} 
-                        tick={{ fill: "#64748b", fontSize: 12, fontFamily: "Inter" }}
+                        tick={{ fill: "#94a3b8", fontSize: 12, fontFamily: "Inter" }}
                         dy={10}
                         stroke="rgba(255,255,255,0.05)"
                       />
                       <YAxis 
                         axisLine={true} 
                         tickLine={false} 
-                        tick={{ fill: "#64748b", fontSize: 12, fontFamily: "Inter" }} 
+                        tick={{ fill: "#94a3b8", fontSize: 12, fontFamily: "Inter" }} 
                         tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
                         dx={-10}
                         stroke="rgba(255,255,255,0.05)"
-                        domain={['dataMin - 1', 'dataMax + 1']}
+                        domain={[(dataMin) => Math.min(0, Math.floor(dataMin)), 'auto']}
                       />
                       <Area 
                         type="monotone" 
