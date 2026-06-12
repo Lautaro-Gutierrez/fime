@@ -475,7 +475,7 @@ export default function DashboardClient() {
                   </defs>
                 </svg>
                 <div className="absolute bottom-0 text-center">
-                  <span className="text-6xl font-extrabold text-white tnum tracking-tighter">{score}</span>
+                  <span className="text-5xl font-extrabold text-white tnum tracking-tighter">{score}</span>
                   <span className="text-sm text-slate-500 font-medium">/100</span>
                 </div>
               </div>
@@ -516,18 +516,16 @@ export default function DashboardClient() {
                         dataKey="labelX" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter", fontWeight: 500 }}
-                        dy={10}
-                        stroke="rgba(255,255,255,0.05)"
+                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
+                        dy={10} 
                       />
                       <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: "#94a3b8", fontSize: 11, fontFamily: "Inter", fontWeight: 500 }} 
-                        tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
+                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
                         dx={-10}
-                        stroke="rgba(255,255,255,0.05)"
-                        domain={[(dataMin) => Math.min(0, Math.floor(dataMin)), 'auto']}
+                        tickFormatter={(value) => `${value}%`}
+                        domain={['dataMin - 1', 'dataMax + 1']}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Area 
