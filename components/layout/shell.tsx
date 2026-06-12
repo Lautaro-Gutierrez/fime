@@ -75,7 +75,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3 px-5 pt-6 pb-6 border-b border-transparent">
             {/* Logo directo, sin divs envolventes que arruinen la transparencia */}
             <img 
-              src="/Logo.png" 
+              src="/Logo.png?v=2" 
               alt="FiMe Logo" 
               className="w-11 h-11 object-contain drop-shadow-xl"
             />
@@ -135,7 +135,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             {/* Logo directo, sin divs envolventes que arruinen la transparencia */}
             <img 
-              src="/Logo.png" 
+              src="/Logo.png?v=2" 
               alt="FiMe Logo" 
               className="w-8 h-8 object-contain drop-shadow-md"
             />
