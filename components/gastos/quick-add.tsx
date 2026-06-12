@@ -26,15 +26,15 @@ import { colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
 
 // Estilo de categoría con fondo pastel y estados activo/inactivo coherentes
-const CATEGORY_STYLES: Record<ExpenseCategory | "suscripciones", { inactive: string; active: string; text: string }> = {
-  alquiler: { inactive: "bg-blue-500/10 text-blue-400 border-transparent hover:bg-blue-500/15", active: "bg-blue-500/20 text-blue-300 border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.2)]", text: "text-blue-400" },
-  servicios: { inactive: "bg-amber-500/10 text-amber-400 border-transparent hover:bg-amber-500/15", active: "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.2)]", text: "text-amber-400" },
-  impuestos: { inactive: "bg-red-500/10 text-red-400 border-transparent hover:bg-red-500/15", active: "bg-red-500/20 text-red-300 border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.2)]", text: "text-red-400" },
-  comida: { inactive: "bg-emerald-500/10 text-emerald-400 border-transparent hover:bg-emerald-500/15", active: "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.2)]", text: "text-emerald-400" },
-  tarjeta_credito: { inactive: "bg-violet-500/10 text-violet-400 border-transparent hover:bg-violet-500/15", active: "bg-violet-500/20 text-violet-300 border-violet-500/50 shadow-[0_0_12px_rgba(139,92,246,0.2)]", text: "text-violet-400" },
-  educacion: { inactive: "bg-cyan-500/10 text-cyan-400 border-transparent hover:bg-cyan-500/15", active: "bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]", text: "text-cyan-400" },
-  imprevistos: { inactive: "bg-pink-500/10 text-pink-400 border-transparent hover:bg-pink-500/15", active: "bg-pink-500/20 text-pink-300 border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.2)]", text: "text-pink-400" },
-  suscripciones: { inactive: "bg-rose-500/10 text-rose-400 border-transparent hover:bg-rose-500/15", active: "bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.2)]", text: "text-rose-400" },
+const CATEGORY_STYLES: Record<ExpenseCategory | "suscripciones", { inactive: string; active: string }> = {
+  alquiler: { inactive: "bg-indigo-500/10 text-indigo-400 border-transparent hover:bg-indigo-500/15", active: "bg-indigo-500/20 text-indigo-400 border-indigo-500/50" },
+  servicios: { inactive: "bg-amber-500/10 text-amber-400 border-transparent hover:bg-amber-500/15", active: "bg-amber-500/20 text-amber-400 border-amber-500/50" },
+  impuestos: { inactive: "bg-red-500/10 text-red-400 border-transparent hover:bg-red-500/15", active: "bg-red-500/20 text-red-400 border-red-500/50" },
+  comida: { inactive: "bg-emerald-500/10 text-emerald-400 border-transparent hover:bg-emerald-500/15", active: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50" },
+  tarjeta_credito: { inactive: "bg-violet-500/10 text-violet-400 border-transparent hover:bg-violet-500/15", active: "bg-violet-500/20 text-violet-400 border-violet-500/50" },
+  educacion: { inactive: "bg-cyan-500/10 text-cyan-400 border-transparent hover:bg-cyan-500/15", active: "bg-cyan-500/20 text-cyan-400 border-cyan-500/50" },
+  imprevistos: { inactive: "bg-pink-500/10 text-pink-400 border-transparent hover:bg-pink-500/15", active: "bg-pink-500/20 text-pink-400 border-pink-500/50" },
+  suscripciones: { inactive: "bg-rose-500/10 text-rose-400 border-transparent hover:bg-rose-500/15", active: "bg-rose-500/20 text-rose-400 border-rose-500/50" },
 };
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").
@@ -280,8 +280,8 @@ export function QuickAdd({
             <Label htmlFor="amount" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
               Monto · ARS
             </Label>
-            <div className="relative rounded-2xl p-[1px] transition-all bg-white/[0.04] focus-within:bg-gradient-to-r focus-within:from-[#d946ef] focus-within:to-[#06b6d4]">
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-2xl text-slate-400">
+            <div className="relative flex items-center bg-[#1A1D24] border border-white/[0.06] focus-within:border-fuchsia-500/50 rounded-2xl transition-all">
+              <span className="pointer-events-none pl-4 font-mono text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-cyan-400">
                 $
               </span>
               <Input
@@ -292,7 +292,7 @@ export function QuickAdd({
                 placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-16 w-full rounded-[15px] border-0 bg-[#1A1D24] pl-10 font-mono text-3xl font-bold tabular-nums text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-16 w-full rounded-2xl border-0 bg-transparent pl-2 pr-4 font-mono text-4xl font-bold tabular-nums text-white focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           </div>
@@ -342,7 +342,7 @@ export function QuickAdd({
                   value={date}
                   max={maxDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="h-11 rounded-xl border-white/5 bg-[#1A1D24] text-white focus-visible:border-white/20"
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -356,7 +356,7 @@ export function QuickAdd({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
-                  className="h-11 rounded-xl border-white/5 bg-[#1A1D24] text-white focus-visible:border-white/20"
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                 />
               </div>
             </motion.div>
@@ -439,9 +439,9 @@ export function QuickAdd({
                         aria-label={cat.label}
                       >
                         <Icon className="size-5" />
-                        <span className="text-[9px] font-semibold leading-tight tracking-tight mt-1 text-white/90">
-                          {cat.id === "tarjeta_credito" && cardId
-                            ? `T. (${cards.find(c => c.id === cardId)?.name.slice(0, 4)})`
+                        <span className="text-[9px] font-semibold leading-tight tracking-tight mt-1">
+                          {cat.id === "tarjeta_credito"
+                            ? "Tarjeta de credito"
                             : cat.short}
                         </span>
                       </motion.button>
@@ -531,7 +531,7 @@ export function QuickAdd({
               variant="ghost"
               onClick={handleDelete}
               disabled={deleteExpense.isPending || updateExpense.isPending}
-              className="h-10 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 font-semibold"
+              className="h-10 rounded-xl bg-transparent border-0 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 font-semibold shadow-none"
             >
               <Trash2 className="size-4 mr-2" />
               Eliminar
@@ -550,7 +550,7 @@ export function QuickAdd({
             <Button
               onClick={() => submit()}
               disabled={createExpense.isPending || updateExpense.isPending || !category || !amount}
-              className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg transition-all"
+              className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0"
             >
               {createExpense.isPending || updateExpense.isPending ? "Guardando..." : "Guardar"}
             </Button>
