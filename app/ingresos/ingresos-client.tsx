@@ -253,6 +253,8 @@ export default function IngresosClient() {
   }, [openConfig, activeDist]);
 
   const maxAllowed = Math.max(0, 100 - tempFixed - tempVariable);
+  const fillInvestPct = maxAllowed > 0 ? (Number(tempInvest || 0) / maxAllowed) * 100 : 0;
+  const fillSavePct = maxAllowed > 0 ? (Number(tempSave || 0) / maxAllowed) * 100 : 0;
 
   const handleInvestChange = (valStr: string) => {
     if (valStr === "") {
@@ -334,15 +336,30 @@ export default function IngresosClient() {
     return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
   }, [hasData, totalIncomes, previousTotal]);
 
-  // Dynamic distribution: totalIncomes * activeDist percentage
+  // Dynamic distribution: fijos and variables display the exact expense amounts, while investments and savings split the remainder
   const barValues = useMemo(() => {
+    const fixed = fixedExpensesAmt;
+    const variable = variableExpensesAmt;
+    const remainderAmt = Math.max(0, totalIncomes - fixed - variable);
+
+    const customSum = (activeDist.invest_pct || 0) + (activeDist.save_pct || 0);
+    let invest = 0;
+    let save = 0;
+    if (customSum > 0) {
+      invest = Math.round(remainderAmt * (activeDist.invest_pct / customSum));
+      save = Math.max(0, remainderAmt - invest);
+    } else {
+      invest = Math.round(remainderAmt * 0.625);
+      save = Math.max(0, remainderAmt - invest);
+    }
+
     return {
-      invest: Math.round(totalIncomes * (activeDist.invest_pct / 100)),
-      save: Math.round(totalIncomes * (activeDist.save_pct / 100)),
-      fixed: Math.round(totalIncomes * (activeDist.fixed_pct / 100)),
-      variable: Math.round(totalIncomes * (activeDist.variable_pct / 100)),
+      fixed,
+      variable,
+      invest,
+      save,
     };
-  }, [totalIncomes, activeDist]);
+  }, [totalIncomes, fixedExpensesAmt, variableExpensesAmt, activeDist]);
 
   const maxBarVal = Math.max(barValues.invest, barValues.save, barValues.fixed, barValues.variable);
   const topAxisVal = getTopAxisValue(maxBarVal);
@@ -628,75 +645,131 @@ export default function IngresosClient() {
 
           <div className="flex flex-col gap-4">
             {/* G. Fijos */}
-            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3 h-3 rounded-full bg-[#ef4444]" />
-                <span className="text-sm font-semibold text-slate-200">G. Fijos</span>
+            <div className="flex flex-col gap-2.5 bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-[#ef4444]" />
+                  <span className="text-sm font-semibold text-slate-200">G. Fijos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    disabled
+                    value={`${tempFixed}`}
+                    className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
+                  />
+                  <span className="text-slate-400 text-sm font-mono">%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  disabled
-                  value={`${tempFixed}`}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
-                />
-                <span className="text-slate-400 text-sm font-mono">%</span>
-              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={tempFixed}
+                disabled={true}
+                className="h-1.5 w-full appearance-none rounded-full bg-white/5 outline-none cursor-not-allowed opacity-40 [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:cursor-not-allowed [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black/20 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:cursor-not-allowed [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black/20 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                style={{
+                  background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${tempFixed}%, rgba(255,255,255,0.05) ${tempFixed}%, rgba(255,255,255,0.05) 100%)`,
+                }}
+              />
             </div>
 
             {/* G. Variables */}
-            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3 h-3 rounded-full bg-[#f97316]" />
-                <span className="text-sm font-semibold text-slate-200">G. Variables</span>
+            <div className="flex flex-col gap-2.5 bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-[#f97316]" />
+                  <span className="text-sm font-semibold text-slate-200">G. Variables</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    disabled
+                    value={`${tempVariable}`}
+                    className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
+                  />
+                  <span className="text-slate-400 text-sm font-mono">%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  disabled
-                  value={`${tempVariable}`}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229]/50 border border-white/[0.04] text-center text-sm font-mono text-slate-500 cursor-not-allowed opacity-50 focus:outline-none"
-                />
-                <span className="text-slate-400 text-sm font-mono">%</span>
-              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={tempVariable}
+                disabled={true}
+                className="h-1.5 w-full appearance-none rounded-full bg-white/5 outline-none cursor-not-allowed opacity-40 [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:cursor-not-allowed [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black/20 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:cursor-not-allowed [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black/20 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                style={{
+                  background: `linear-gradient(to right, #f97316 0%, #f97316 ${tempVariable}%, rgba(255,255,255,0.05) ${tempVariable}%, rgba(255,255,255,0.05) 100%)`,
+                }}
+              />
             </div>
 
             {/* Inversiones */}
-            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3 h-3 rounded-full bg-[#10b981]" />
-                <span className="text-sm font-semibold text-slate-200">Inversiones</span>
+            <div className="flex flex-col gap-2.5 bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-[#10b981]" />
+                  <span className="text-sm font-semibold text-slate-200">Inversiones</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxAllowed}
+                    value={tempInvest}
+                    onChange={(e) => handleInvestChange(e.target.value)}
+                    className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                  />
+                  <span className="text-slate-400 text-sm font-mono">%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max={maxAllowed}
-                  value={tempInvest}
-                  onChange={(e) => handleInvestChange(e.target.value)}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
-                />
-                <span className="text-slate-400 text-sm font-mono">%</span>
-              </div>
+              <input
+                type="range"
+                min={0}
+                max={maxAllowed}
+                step={1}
+                value={Number(tempInvest) || 0}
+                onChange={(e) => handleInvestChange(e.target.value)}
+                className="h-1.5 w-full appearance-none rounded-full bg-white/5 outline-none cursor-pointer [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black/20 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black/20 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                style={{
+                  background: `linear-gradient(to right, #10b981 0%, #10b981 ${fillInvestPct}%, rgba(255,255,255,0.05) ${fillInvestPct}%, rgba(255,255,255,0.05) 100%)`,
+                }}
+              />
             </div>
 
             {/* Ahorro */}
-            <div className="flex items-center justify-between bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3 h-3 rounded-full bg-[#3b82f6]" />
-                <span className="text-sm font-semibold text-slate-200">Ahorro</span>
+            <div className="flex flex-col gap-2.5 bg-[#1A1D24] px-4 py-3 rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                  <span className="text-sm font-semibold text-slate-200">Ahorro</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxAllowed}
+                    value={tempSave}
+                    onChange={(e) => handleSaveChange(e.target.value)}
+                    className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
+                  />
+                  <span className="text-slate-400 text-sm font-mono">%</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max={maxAllowed}
-                  value={tempSave}
-                  onChange={(e) => handleSaveChange(e.target.value)}
-                  className="w-16 h-9 rounded-lg bg-[#1F2229] border border-white/[0.06] text-center text-sm font-mono text-white focus:outline-none focus:border-fuchsia-500"
-                />
-                <span className="text-slate-400 text-sm font-mono">%</span>
-              </div>
+              <input
+                type="range"
+                min={0}
+                max={maxAllowed}
+                step={1}
+                value={Number(tempSave) || 0}
+                onChange={(e) => handleSaveChange(e.target.value)}
+                className="h-1.5 w-full appearance-none rounded-full bg-white/5 outline-none cursor-pointer [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-black/20 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black/20 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${fillSavePct}%, rgba(255,255,255,0.05) ${fillSavePct}%, rgba(255,255,255,0.05) 100%)`,
+                }}
+              />
             </div>
           </div>
 
