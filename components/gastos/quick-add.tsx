@@ -166,7 +166,7 @@ export function QuickAdd({
     let isSubscription = false;
 
     if (finalCategory === "suscripciones") {
-      dbCategory = "suscripciones";
+      dbCategory = "servicios";
       isSubscription = true;
     } else {
       dbCategory = finalCategory;
