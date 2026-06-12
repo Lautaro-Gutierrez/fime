@@ -7,26 +7,18 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DISTRIBUTION_BUCKETS,
   INCOME_CATEGORIES,
   INCOME_CATEGORIES_BY_ID,
 } from "@/lib/income-categories";
 import type { IncomeCategory, IncomeDistribution } from "@/types/database";
-import { type Income, useUpdateIncome } from "@/hooks/use-incomes";
+import { type Income, useUpdateIncome, useDeleteIncome } from "@/hooks/use-incomes";
 import { sumExpensesByType, useExpenses } from "@/hooks/use-expenses";
 import { useFxRates } from "@/hooks/use-prices";
 import { firstOfMonth, fromISODate } from "@/lib/format";
@@ -39,18 +31,39 @@ type Props = {
   onClose: () => void;
 };
 
-const CATEGORY_HEADER_GRADIENT: Record<IncomeCategory, string> = {
-  sueldo: "from-lime-500/20 via-lime-500/5 to-transparent",
-  freelance: "from-sky-500/20 via-sky-500/5 to-transparent",
-  alquiler_cobrado: "from-blue-500/20 via-blue-500/5 to-transparent",
-  dividendos: "from-theme-500/20 via-theme-500/5 to-transparent",
-  venta: "from-orange-500/20 via-orange-500/5 to-transparent",
-  bono: "from-fuchsia-500/20 via-fuchsia-500/5 to-transparent",
-  otros: "from-slate-500/20 via-slate-500/5 to-transparent",
-};
-
 // Categorías donde ofrecemos el botón "Distribuir" si todavía no tiene distribución.
 const DEFAULT_DISTRIBUTE: IncomeCategory[] = ["sueldo", "bono", "freelance"];
+
+const INCOME_CATEGORY_STYLES: Record<IncomeCategory, { inactive: string; active: string }> = {
+  sueldo: {
+    inactive: "bg-emerald-500/10 text-emerald-400 border-white/[0.06] hover:bg-emerald-500/15",
+    active: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50",
+  },
+  freelance: {
+    inactive: "bg-[#8B5CF6]/10 text-[#8B5CF6] border-white/[0.06] hover:bg-[#8B5CF6]/15",
+    active: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/50",
+  },
+  alquiler_cobrado: {
+    inactive: "bg-blue-500/10 text-blue-400 border-white/[0.06] hover:bg-blue-500/15",
+    active: "bg-blue-500/20 text-blue-400 border-blue-500/50",
+  },
+  dividendos: {
+    inactive: "bg-amber-500/10 text-amber-400 border-white/[0.06] hover:bg-amber-500/15",
+    active: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+  },
+  venta: {
+    inactive: "bg-orange-500/10 text-orange-400 border-white/[0.06] hover:bg-orange-500/15",
+    active: "bg-orange-500/20 text-orange-400 border-orange-500/50",
+  },
+  bono: {
+    inactive: "bg-indigo-500/10 text-indigo-400 border-white/[0.06] hover:bg-indigo-500/15",
+    active: "bg-indigo-500/20 text-indigo-400 border-indigo-500/50",
+  },
+  otros: {
+    inactive: "bg-slate-500/10 text-slate-400 border-white/[0.06] hover:bg-slate-500/15",
+    active: "bg-slate-500/20 text-slate-400 border-slate-500/50",
+  },
+};
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").
 function parseAmount(input: string): number | null {
@@ -92,6 +105,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
 
   const { data: fx } = useFxRates();
   const update = useUpdateIncome();
+  const del = useDeleteIncome();
 
   // Gastos reales del mes de este ingreso — la DistributionStep los usa para
   // lockear fixed/variable. Sigue la fecha editada por el usuario.
@@ -129,6 +143,15 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
     if (v === null) return 0;
     if (currency === "ARS") return v;
     return v * (fx?.mep ?? income.fx_rate ?? 0);
+  }, [amount, currency, fx?.mep, income.fx_rate]);
+
+  const amountUsdPreview = useMemo(() => {
+    const v = parseAmount(amount);
+    if (v === null) return 0;
+    if (currency === "USD") return v;
+    const rate = fx?.mep ?? income.fx_rate ?? 0;
+    if (rate === 0) return 0;
+    return v / rate;
   }, [amount, currency, fx?.mep, income.fx_rate]);
 
   async function save() {
@@ -177,6 +200,18 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
     }
   }
 
+  function performDelete() {
+    if (confirm("¿Seguro que querés eliminar este ingreso?")) {
+      del.mutate(income.id, {
+        onSuccess: () => {
+          toast.success("Ingreso eliminado");
+          onClose();
+        },
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Error al eliminar"),
+      });
+    }
+  }
+
   function handleDistributionConfirm(dist: IncomeDistribution) {
     setDistribution(dist);
     setStep("form");
@@ -188,7 +223,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0 shadow-2xl">
         <AnimatePresence mode="wait">
           {step === "form" ? (
             <motion.div
@@ -196,63 +231,53 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex max-h-[85vh] flex-col"
+              className="relative flex max-h-[85vh] flex-col"
             >
-              {/* Header */}
-              <div
-                className={cn(
-                  "relative flex items-center gap-3 overflow-hidden border-b border-white/5 bg-gradient-to-r p-4",
-                  CATEGORY_HEADER_GRADIENT[category],
-                )}
-              >
-                <div className="relative shrink-0">
-                  <div
-                    className={cn(
-                      "absolute inset-0 rounded-xl opacity-60 blur-md",
-                      cat.bgClass,
-                    )}
-                  />
-                  <div
-                    className={cn(
-                      "relative flex size-10 items-center justify-center rounded-xl ring-1",
-                      cat.bgClass,
-                      cat.textClass,
-                      cat.borderClass,
-                    )}
-                  >
-                    <Icon className="size-5" />
+              <div className="relative flex flex-col gap-5 overflow-y-auto p-6">
+                {/* Header */}
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <Pencil className="size-4" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <DialogTitle className="text-lg font-semibold tracking-tight text-white">
+                        Editar ingreso
+                      </DialogTitle>
+                      <p className="text-xs text-slate-400">
+                        Modificá los detalles de tu ingreso y su distribución.
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={performDelete}
+                    disabled={del.isPending}
+                    className="flex size-9 items-center justify-center rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
+                    title="Eliminar ingreso"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                 </div>
-                <div className="relative flex min-w-0 flex-col">
-                  <DialogTitle className="flex items-center gap-1.5 text-base font-semibold tracking-tight">
-                    <Pencil className="size-3.5 text-muted-foreground" />
-                    Editar ingreso
-                  </DialogTitle>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {cat.label}
-                  </span>
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-4 overflow-y-auto p-5">
                 {/* Monto + currency toggle */}
-                <div className="flex flex-col gap-2">
+                <div className="relative flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <Label
                       htmlFor="edit-amount"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
-                      Monto
+                      Monto · {currency}
                     </Label>
-                    <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
+                    <div className="flex gap-0.5 rounded-full bg-[#1A1D24] border border-white/[0.06] p-0.5 text-[10px] font-semibold">
                       <button
                         type="button"
                         onClick={() => setCurrency("ARS")}
                         className={cn(
                           "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                           currency === "ARS"
-                            ? "bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-md"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                            : "text-slate-500 hover:text-white"
                         )}
                       >
                         ARS
@@ -263,72 +288,80 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                         className={cn(
                           "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                           currency === "USD"
-                            ? "bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-md"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                            : "text-slate-500 hover:text-white"
                         )}
                       >
                         USD
                       </button>
                     </div>
                   </div>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-lg text-muted-foreground">
+                  <div className="relative flex items-center bg-[#1A1D24] border border-white/[0.06] focus-within:border-fuchsia-500/50 rounded-2xl transition-all">
+                    <span className="pointer-events-none pl-4 font-mono text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-cyan-400">
                       $
                     </span>
                     <Input
                       id="edit-amount"
                       type="text"
                       inputMode="decimal"
+                      placeholder="0"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="h-14 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-9 font-mono text-2xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
+                      className="h-16 w-full rounded-2xl border-0 bg-transparent pl-2 pr-4 font-mono text-4xl font-bold tabular-nums text-white focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
-                  {currency === "USD" && fx?.mep && parseAmount(amount) !== null && (
-                    <p className="rounded-lg bg-white/5 px-3 py-1.5 font-mono text-xs text-muted-foreground">
-                      ≈ ARS{" "}
-                      {amountArsPreview.toLocaleString("es-AR", {
-                        maximumFractionDigits: 0,
-                      })}{" "}
-                      al MEP ${Math.round(fx.mep)}
+                  {/* Preview de conversión */}
+                  {parseAmount(amount) !== null && (fx?.mep || income.fx_rate) && (
+                    <p className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-1.5 font-mono text-xs text-slate-400">
+                      {currency === "ARS"
+                        ? `≈ USD ${amountUsdPreview.toFixed(2)} al MEP $${Math.round(fx?.mep ?? income.fx_rate ?? 0)}`
+                        : `≈ ARS ${amountArsPreview.toLocaleString("es-AR", { maximumFractionDigits: 0 })} al MEP $${Math.round(fx?.mep ?? income.fx_rate ?? 0)}`}
                     </p>
                   )}
                 </div>
 
-                {/* Categoría */}
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {/* Categoría grid */}
+                <div className="relative flex flex-col gap-2">
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     Categoría
                   </Label>
-                  <Select
-                    value={category}
-                    onValueChange={(v) => setCategory(v as IncomeCategory)}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INCOME_CATEGORIES.map((c) => {
-                        const CatIcon = c.icon;
-                        return (
-                          <SelectItem key={c.id} value={c.id}>
-                            <div className="flex items-center gap-2">
-                              <CatIcon className={`size-3.5 ${c.textClass}`} />
-                              {c.label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-4 gap-2">
+                    {INCOME_CATEGORIES.map((catItem) => {
+                      const CatIcon = catItem.icon;
+                      const style = INCOME_CATEGORY_STYLES[catItem.id];
+                      const isActive = category === catItem.id;
+                      const disabled = !amount;
+                      return (
+                        <motion.button
+                          key={catItem.id}
+                          type="button"
+                          whileHover={disabled ? undefined : { y: -2 }}
+                          whileTap={disabled ? undefined : { scale: 0.96 }}
+                          onClick={() => setCategory(catItem.id)}
+                          disabled={disabled}
+                          className={cn(
+                            "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border p-1.5 text-center transition-all",
+                            isActive ? style.active : style.inactive,
+                            disabled && "cursor-not-allowed opacity-40"
+                          )}
+                          aria-label={catItem.label}
+                        >
+                          <CatIcon className="size-5" />
+                          <span className="font-semibold text-slate-200 text-[9px] mt-1">
+                            {catItem.short}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Origen + Fecha */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Source + Date */}
+                <div className="relative grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
                     <Label
                       htmlFor="edit-source"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
                       Origen
                     </Label>
@@ -337,13 +370,13 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       placeholder="Empresa, cliente..."
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                      className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <Label
                       htmlFor="edit-date"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
                       Fecha
                     </Label>
@@ -352,16 +385,16 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                      className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
                 </div>
 
                 {/* Nota */}
-                <div className="flex flex-col gap-1.5">
+                <div className="relative flex flex-col gap-1.5">
                   <Label
                     htmlFor="edit-note"
-                    className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                    className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                   >
                     Nota
                   </Label>
@@ -371,18 +404,18 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={120}
-                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                    className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                   />
                 </div>
 
                 {/* Distribución */}
-                <div className="flex flex-col gap-2">
-                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="relative flex flex-col gap-2">
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     Distribución
                   </Label>
 
                   {distribution ? (
-                    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3 backdrop-blur">
+                    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-3 transition-all">
                       {/* Barra de colores */}
                       <div className="flex h-2.5 w-full overflow-hidden rounded-full ring-1 ring-white/10">
                         {DISTRIBUTION_BUCKETS.map((b) => {
@@ -428,10 +461,10 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                                 className="size-1.5 rounded-full"
                                 style={{ backgroundColor: b.color }}
                               />
-                              <span className="text-muted-foreground">
+                              <span className="text-slate-400">
                                 {b.short}
                               </span>
-                              <span className="font-mono font-semibold tabular-nums">
+                              <span className="font-mono font-semibold tabular-nums text-white">
                                 {pct}%
                               </span>
                             </span>
@@ -444,7 +477,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                         <button
                           type="button"
                           onClick={() => setStep("distribution")}
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-2.5 py-1.5 text-[11px] font-semibold text-foreground/90 backdrop-blur transition-colors hover:bg-white/10"
+                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/[0.06] bg-transparent px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.04] cursor-pointer"
                         >
                           <Sliders className="size-3" />
                           Modificar
@@ -452,7 +485,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                         <button
                           type="button"
                           onClick={removeDistribution}
-                          className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300 backdrop-blur transition-colors hover:bg-rose-500/20"
+                          className="inline-flex items-center justify-center gap-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/15 border-0 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 transition-colors cursor-pointer"
                         >
                           <Trash2 className="size-3" />
                           Quitar
@@ -463,39 +496,38 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
                     <button
                       type="button"
                       onClick={() => setStep("distribution")}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 py-2.5 text-xs font-semibold text-muted-foreground backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground"
+                      disabled={!amount}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] bg-[#1A1D24] hover:bg-white/[0.02] px-3 py-2.5 text-xs font-semibold text-slate-400 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Sliders className="size-3.5" />
                       Agregar distribución
                       <ArrowRight className="size-3.5" />
                     </button>
                   ) : (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-500">
                       Sin distribución.
                     </p>
                   )}
                 </div>
               </div>
 
-              <DialogFooter className="border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-5 py-3 backdrop-blur">
+              {/* Footer Rediseñado */}
+              <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#1A1D24] px-6 py-4 rounded-b-[24px]">
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={onClose}
-                  disabled={update.isPending}
-                  className="h-10 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
+                  className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
                 >
                   Cancelar
                 </Button>
                 <Button
-                  size="sm"
                   onClick={save}
-                  disabled={update.isPending}
-                  className="h-10 rounded-xl bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-lg shadow-lime-500/25 transition-all hover:from-lime-400 hover:to-green-500 hover:shadow-lime-500/40 disabled:opacity-50"
+                  disabled={update.isPending || !category || !amount}
+                  className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0"
                 >
                   {update.isPending ? "Guardando..." : "Guardar"}
                 </Button>
-              </DialogFooter>
+              </div>
             </motion.div>
           ) : (
             <DistributionStep

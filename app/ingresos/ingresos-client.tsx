@@ -2,19 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Sliders } from "lucide-react";
+import { Sliders, CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Shell } from "@/components/layout/shell";
 import { MonthSelector } from "@/components/ingresos/month-selector";
 import dynamic from "next/dynamic";
 const QuickAddIncome = dynamic(() => import("@/components/ingresos/quick-add").then(mod => mod.QuickAddIncome), { ssr: false });
-import { Totalizer } from "@/components/ingresos/totalizer";
-import { ForecastBar } from "@/components/ingresos/forecast-bar";
-import { WaterfallSankey } from "@/components/ingresos/waterfall-sankey";
-import { DistributionStep } from "@/components/ingresos/distribution-step";
-import { IncomesList } from "@/components/ingresos/incomes-list";
-import { useIncomes, useUpdateIncome } from "@/hooks/use-incomes";
+const EditIncomeDialog = dynamic(() => import("@/components/ingresos/edit-income-dialog").then((mod) => mod.EditIncomeDialog), { ssr: false });
+import { useIncomes, useUpdateIncome, type Income } from "@/hooks/use-incomes";
 import { useExpenses, sumExpensesByType } from "@/hooks/use-expenses";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -22,12 +18,87 @@ import {
   lastOfMonth,
   monthKey,
   toISODate,
+  fromISODate,
+  formatARS,
+  formatUSD,
 } from "@/lib/format";
+import { PrivateAmount } from "@/components/ui/private-amount";
+import { INCOME_CATEGORIES_BY_ID } from "@/lib/income-categories";
+import type { IncomeCategory } from "@/types/database";
+import { DistributionStep } from "@/components/ingresos/distribution-step";
+import { cn } from "@/lib/utils";
+
+const INCOME_CATEGORY_STYLES: Record<IncomeCategory, { inactive: string; active: string }> = {
+  sueldo: {
+    inactive: "bg-emerald-500/10 text-emerald-400 border-white/[0.06] hover:bg-emerald-500/15",
+    active: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50",
+  },
+  freelance: {
+    inactive: "bg-[#8B5CF6]/10 text-[#8B5CF6] border-white/[0.06] hover:bg-[#8B5CF6]/15",
+    active: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/50",
+  },
+  alquiler_cobrado: {
+    inactive: "bg-blue-500/10 text-blue-400 border-white/[0.06] hover:bg-blue-500/15",
+    active: "bg-blue-500/20 text-blue-400 border-blue-500/50",
+  },
+  dividendos: {
+    inactive: "bg-amber-500/10 text-amber-400 border-white/[0.06] hover:bg-amber-500/15",
+    active: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+  },
+  venta: {
+    inactive: "bg-orange-500/10 text-orange-400 border-white/[0.06] hover:bg-orange-500/15",
+    active: "bg-orange-500/20 text-orange-400 border-orange-500/50",
+  },
+  bono: {
+    inactive: "bg-indigo-500/10 text-indigo-400 border-white/[0.06] hover:bg-indigo-500/15",
+    active: "bg-indigo-500/20 text-indigo-400 border-indigo-500/50",
+  },
+  otros: {
+    inactive: "bg-slate-500/10 text-slate-400 border-white/[0.06] hover:bg-slate-500/15",
+    active: "bg-slate-500/20 text-slate-400 border-slate-500/50",
+  },
+};
+
+const formatAxisLabel = (val: number) => {
+  if (val === 0) return "$0";
+  if (val >= 1000000) {
+    const millions = val / 1000000;
+    return `$${millions.toFixed(millions % 1 === 0 ? 0 : 1)}M`;
+  }
+  if (val >= 1000) {
+    const thousands = val / 1000;
+    return `$${thousands.toFixed(thousands % 1 === 0 ? 0 : 1)}k`;
+  }
+  return `$${val}`;
+};
+
+const formatBarLabel = (val: number) => {
+  if (val === 0) return "$0";
+  if (val >= 1000) {
+    return `$${Math.round(val / 1000).toLocaleString("es-AR")}k`;
+  }
+  return `$${val}`;
+};
+
+const getTopAxisValue = (maxVal: number) => {
+  if (maxVal <= 0) return 3000000;
+  const order = Math.pow(10, Math.floor(Math.log10(maxVal)));
+  const ratio = maxVal / order;
+  let factor = 10;
+  if (ratio <= 1.5) factor = 1.5;
+  else if (ratio <= 2) factor = 2;
+  else if (ratio <= 3) factor = 3;
+  else if (ratio <= 4) factor = 4;
+  else if (ratio <= 5) factor = 5;
+  else if (ratio <= 7.5) factor = 7.5;
+  return order * factor;
+};
 
 export default function IngresosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
   const [editingDistribution, setEditingDistribution] = useState(false);
   const [isSavingDist, setIsSavingDist] = useState(false);
+  const [editing, setEditing] = useState<Income | null>(null);
 
   const { data: incomes = [], isLoading } = useIncomes(month);
   const { data: expenses = [] } = useExpenses(month);
@@ -35,19 +106,91 @@ export default function IngresosClient() {
 
   const realExpenses = useMemo(() => sumExpensesByType(expenses), [expenses]);
 
-  const totalArs = useMemo(
-    () => incomes.reduce((s, i) => s + Number(i.amount_ars), 0),
-    [incomes],
-  );
+  const hasData = incomes.length > 0;
 
+  // Fallback mock incomes for visual demonstration matching prototype total of $6,000,000
+  const mockIncomes = useMemo<Income[]>(() => {
+    const monthYearStr = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
+    return [
+      {
+        id: "mock-1",
+        amount: 3800000,
+        amount_ars: 3800000,
+        currency: "ARS",
+        category: "sueldo",
+        source: "Sueldo YPF",
+        date: `${monthYearStr}-02`,
+        note: "Nómina mensual",
+        distribution: { fixed_pct: 40, variable_pct: 20, invest_pct: 25, save_pct: 15 },
+        created_at: "",
+        user_id: "",
+        fx_rate: null,
+      },
+      {
+        id: "mock-2",
+        amount: 1500000,
+        amount_ars: 1500000,
+        currency: "ARS",
+        category: "dividendos",
+        source: "Rendimientos Inversiones",
+        date: `${monthYearStr}-02`,
+        note: "Rentabilidades trimestrales",
+        distribution: { fixed_pct: 25, variable_pct: 15, invest_pct: 40, save_pct: 20 },
+        created_at: "",
+        user_id: "",
+        fx_rate: null,
+      },
+      {
+        id: "mock-3",
+        amount: 700000,
+        amount_ars: 700000,
+        currency: "ARS",
+        category: "venta",
+        source: "Venta particular",
+        date: `${monthYearStr}-02`,
+        note: "Venta sillón",
+        distribution: null,
+        created_at: "",
+        user_id: "",
+        fx_rate: null,
+      },
+    ] as unknown as Income[];
+  }, [month]);
 
+  const activeIncomes = hasData ? incomes : mockIncomes;
+
+  const totalIncomes = useMemo(() => {
+    return activeIncomes.reduce((s, i) => s + Number(i.amount_ars), 0);
+  }, [activeIncomes]);
+
+  const totalExpenses = useMemo(() => {
+    if (hasData) {
+      return realExpenses.total;
+    }
+    return 1909070; // Fallback mock expenses
+  }, [hasData, realExpenses.total]);
+
+  const libre = useMemo(() => {
+    return Math.max(0, totalIncomes - totalExpenses);
+  }, [totalIncomes, totalExpenses]);
+
+  const percentageConsumed = useMemo(() => {
+    if (totalIncomes === 0) return 0;
+    return Math.min(100, Math.round((totalExpenses / totalIncomes) * 100));
+  }, [totalIncomes, totalExpenses]);
 
   const compositeDistribution = useMemo(() => {
-    if (totalArs === 0) return { fixed_pct: 50, variable_pct: 30, invest_pct: 10, save_pct: 10 };
-    return incomes.reduce(
+    if (totalIncomes === 0) return { fixed_pct: 50, variable_pct: 30, invest_pct: 10, save_pct: 10 };
+    // We compute the weighted distribution percentages
+    const validIncomes = activeIncomes.filter(i => i.distribution);
+    if (validIncomes.length === 0) {
+      return { fixed_pct: 40, variable_pct: 20, invest_pct: 25, save_pct: 15 };
+    }
+    const totalWithDist = validIncomes.reduce((s, i) => s + Number(i.amount_ars), 0);
+    return validIncomes.reduce(
       (acc, i) => {
         if (!i.distribution) return acc;
-        const w = Number(i.amount_ars) / totalArs;
+        const w = Number(i.amount_ars) / totalWithDist;
         acc.fixed_pct += i.distribution.fixed_pct * w;
         acc.variable_pct += i.distribution.variable_pct * w;
         acc.invest_pct += i.distribution.invest_pct * w;
@@ -56,7 +199,7 @@ export default function IngresosClient() {
       },
       { fixed_pct: 0, variable_pct: 0, invest_pct: 0, save_pct: 0 }
     );
-  }, [incomes, totalArs]);
+  }, [activeIncomes, totalIncomes]);
 
   const previousMonth = useMemo(
     () => new Date(month.getFullYear(), month.getMonth() - 1, 1),
@@ -82,6 +225,13 @@ export default function IngresosClient() {
     },
   });
 
+  const deltaStr = useMemo(() => {
+    if (!hasData) return "+8% vs mes anterior";
+    if (previousTotal === null || previousTotal === 0) return "Nuevo este mes";
+    const pct = Math.round(((totalIncomes - previousTotal) / previousTotal) * 100);
+    return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
+  }, [hasData, totalIncomes, previousTotal]);
+
   const handleBulkUpdateDistribution = async (dist: { fixed_pct: number, variable_pct: number, invest_pct: number, save_pct: number }) => {
     setIsSavingDist(true);
     try {
@@ -99,70 +249,177 @@ export default function IngresosClient() {
     }
   };
 
+  // Theoretical distribution values mapping (Inversiones, Ahorro, G. Fijos, G. Var.)
+  const barValues = useMemo(() => {
+    if (!hasData) {
+      return {
+        invest: 1545000,
+        save: 2545000,
+        fixed: 1000000,
+        variable: 909000,
+      };
+    }
+    return {
+      invest: Math.round(totalIncomes * (compositeDistribution.invest_pct / 100)),
+      save: Math.round(totalIncomes * (compositeDistribution.save_pct / 100)),
+      fixed: Math.round(totalIncomes * (compositeDistribution.fixed_pct / 100)),
+      variable: Math.round(totalIncomes * (compositeDistribution.variable_pct / 100)),
+    };
+  }, [hasData, totalIncomes, compositeDistribution]);
+
+  const maxBarVal = Math.max(barValues.invest, barValues.save, barValues.fixed, barValues.variable);
+  const topAxisVal = getTopAxisValue(maxBarVal);
+
+  const hInvest = topAxisVal > 0 ? (barValues.invest / topAxisVal) * 150 : 0;
+  const yInvest = 175 - hInvest;
+
+  const hSave = topAxisVal > 0 ? (barValues.save / topAxisVal) * 150 : 0;
+  const ySave = 175 - hSave;
+
+  const hFixed = topAxisVal > 0 ? (barValues.fixed / topAxisVal) * 150 : 0;
+  const yFixed = 175 - hFixed;
+
+  const hVar = topAxisVal > 0 ? (barValues.variable / topAxisVal) * 150 : 0;
+  const yVar = 175 - hVar;
+
+  // Grouping list items by localized date, e.g. "2 De Junio"
+  const groupedIncomes = useMemo(() => {
+    const groups: Record<string, typeof activeIncomes> = {};
+    activeIncomes.forEach((inc) => {
+      const d = fromISODate(inc.date);
+      const day = d.getDate();
+      const monthNames = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+      ];
+      const monthName = monthNames[d.getMonth()];
+      const formattedDate = `${day} De ${monthName}`;
+      if (!groups[formattedDate]) {
+        groups[formattedDate] = [];
+      }
+      groups[formattedDate].push(inc);
+    });
+    return Object.entries(groups).map(([dateStr, items]) => {
+      const dayTotal = items.reduce((sum, item) => sum + Number(item.amount_ars), 0);
+      return {
+        dateStr,
+        dayTotal,
+        items,
+      };
+    }).sort((a, b) => {
+      const dateA = fromISODate(a.items[0].date).getTime();
+      const dateB = fromISODate(b.items[0].date).getTime();
+      return dateB - dateA;
+    });
+  }, [activeIncomes]);
+
   return (
     <Shell>
       <div className="relative flex flex-col gap-6 p-4 pb-10 sm:p-6 md:p-8">
         {/* Ambient background glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.12),transparent_80%)]" />
 
-        {/* Hero header */}
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-wrap items-end justify-between gap-4"
-        >
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-lime-300/80">
-              Ingresos
-            </span>
-            <h1 className="bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-              Gestión de ingresos
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Cargá tu salario, freelance y otros ingresos. Distribuilos al instante.
-            </p>
+        {/* Header */}
+        <div className="mb-7 animate-fade-in">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">INGRESOS</p>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">Gestión de Ingresos</h1>
+            <div className="flex items-center gap-3">
+              <MonthSelector month={month} onChange={setMonth} />
+              <QuickAddIncome />
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <MonthSelector month={month} onChange={setMonth} />
-            <QuickAddIncome />
-          </div>
-        </motion.div>
-
-        {/* Totalizer + Forecast */}
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <Totalizer incomes={incomes} previousTotal={previousTotal} />
-          <ForecastBar month={month} incomesTotal={totalArs} />
         </div>
 
-        {/* Sankey grande (Teórico) + Lista */}
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div id="ingresos-distribution" className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 backdrop-blur">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-lime-400" />
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Distribución Teórica
+        {/* Row 1: Ingresos del Mes + Flujo Libre */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-7 animate-fade-in delay-1">
+          {/* Ingresos del Mes Card */}
+          <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-xs text-slate-500 font-medium">Ingresos del Mes</span>
+            </div>
+            <p className="text-4xl font-extrabold text-white tnum">
+              <PrivateAmount>{formatARS(totalIncomes)}</PrivateAmount>
+            </p>
+            <p className="text-xs text-emerald-400 mt-2 font-medium">{deltaStr}</p>
+          </div>
+
+          {/* Flujo Libre del Mes Card */}
+          <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300">
+            <h3 className="text-sm font-semibold text-white mb-4">Flujo Libre del Mes</h3>
+            <div className="flex gap-4 mb-4">
+              {/* Ingresos sub-card */}
+              <div className="flex-1 rounded-xl p-3 text-center bg-[rgba(20,184,166,0.08)] border border-[rgba(20,184,166,0.15)]">
+                <p className="text-[10px] text-teal-400 font-semibold uppercase mb-1">Ingresos</p>
+                <p className="text-lg font-bold text-teal-400 tnum">
+                  <PrivateAmount>{formatARS(totalIncomes)}</PrivateAmount>
                 </p>
               </div>
-              {totalArs > 0 && !editingDistribution && (
+              {/* Gastos sub-card */}
+              <div className="flex-1 rounded-xl p-3 text-center bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.15)]">
+                <p className="text-[10px] text-amber-400 font-semibold uppercase mb-1">Gastos</p>
+                <p className="text-lg font-bold text-amber-400 tnum">
+                  <PrivateAmount>{formatARS(totalExpenses)}</PrivateAmount>
+                </p>
+              </div>
+              {/* Libre sub-card */}
+              <div className="flex-1 rounded-xl p-3 text-center bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)]">
+                <p className="text-[10px] text-slate-300 font-semibold uppercase mb-1">Libre</p>
+                <p className="text-lg font-bold text-white tnum">
+                  <PrivateAmount>{formatARS(libre)}</PrivateAmount>
+                </p>
+              </div>
+            </div>
+            {/* Progress Bar */}
+            <div className="mb-2">
+              <div className="w-full h-2.5 rounded-full bg-white/[0.06]">
+                <div
+                  className="h-2.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${percentageConsumed}%`,
+                    background: "linear-gradient(90deg, #f59e0b, #ef4444)",
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-amber-400 font-medium">{percentageConsumed}% de ingresos consumidos</span>
+              <span className="text-slate-400">
+                Disponible:{" "}
+                <span className="text-white font-semibold tnum">
+                  <PrivateAmount>{formatARS(libre)}</PrivateAmount>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Distribución Teórica + Movimientos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in delay-2">
+          {/* Distribución Teórica Card */}
+          <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col justify-between min-h-[300px]">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Distribución Teórica</h3>
+              {hasData && !editingDistribution && (
                 <button
                   onClick={() => setEditingDistribution(true)}
-                  className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
-                  aria-label="Modificar distribución total"
+                  className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/10 hover:text-white cursor-pointer"
+                  title="Modificar distribución total"
                 >
                   <Sliders className="size-3.5" />
                 </button>
               )}
             </div>
-            {totalArs === 0 ? (
-              <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+
+            {totalIncomes === 0 ? (
+              <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
                 Sin ingresos este mes
               </div>
             ) : editingDistribution ? (
-              <div className="-mx-6 -mb-6">
+              <div className="-mx-6 -mb-6 flex-1">
                 <DistributionStep
-                  amountArs={totalArs}
+                  amountArs={totalIncomes}
                   initial={compositeDistribution}
                   onBack={() => setEditingDistribution(false)}
                   onConfirm={handleBulkUpdateDistribution}
@@ -171,28 +428,129 @@ export default function IngresosClient() {
                 />
               </div>
             ) : (
-              <WaterfallSankey
-                amountArs={totalArs}
-                distribution={compositeDistribution}
-                realExpenses={realExpenses}
-              />
+              <div className="w-full flex items-center justify-center flex-1">
+                <svg viewBox="0 0 380 220" className="w-full">
+                  {/* Y axis labels */}
+                  <text x="5" y="30" fill="#64748b" fontSize="9" fontFamily="Inter">{formatAxisLabel(topAxisVal)}</text>
+                  <text x="5" y="80" fill="#64748b" fontSize="9" fontFamily="Inter">{formatAxisLabel(topAxisVal * 2 / 3)}</text>
+                  <text x="5" y="130" fill="#64748b" fontSize="9" fontFamily="Inter">{formatAxisLabel(topAxisVal * 1 / 3)}</text>
+                  <text x="5" y="180" fill="#64748b" fontSize="9" fontFamily="Inter">$0</text>
+                  {/* Grid lines */}
+                  <line x1="40" y1="25" x2="370" y2="25" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
+                  <line x1="40" y1="75" x2="370" y2="75" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
+                  <line x1="40" y1="125" x2="370" y2="125" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
+                  <line x1="40" y1="175" x2="370" y2="175" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  
+                  {/* Bars */}
+                  {/* Inversiones */}
+                  <rect x="55" y={yInvest} width="55" height={hInvest} rx="6" fill="#10b981" opacity="0.8"/>
+                  <text x="82" y="205" textAnchor="middle" fill="#64748b" fontSize="8" fontFamily="Inter">Inversiones</text>
+                  <text x="82" y={yInvest - 5} textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="600" fontFamily="Inter">{formatBarLabel(barValues.invest)}</text>
+                  
+                  {/* Ahorro */}
+                  <rect x="135" y={ySave} width="55" height={hSave} rx="6" fill="#3b82f6" opacity="0.8"/>
+                  <text x="162" y="205" textAnchor="middle" fill="#64748b" fontSize="8" fontFamily="Inter">Ahorro</text>
+                  <text x="162" y={ySave - 5} textAnchor="middle" fill="#3b82f6" fontSize="9" fontWeight="600" fontFamily="Inter">{formatBarLabel(barValues.save)}</text>
+                  
+                  {/* Gastos Fijos */}
+                  <rect x="215" y={yFixed} width="55" height={hFixed} rx="6" fill="#ef4444" opacity="0.8"/>
+                  <text x="242" y="205" textAnchor="middle" fill="#64748b" fontSize="8" fontFamily="Inter">G. Fijos</text>
+                  <text x="242" y={yFixed - 5} textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="600" fontFamily="Inter">{formatBarLabel(barValues.fixed)}</text>
+                  
+                  {/* Gastos Variables */}
+                  <rect x="295" y={yVar} width="55" height={hVar} rx="6" fill="#f97316" opacity="0.8"/>
+                  <text x="322" y="205" textAnchor="middle" fill="#64748b" fontSize="8" fontFamily="Inter">G. Var.</text>
+                  <text x="322" y={yVar - 5} textAnchor="middle" fill="#f97316" fontSize="9" fontWeight="600" fontFamily="Inter">{formatBarLabel(barValues.variable)}</text>
+                </svg>
+              </div>
             )}
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center rounded-xl border border-white/5 bg-card/40 p-12 backdrop-blur">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="size-2 animate-pulse rounded-full bg-lime-400" />
-                Cargando ingresos...
-              </div>
+
+          {/* Movimientos Card */}
+          <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col min-h-[300px]">
+            <h3 className="text-sm font-semibold text-white mb-4">Movimientos</h3>
+            <div className="flex flex-col gap-5 overflow-y-auto flex-1 max-h-[350px] pr-1">
+              {groupedIncomes.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+                  Sin movimientos cargados
+                </div>
+              ) : (
+                groupedIncomes.map((group) => (
+                  <div key={group.dateStr} className="mb-2">
+                    <div className="flex items-center justify-between mb-3 border-b border-white/[0.04] pb-1">
+                      <span className="text-xs text-slate-500 font-medium">{group.dateStr}</span>
+                      <span className="text-xs text-emerald-400 font-bold tnum">
+                        <PrivateAmount>{formatARS(group.dayTotal)}</PrivateAmount>
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {group.items.map((item) => {
+                        const catConfig = INCOME_CATEGORIES_BY_ID[item.category];
+                        const CatIcon = catConfig?.icon || CircleDollarSign;
+                        const style = INCOME_CATEGORY_STYLES[item.category];
+                        const isUsdOriginal = item.currency === "USD";
+                        const isMock = item.id.startsWith("mock-");
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (!isMock) {
+                                setEditing(item as Income);
+                              } else {
+                                toast.info("Este es un ingreso de prueba. Registrá un nuevo ingreso para poder editarlo.");
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center justify-between py-2 transition-all rounded-xl px-2 -mx-2",
+                              !isMock ? "cursor-pointer hover:bg-white/[0.04]" : "opacity-80"
+                            )}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={cn(
+                                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-transparent",
+                                style?.inactive
+                              )}>
+                                <CatIcon className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm text-white font-medium truncate">
+                                  {item.source || catConfig?.label}
+                                </p>
+                                <p className="text-xs text-slate-500 truncate">
+                                  {item.note || catConfig?.short || "Ingreso registrado"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end shrink-0">
+                              <span className="text-sm font-bold text-emerald-400 tnum">
+                                <PrivateAmount>{formatARS(Number(item.amount_ars))}</PrivateAmount>
+                              </span>
+                              {isUsdOriginal && (
+                                <span className="font-mono text-[9px] tabular-nums text-lime-300/80">
+                                  <PrivateAmount>{formatUSD(Number(item.amount), true)}</PrivateAmount>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          ) : (
-            <IncomesList
-              incomes={incomes}
-              filterCategory={null}
-            />
-          )}
+          </div>
         </div>
       </div>
+
+      {editing && (
+        <EditIncomeDialog
+          open={!!editing}
+          income={editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </Shell>
   );
 }

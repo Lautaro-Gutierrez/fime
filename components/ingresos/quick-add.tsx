@@ -33,14 +33,35 @@ import { DistributionStep } from "@/components/ingresos/distribution-step";
 // Para las otras (dividendos, venta, otros) se puede entrar al paso 2 igual si el user lo pide.
 const DEFAULT_DISTRIBUTE: IncomeCategory[] = ["sueldo", "bono", "freelance"];
 
-const CATEGORY_CARD_GRADIENT: Record<IncomeCategory, string> = {
-  sueldo: "from-lime-500/20 via-lime-500/5 to-transparent",
-  freelance: "from-sky-500/20 via-sky-500/5 to-transparent",
-  alquiler_cobrado: "from-blue-500/20 via-blue-500/5 to-transparent",
-  dividendos: "from-theme-500/20 via-theme-500/5 to-transparent",
-  venta: "from-orange-500/20 via-orange-500/5 to-transparent",
-  bono: "from-fuchsia-500/20 via-fuchsia-500/5 to-transparent",
-  otros: "from-slate-500/20 via-slate-500/5 to-transparent",
+const INCOME_CATEGORY_STYLES: Record<IncomeCategory, { inactive: string; active: string }> = {
+  sueldo: {
+    inactive: "bg-emerald-500/10 text-emerald-400 border-white/[0.06] hover:bg-emerald-500/15",
+    active: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50",
+  },
+  freelance: {
+    inactive: "bg-[#8B5CF6]/10 text-[#8B5CF6] border-white/[0.06] hover:bg-[#8B5CF6]/15",
+    active: "bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/50",
+  },
+  alquiler_cobrado: {
+    inactive: "bg-blue-500/10 text-blue-400 border-white/[0.06] hover:bg-blue-500/15",
+    active: "bg-blue-500/20 text-blue-400 border-blue-500/50",
+  },
+  dividendos: {
+    inactive: "bg-amber-500/10 text-amber-400 border-white/[0.06] hover:bg-amber-500/15",
+    active: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+  },
+  venta: {
+    inactive: "bg-orange-500/10 text-orange-400 border-white/[0.06] hover:bg-orange-500/15",
+    active: "bg-orange-500/20 text-orange-400 border-orange-500/50",
+  },
+  bono: {
+    inactive: "bg-indigo-500/10 text-indigo-400 border-white/[0.06] hover:bg-indigo-500/15",
+    active: "bg-indigo-500/20 text-indigo-400 border-indigo-500/50",
+  },
+  otros: {
+    inactive: "bg-slate-500/10 text-slate-400 border-white/[0.06] hover:bg-slate-500/15",
+    active: "bg-slate-500/20 text-slate-400 border-slate-500/50",
+  },
 };
 
 // Acepta formato AR ("1.234,56") y anglo ("1,234.56" o "2.20").
@@ -234,18 +255,17 @@ export function QuickAddIncome() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button
+          <button
             id="ingresos-quick-add"
-            size="lg"
-            className="h-11 gap-2 rounded-full bg-gradient-to-br from-lime-500 to-green-600 px-5 text-white shadow-lg shadow-lime-500/25 transition-all hover:from-lime-400 hover:to-green-500 hover:shadow-lime-500/40"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
           >
-            <Plus className="size-4" />
+            <Plus className="w-4 h-4" />
             Nuevo ingreso
-          </Button>
+          </button>
         }
       />
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0 shadow-2xl">
         <AnimatePresence mode="wait">
           {step === "form" ? (
             <motion.div
@@ -256,19 +276,16 @@ export function QuickAddIncome() {
               className="relative flex max-h-[85vh] flex-col"
             >
               <div className="relative flex flex-col gap-5 overflow-y-auto p-6">
-                {/* Background glow */}
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(132,204,22,0.1),transparent_60%)]" />
-
                 {/* Header */}
                 <div className="relative flex items-start gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-lime-500/15 ring-1 ring-lime-500/30">
-                    <Sparkles className="size-4 text-lime-300" />
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <Sparkles className="size-4" />
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <DialogTitle className="text-lg font-semibold tracking-tight">
+                    <DialogTitle className="text-lg font-semibold tracking-tight text-white">
                       Nuevo ingreso
                     </DialogTitle>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-400">
                       Cargá el monto y la categoría. Podés distribuirlo al finalizar.
                     </p>
                   </div>
@@ -276,38 +293,35 @@ export function QuickAddIncome() {
 
                 {/* Templates one-click */}
                 <div className="relative flex flex-col gap-2">
-                  <Label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    <Zap className="size-3 text-lime-400" />
+                  <Label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                    <Zap className="size-3 text-emerald-400 animate-pulse" />
                     Carga rápida
                   </Label>
                   <div className="grid grid-cols-2 gap-2">
                     {INCOME_TEMPLATES.map((t) => {
                       const cat = INCOME_CATEGORIES_BY_ID[t.category];
                       const isActive = activeTemplate === t.id;
+                      const style = INCOME_CATEGORY_STYLES[t.category];
                       return (
                         <motion.button
                           key={t.id}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => applyTemplate(t.id)}
                           className={cn(
-                            "group relative flex min-h-[72px] flex-col items-start justify-between overflow-hidden rounded-xl border bg-gradient-to-br p-2.5 text-left transition-all",
-                            CATEGORY_CARD_GRADIENT[t.category],
-                            isActive
-                              ? `border-white/20 ring-1 ring-lime-500/40`
-                              : "border-white/5 hover:border-white/10",
+                            "group relative flex min-h-[72px] flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-all",
+                            isActive ? style.active : style.inactive
                           )}
                         >
                           <div
                             className={cn(
-                              "flex size-6 items-center justify-center rounded-lg ring-1",
-                              cat.bgClass,
-                              cat.textClass,
-                              cat.borderClass,
+                              "flex size-6 items-center justify-center rounded-lg",
+                              isActive ? "bg-white/10" : "bg-white/5",
+                              cat.textClass
                             )}
                           >
-                            <cat.icon className="size-3" />
+                            <cat.icon className="size-3.5" />
                           </div>
-                          <span className="text-[11px] font-bold leading-tight tracking-tight text-foreground">
+                          <span className="text-[11px] font-semibold text-slate-200">
                             {t.label}
                           </span>
                         </motion.button>
@@ -321,19 +335,19 @@ export function QuickAddIncome() {
                   <div className="flex items-center justify-between">
                     <Label
                       htmlFor="amount"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
-                      Monto
+                      Monto · {currency}
                     </Label>
-                    <div className="flex gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 text-[10px] font-semibold backdrop-blur">
+                    <div className="flex gap-0.5 rounded-full bg-[#1A1D24] border border-white/[0.06] p-0.5 text-[10px] font-semibold">
                       <button
                         type="button"
                         onClick={() => setCurrency("ARS")}
                         className={cn(
                           "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                           currency === "ARS"
-                            ? "bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-md"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                            : "text-slate-500 hover:text-white"
                         )}
                       >
                         ARS
@@ -344,16 +358,16 @@ export function QuickAddIncome() {
                         className={cn(
                           "rounded-full px-2.5 py-1 uppercase tracking-widest transition-all",
                           currency === "USD"
-                            ? "bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-md"
-                            : "text-muted-foreground hover:text-foreground",
+                            ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400"
+                            : "text-slate-500 hover:text-white"
                         )}
                       >
                         USD
                       </button>
                     </div>
                   </div>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center font-mono text-2xl text-muted-foreground">
+                  <div className="relative flex items-center bg-[#1A1D24] border border-white/[0.06] focus-within:border-fuchsia-500/50 rounded-2xl transition-all">
+                    <span className="pointer-events-none pl-4 font-mono text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-cyan-400">
                       $
                     </span>
                     <Input
@@ -364,12 +378,12 @@ export function QuickAddIncome() {
                       placeholder="0"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="h-16 rounded-2xl border-white/5 bg-white/[0.03] backdrop-blur-xl pl-10 font-mono text-3xl font-bold tabular-nums backdrop-blur focus-visible:border-lime-500/40 focus-visible:ring-lime-500/20"
+                      className="h-16 w-full rounded-2xl border-0 bg-transparent pl-2 pr-4 font-mono text-4xl font-bold tabular-nums text-white focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
                   {/* Preview de conversión */}
                   {parseNumber(amount) !== null && fx?.mep && (
-                    <p className="rounded-lg bg-white/5 px-3 py-1.5 font-mono text-xs text-muted-foreground">
+                    <p className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-1.5 font-mono text-xs text-slate-400">
                       {currency === "ARS"
                         ? `≈ USD ${amountUsd.toFixed(2)} al MEP $${Math.round(fx.mep)}`
                         : `≈ ARS ${amountArs.toLocaleString("es-AR", { maximumFractionDigits: 0 })} al MEP $${Math.round(fx.mep)}`}
@@ -379,47 +393,32 @@ export function QuickAddIncome() {
 
                 {/* Categoría grid */}
                 <div className="relative flex flex-col gap-2">
-                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <Label className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                     Categoría
                   </Label>
                   <div className="grid grid-cols-4 gap-2">
                     {INCOME_CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
+                      const style = INCOME_CATEGORY_STYLES[cat.id];
                       const isActive = category === cat.id;
+                      const disabled = !amount;
                       return (
                         <motion.button
                           key={cat.id}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.96 }}
+                          type="button"
+                          whileHover={disabled ? undefined : { y: -2 }}
+                          whileTap={disabled ? undefined : { scale: 0.96 }}
                           onClick={() => setCategory(cat.id)}
+                          disabled={disabled}
                           className={cn(
-                            "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border bg-gradient-to-br p-1.5 text-center transition-all",
-                            CATEGORY_CARD_GRADIENT[cat.id],
-                            isActive
-                              ? "border-white/20 ring-1 ring-lime-500/40"
-                              : "border-white/5 hover:border-white/10",
+                            "group relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border p-1.5 text-center transition-all",
+                            isActive ? style.active : style.inactive,
+                            disabled && "cursor-not-allowed opacity-40"
                           )}
                           aria-label={cat.label}
                         >
-                          <div className="relative">
-                            <div
-                              className={cn(
-                                "absolute inset-0 rounded-lg opacity-60 blur-md",
-                                cat.bgClass,
-                              )}
-                            />
-                            <div
-                              className={cn(
-                                "relative flex size-8 items-center justify-center rounded-lg ring-1",
-                                cat.bgClass,
-                                cat.textClass,
-                                cat.borderClass,
-                              )}
-                            >
-                              <Icon className="size-4" />
-                            </div>
-                          </div>
-                          <span className="text-[9px] font-semibold leading-tight tracking-tight text-foreground/90">
+                          <Icon className="size-5" />
+                          <span className="font-semibold text-slate-200 text-[9px] mt-1">
                             {cat.short}
                           </span>
                         </motion.button>
@@ -433,7 +432,7 @@ export function QuickAddIncome() {
                   <div className="flex flex-col gap-1.5">
                     <Label
                       htmlFor="source"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
                       Origen
                     </Label>
@@ -442,13 +441,13 @@ export function QuickAddIncome() {
                       placeholder="Empresa, cliente..."
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                      className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <Label
                       htmlFor="date"
-                      className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                     >
                       Fecha
                     </Label>
@@ -457,7 +456,7 @@ export function QuickAddIncome() {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                      className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
                 </div>
@@ -466,7 +465,7 @@ export function QuickAddIncome() {
                 <div className="relative flex flex-col gap-1.5">
                   <Label
                     htmlFor="note"
-                    className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                    className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
                   >
                     Nota
                   </Label>
@@ -476,42 +475,48 @@ export function QuickAddIncome() {
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={120}
-                    className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                    className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="relative flex gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl p-4 backdrop-blur">
+              {/* Footer Rediseñado */}
+              <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#1A1D24] px-6 py-4 rounded-b-[24px]">
                 <Button
                   variant="outline"
                   onClick={() => setOpen(false)}
-                  disabled={createIncome.isPending}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl hover:bg-white/[0.03] backdrop-blur-xl"
+                  className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
                 >
                   Cancelar
                 </Button>
-                <Button
-                  onClick={submitDirect}
-                  disabled={createIncome.isPending}
-                  variant="outline"
-                  className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-semibold hover:bg-white/[0.03] backdrop-blur-xl"
-                >
-                  {createIncome.isPending ? "Guardando..." : "Guardar"}
-                </Button>
-                <Button
-                  onClick={goToDistribution}
-                  disabled={createIncome.isPending || !canDistribute}
-                  title={
-                    !canDistribute
-                      ? "Elegí Sueldo, Bono o Freelance para distribuir"
-                      : undefined
-                  }
-                  className="h-11 flex-1 gap-1 rounded-xl bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-lg shadow-lime-500/25 transition-all hover:from-lime-400 hover:to-green-500 hover:shadow-lime-500/40 disabled:opacity-40"
-                >
-                  Distribuir
-                  <ArrowRight className="size-4" />
-                </Button>
+                <div className="flex gap-2">
+                  {canDistribute ? (
+                    <>
+                      <Button
+                        onClick={submitDirect}
+                        disabled={createIncome.isPending || !category || !amount}
+                        className="h-10 rounded-xl bg-[#2A2D35] border border-white/[0.06] hover:bg-[#353943] text-slate-200 font-semibold transition-all"
+                      >
+                        {createIncome.isPending ? "Guardando..." : "Cargar Solo"}
+                      </Button>
+                      <Button
+                        onClick={goToDistribution}
+                        disabled={createIncome.isPending || !category || !amount}
+                        className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0"
+                      >
+                        Distribuir
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={submitDirect}
+                      disabled={createIncome.isPending || !category || !amount}
+                      className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0"
+                    >
+                      {createIncome.isPending ? "Guardando..." : "Guardar"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </motion.div>
           ) : (
