@@ -500,7 +500,7 @@ export default function DashboardClient() {
                   </defs>
                 </svg>
                 <div className="absolute bottom-0 text-center">
-                  <span className="text-5xl font-extrabold text-white tnum tracking-tighter">{score}</span>
+                  <span className="text-4xl font-extrabold text-white tnum tracking-tighter">{score}</span>
                   <span className="text-sm text-slate-500 font-medium">/100</span>
                 </div>
               </div>
