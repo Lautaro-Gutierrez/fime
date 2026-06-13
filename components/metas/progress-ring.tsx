@@ -57,8 +57,8 @@ export function ProgressRing({
       >
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#D0005F" />
-            <stop offset="100%" stopColor="#00CFFF" />
+            <stop offset="0%" stopColor="#d946ef" />
+            <stop offset="100%" stopColor="#06b6d4" />
           </linearGradient>
         </defs>
         {/* track */}
@@ -67,9 +67,8 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="currentColor"
+          stroke="rgba(255,255,255,0.06)"
           strokeWidth={strokeWidth}
-          className="text-white/[0.04]"
         />
         {/* progress */}
         <circle
@@ -87,26 +86,6 @@ export function ProgressRing({
             filter: `drop-shadow(0 0 6px ${shadowColor}80)`,
           }}
         />
-        {/* milestones (25/50/75) en el track */}
-        {MILESTONES.map((m) => {
-          const angle = (m / 100) * 2 * Math.PI;
-          const cx = size / 2 + r * Math.cos(angle);
-          const cy = size / 2 + r * Math.sin(angle);
-          const reached = safePct >= m;
-          const dotColor = reached 
-            ? (isBrandColor ? "#00CFFF" : strokeColor)
-            : "rgba(255,255,255,0.2)";
-          return (
-            <circle
-              key={m}
-              cx={cx}
-              cy={cy}
-              r={3}
-              fill={dotColor}
-              style={{ transition: "fill 200ms" }}
-            />
-          );
-        })}
       </svg>
       <div
         className={cn(
