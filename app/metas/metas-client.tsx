@@ -840,6 +840,52 @@ interface NewGoalDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Mapping of visual styles for each goal type card matching the 10% design pattern
+const GOAL_TYPE_CARD_STYLES: Record<string, { card: string; hoverCard: string; title: string; subtitle: string }> = {
+  savings: {
+    card: "bg-amber-500/10 text-amber-500",
+    hoverCard: "hover:bg-amber-500/20",
+    title: "text-amber-500",
+    subtitle: "text-amber-500/60",
+  },
+  purchase: {
+    card: "bg-orange-500/10 text-orange-500",
+    hoverCard: "hover:bg-orange-500/20",
+    title: "text-orange-500",
+    subtitle: "text-orange-500/60",
+  },
+  expense_cap: {
+    card: "bg-rose-500/10 text-rose-500",
+    hoverCard: "hover:bg-rose-500/20",
+    title: "text-rose-500",
+    subtitle: "text-rose-500/60",
+  },
+  income_target: {
+    card: "bg-emerald-500/10 text-emerald-500",
+    hoverCard: "hover:bg-emerald-500/20",
+    title: "text-emerald-500",
+    subtitle: "text-emerald-500/60",
+  },
+  savings_rate: {
+    card: "bg-yellow-500/10 text-yellow-500",
+    hoverCard: "hover:bg-yellow-500/20",
+    title: "text-yellow-500",
+    subtitle: "text-yellow-500/60",
+  },
+  debt_payoff: {
+    card: "bg-red-500/10 text-red-500",
+    hoverCard: "hover:bg-red-500/20",
+    title: "text-red-500",
+    subtitle: "text-red-500/60",
+  },
+  passive_income_target: {
+    card: "bg-fuchsia-500/10 text-fuchsia-500",
+    hoverCard: "hover:bg-fuchsia-500/20",
+    title: "text-fuchsia-500",
+    subtitle: "text-fuchsia-500/60",
+  },
+};
+
 function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps) {
   const [selectedType, setSelectedType] = useState<GoalConfig | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
@@ -935,6 +981,12 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {GOALS.map((g, idx) => {
                   const IconComp = g.icon;
+                  const styles = GOAL_TYPE_CARD_STYLES[g.id] || {
+                    card: "bg-slate-500/10 text-slate-400",
+                    hoverCard: "hover:bg-slate-500/20",
+                    title: "text-white",
+                    subtitle: "text-slate-400",
+                  };
                   return (
                     <motion.button
                       key={g.id}
@@ -944,23 +996,20 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => handleSelectType(g)}
-                      className="group relative flex min-h-[100px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1A1D24] p-3 text-left transition hover:border-white/10"
+                      className={cn(
+                        "group relative flex min-h-[100px] flex-col justify-between overflow-hidden rounded-2xl p-4 text-left border border-transparent transition-all duration-200",
+                        styles.card,
+                        styles.hoverCard
+                      )}
                     >
                       <div className="relative shrink-0">
-                        <div className={cn(
-                          "flex size-8 items-center justify-center rounded-xl ring-1",
-                          g.bgClass,
-                          g.textClass,
-                          g.borderClass
-                        )}>
-                          <IconComp className="size-4" />
-                        </div>
+                        <IconComp className="size-5" />
                       </div>
                       <div className="relative flex flex-col gap-0.5 mt-3">
-                        <span className="text-xs font-bold leading-tight text-white group-hover:text-fuchsia-400 transition-colors">
+                        <span className={cn("text-sm font-semibold leading-tight", styles.title)}>
                           {g.label}
                         </span>
-                        <span className="text-[9px] uppercase tracking-widest text-slate-500">
+                        <span className={cn("text-[10px] uppercase tracking-wider", styles.subtitle)}>
                           {g.short}
                         </span>
                       </div>
