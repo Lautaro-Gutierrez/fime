@@ -167,7 +167,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger render={trigger as React.ReactElement} />}
 
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px]">
         <AnimatePresence mode="wait">
           {!type ? (
             <motion.div
@@ -177,7 +177,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
               exit={{ opacity: 0 }}
               className="relative flex flex-col gap-5 p-6"
             >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.1),transparent_60%)]" />
+              {/* No ambient glow */}
               <div className="relative flex items-start gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-theme-500/15 ring-1 ring-theme-500/30">
                   <Sparkles className="size-4 text-theme-300" />
@@ -204,7 +204,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => selectType(g)}
-                      className="group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-3.5 text-left transition hover:border-white/10"
+                      className="group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.06] bg-[#1A1D24] p-3.5 text-left transition hover:border-white/10"
                     >
                       <div
                         className="pointer-events-none absolute inset-0 opacity-30"
@@ -246,7 +246,7 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
               exit={{ opacity: 0, x: -20 }}
               className="relative flex max-h-[80vh] flex-col"
             >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_70%)]" />
+              {/* No ambient glow */}
               <div className="relative flex items-center gap-3 border-b border-white/5 px-6 py-4">
                 <button
                   onClick={back}
@@ -286,14 +286,14 @@ export function NewGoalDialog({ holdings = [], trigger, open: openProp, onOpenCh
                 />
               )}
 
-              <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
+              <div className="relative flex items-center justify-end gap-2 border-t border-white/[0.06] bg-[#1F2229] px-6 py-3">
                 <Button variant="ghost" onClick={() => setOpen(false)} disabled={createGoal.isPending}>
                   Cancelar
                 </Button>
                 <Button
                   onClick={submit}
                   disabled={createGoal.isPending}
-                  className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
+                  className="bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="size-4" />
                   Guardar
@@ -344,13 +344,13 @@ export function GoalFormBody({
                   ? "Pasivo 1k USD/mes"
                   : "Mi meta"
           }
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+          className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
         />
       </Field>
 
       {/* Quest type toggle */}
       <Field label="Tipo de misión">
-        <div className="flex gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur w-fit">
+        <div className="flex gap-1.5 rounded-full border border-white/[0.06] bg-[#1A1D24] p-1 w-fit">
           <QuestToggle
             active={form.quest_type === "main"}
             onClick={() => setForm((f) => ({ ...f, quest_type: "main" }))}
@@ -374,10 +374,10 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, target: e.target.value }))}
             placeholder={type.isPercentage ? "30" : "10000"}
             inputMode="decimal"
-            className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+            className="h-11 flex-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
           />
           {!type.isPercentage && type.supportedCurrencies.length > 1 && (
-            <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-0.5 backdrop-blur">
+            <div className="flex gap-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-0.5">
               {type.supportedCurrencies.map((c) => (
                 <button
                   key={c}
@@ -396,7 +396,7 @@ export function GoalFormBody({
             </div>
           )}
           {!type.isPercentage && type.supportedCurrencies.length === 1 && (
-            <div className="flex h-11 items-center rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-3 text-xs font-semibold uppercase text-muted-foreground backdrop-blur">
+            <div className="flex h-11 items-center rounded-xl border border-white/[0.06] bg-[#1A1D24] px-3 text-xs font-semibold uppercase text-slate-400">
               {type.supportedCurrencies[0]}
             </div>
           )}
@@ -427,8 +427,8 @@ export function GoalFormBody({
                   className={cn(
                     "rounded-xl border px-3 py-2 text-left text-xs transition",
                     form.source_type === src
-                      ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
-                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
+                      ? "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200"
+                      : "border border-white/[0.06] bg-[#1A1D24] text-slate-400 hover:border-white/10 hover:text-white",
                   )}
                 >
                   {label}
@@ -455,7 +455,7 @@ export function GoalFormBody({
                     "flex items-center gap-2 rounded-xl border px-2.5 py-2 text-xs transition",
                     active
                       ? cn(c.bgClass, c.textClass, c.borderClass)
-                      : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
+                      : "border border-white/[0.06] bg-[#1A1D24] text-slate-400 hover:border-white/10 hover:text-white",
                   )}
                 >
                   <Icon className="size-3.5" />
@@ -493,8 +493,8 @@ export function GoalFormBody({
                     className={cn(
                       "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition",
                       active
-                        ? "border-theme-400/40 bg-theme-500/10 text-theme-200"
-                        : "border-white/5 bg-white/[0.03] backdrop-blur-xl text-muted-foreground hover:border-white/15 hover:text-foreground",
+                        ? "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200"
+                        : "border border-white/[0.06] bg-[#1A1D24] text-slate-400 hover:border-white/10 hover:text-white",
                     )}
                   >
                     <span className="font-mono font-semibold">{h.label}</span>
@@ -517,7 +517,7 @@ export function GoalFormBody({
             onChange={(e) => setForm((f) => ({ ...f, current: e.target.value }))}
             placeholder="0"
             inputMode="decimal"
-            className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
           />
         </Field>
       )}
@@ -529,7 +529,7 @@ export function GoalFormBody({
           value={form.deadline}
           min={toISODate(new Date())}
           onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+          className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
         />
       </Field>
 
@@ -539,7 +539,7 @@ export function GoalFormBody({
           value={form.note}
           onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
           placeholder="Detalle"
-          className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+          className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
         />
       </Field>
     </div>

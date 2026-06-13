@@ -1,0 +1,12 @@
+- `[x]` Módulo de Metas: Refactorizar `components/metas/edit-goal-dialog.tsx` (mate, sin glassmorphism, gradiente fuchsia-cyan en botón guardar)
+- `[x]` Módulo de Metas: Refactorizar `components/metas/new-goal-dialog.tsx` (campos secundario con bg hundido `#1A1D24` y border sutil, sin glassmorphism)
+- `[x]` Módulo de Metas: Aplicar la tipografía de números fijos `.tnum` a montos/porcentajes en `components/metas/goal-card.tsx` y `components/metas/header.tsx`
+- `[x]` Módulo de Metas: Modificar fondo de tarjetas KPI a `#1F2229` en `components/metas/header.tsx`
+- `[x]` Módulo de Configuración: Crear el componente cliente unificado `app/config/configuracion-client.tsx`
+  - `[x]` Diseñar la barra lateral interna de navegación (Mi Perfil, Preferencias, Notificaciones, Tarjetas y Bancos, Peligro)
+  - `[x]` Implementar el panel derecho con diseño `#1F2229` y `border-white/[0.06]`
+  - `[x]` Adaptar inputs al patrón de "input hundido" (`bg-[#1A1D24] border border-white/[0.06] rounded-xl`)
+  - `[x]` Implementar switches/toggles booleanos en estilo de píldoras o minimalistas con el color de acento
+  - `[x]` Conectar todos los paneles a sus respectivos hooks de TanStack Query / Supabase
+- `[x]` Módulo de Configuración: Actualizar `app/config/page.tsx` para renderizar `ConfiguracionClient`
+- `[x]` Verificación: Correr la build del proyecto con `pnpm run build`

@@ -23,7 +23,7 @@ export function MetasHeader({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 sm:p-7"
+      className="relative overflow-hidden rounded-[24px] border border-white/[0.06] bg-[#1F2229] p-6 sm:p-7"
     >
 
       <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -73,11 +73,11 @@ function Stat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-[#1F2229] px-4 py-3">
       <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
-      <div className={`inline-flex items-center gap-1.5 font-mono text-2xl font-bold tabular-nums [font-feature-settings:'tnum'] ${accent}`}>
+      <div className={`inline-flex items-center gap-1.5 font-mono text-2xl font-bold tnum tabular-nums [font-feature-settings:'tnum'] ${accent}`}>
         {icon}
         {value}
       </div>

@@ -148,16 +148,14 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="relative flex max-h-[85vh] flex-col"
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_70%)]" />
-
           {/* Header */}
-          <div className="relative flex items-center gap-3 border-b border-white/5 px-6 py-4">
+          <div className="relative flex items-center gap-3 border-b border-white/[0.06] px-6 py-4">
             <div
               className={cn(
                 "flex size-9 items-center justify-center rounded-xl ring-1",
@@ -185,12 +183,12 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="Santander Visa Black"
-                className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-white/20"
+                className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
               />
             </Field>
 
             <Field label="Marca">
-              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur">
+              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-1">
                 {CARD_BRANDS.map((b) => (
                   <button
                     key={b.id}
@@ -222,12 +220,12 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   placeholder="1234"
                   inputMode="numeric"
                   maxLength={4}
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white font-mono tabular-nums focus-visible:border-fuchsia-500/50"
                 />
               </Field>
 
               <Field label="Moneda">
-                <div className="flex h-11 gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-1 backdrop-blur">
+                <div className="flex h-11 gap-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-1">
                   {(["ARS", "USD"] as const).map((c) => (
                     <button
                       key={c}
@@ -259,7 +257,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   }
                   placeholder="5"
                   inputMode="numeric"
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white font-mono tabular-nums focus-visible:border-fuchsia-500/50"
                 />
               </Field>
               <Field label="Día de vencimiento">
@@ -273,7 +271,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
                   }
                   placeholder="15"
                   inputMode="numeric"
-                  className="h-11 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl font-mono tabular-nums backdrop-blur focus-visible:border-white/20"
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white font-mono tabular-nums focus-visible:border-fuchsia-500/50"
                 />
               </Field>
             </div>
@@ -317,7 +315,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="relative flex items-center justify-between gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
+          <div className="relative flex items-center justify-between gap-2 border-t border-white/[0.06] bg-[#1F2229] px-6 py-3">
             {isEdit ? (
               <Button
                 variant="ghost"
@@ -342,7 +340,7 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
               <Button
                 onClick={submit}
                 disabled={isPending}
-                className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
+                className="bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Save className="size-4" />
                 {isEdit ? "Actualizar" : "Crear"}

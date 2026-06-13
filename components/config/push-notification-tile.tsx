@@ -118,14 +118,14 @@ export function PushNotificationTile({ className }: { className?: string }) {
   const Icon = subscribed ? BellRing : Bell;
 
   return (
-    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 backdrop-blur", className)}>
+    <div className={cn("group relative flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-[#1F2229] p-5", className)}>
 
       <div className="relative flex items-start justify-between">
         <div className={cn(
           "flex size-10 items-center justify-center rounded-2xl ring-1 transition-all",
           subscribed
-            ? "bg-theme-500/20 text-theme-300 ring-theme-500/40"
-            : "bg-theme-500/10 text-theme-300 ring-theme-500/20",
+            ? "bg-fuchsia-500/20 text-fuchsia-400 ring-fuchsia-500/40"
+            : "bg-white/[0.04] text-slate-400 ring-white/[0.06]",
         )}>
           {loading ? <Loader2 className="size-5 animate-spin" /> : <Icon className="size-5" />}
         </div>
@@ -133,7 +133,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
         {subscribed && (
           <button 
             onClick={handleTest}
-            className="text-[10px] text-theme-400 font-semibold uppercase tracking-widest hover:text-theme-300 hover:underline"
+            className="text-[10px] text-fuchsia-400 font-semibold uppercase tracking-widest hover:text-fuchsia-300 hover:underline"
           >
             Probar
           </button>
@@ -141,7 +141,7 @@ export function PushNotificationTile({ className }: { className?: string }) {
       </div>
 
       <div className="relative mt-auto flex flex-col gap-1.5 pt-6">
-        <span className="text-[9px] font-semibold uppercase tracking-widest text-theme-300/70">
+        <span className="text-[9px] font-semibold uppercase tracking-widest text-fuchsia-400/70">
           Reminders
         </span>
         <h3 className="font-heading text-lg font-semibold text-foreground">
@@ -155,14 +155,14 @@ export function PushNotificationTile({ className }: { className?: string }) {
           type="button"
           onClick={handleToggle}
           disabled={loading}
-          className="mt-3 inline-flex items-center gap-2"
+          className="mt-3 inline-flex w-fit items-center gap-2"
         >
           <div
             className={cn(
               "relative h-6 w-11 rounded-full border transition-all duration-200",
               subscribed
-                ? "border-theme-500/40 bg-theme-500/20"
-                : "border-white/10 bg-white/[0.03] backdrop-blur-xl",
+                ? "border-fuchsia-500/40 bg-fuchsia-500/20"
+                : "border-white/[0.08] bg-[#1A1D24]",
             )}
           >
             <motion.div
@@ -171,14 +171,14 @@ export function PushNotificationTile({ className }: { className?: string }) {
               className={cn(
                 "absolute top-0.5 size-5 rounded-full shadow-sm transition-colors",
                 subscribed
-                  ? "bg-theme-400 shadow-theme-500/30"
+                  ? "bg-fuchsia-400 shadow-fuchsia-500/30"
                   : "bg-muted-foreground/40",
               )}
             />
           </div>
           <span className={cn(
             "text-xs font-medium transition-colors",
-            subscribed ? "text-theme-300" : "text-muted-foreground/60",
+            subscribed ? "text-fuchsia-300" : "text-muted-foreground/60",
           )}>
             {permission === "denied" ? "bloqueado" : subscribed ? "activado" : "desactivado"}
           </span>

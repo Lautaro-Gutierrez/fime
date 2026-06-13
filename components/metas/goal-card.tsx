@@ -71,7 +71,7 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.25 }}
-      className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 transition hover:border-white/12"
+      className="group relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#1F2229] p-4 transition hover:border-white/10"
     >
 
       <div className="relative flex items-start justify-between gap-3">
@@ -135,7 +135,7 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
           size={100}
           strokeWidth={8}
           label={
-            <div className="font-mono text-2xl font-bold tabular-nums text-foreground">
+            <div className="font-mono text-2xl font-bold tnum tabular-nums text-foreground">
               {pctLabel}
             </div>
           }
@@ -150,13 +150,13 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
       <div className="relative mt-4 grid gap-1">
         <div className="flex items-baseline justify-between text-sm">
           <span className="text-muted-foreground">Actual</span>
-          <span className="font-mono font-semibold tabular-nums text-foreground">
+          <span className="font-mono font-semibold tnum tabular-nums text-foreground">
             <PrivateAmount>{formatAmount(progress.current, currency, cfg.isPercentage)}</PrivateAmount>
           </span>
         </div>
         <div className="flex items-baseline justify-between text-sm">
           <span className="text-muted-foreground">Objetivo</span>
-          <span className="font-mono font-semibold tabular-nums text-foreground/70">
+          <span className="font-mono font-semibold tnum tabular-nums text-foreground/70">
             <PrivateAmount>{formatAmount(progress.target, currency, cfg.isPercentage)}</PrivateAmount>
           </span>
         </div>
@@ -164,13 +164,13 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
 
       {/* Pacing + ETA */}
       {(progress.pace || progress.eta) && (
-        <div className="relative mt-3 grid gap-1.5 rounded-xl border border-white/[0.08] bg-black/20 p-3">
+        <div className="relative mt-3 grid gap-1.5 rounded-xl border border-white/[0.06] bg-black/20 p-3">
           {progress.pace && progress.pace.perDay > 0 && (
             <div className="flex items-center justify-between text-[11px]">
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                 <Zap className="size-3 text-theme-400" /> Ritmo
               </span>
-              <span className="font-mono font-medium tabular-nums text-foreground">
+              <span className="font-mono font-medium tnum tabular-nums text-foreground">
                 {formatAmount(progress.pace.perMonth, currency, cfg.isPercentage)} / mes
               </span>
             </div>
@@ -187,7 +187,7 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
               </span>
               <span
                 className={cn(
-                  "font-mono font-medium tabular-nums",
+                  "font-mono font-medium tnum tabular-nums",
                   progress.eta.onTrack === false
                     ? "text-rose-300"
                     : progress.eta.onTrack
@@ -206,7 +206,7 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                 <CalendarClock className="size-3" /> Límite
               </span>
-              <span className="font-mono font-medium tabular-nums text-foreground/70">
+              <span className="font-mono font-medium tnum tabular-nums text-foreground/70">
                 {format(deadlineDate, "dd MMM yyyy", { locale: es })}
               </span>
             </div>
@@ -226,7 +226,7 @@ export const GoalCard = memo(function GoalCard({ goal, progress, onEdit, onDelet
                 }
                 onQuickAdd(goal, amt);
               }}
-              className="flex-1 rounded-xl border px-2 py-1.5 font-mono text-[11px] font-semibold tabular-nums transition hover:brightness-125"
+              className="flex-1 rounded-xl border px-2 py-1.5 font-mono text-[11px] font-semibold tnum tabular-nums transition hover:brightness-125"
               style={{
                 color: cfg.color,
                 borderColor: `${cfg.color}40`,

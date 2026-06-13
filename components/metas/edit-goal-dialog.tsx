@@ -113,14 +113,13 @@ export function EditGoalDialog({ goal, onClose, holdings = [] }: Props) {
 
   return (
     <Dialog open={!!goal} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
+      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="relative flex max-h-[85vh] flex-col"
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_70%)]" />
-          <div className="relative flex items-center gap-3 border-b border-white/5 px-6 py-4">
+          <div className="relative flex items-center gap-3 border-b border-white/[0.06] px-6 py-4">
             <div
               className={cn(
                 "flex size-8 items-center justify-center rounded-xl ring-1",
@@ -148,14 +147,14 @@ export function EditGoalDialog({ goal, onClose, holdings = [] }: Props) {
             holdings={holdings}
           />
 
-          <div className="relative flex items-center justify-end gap-2 border-t border-white/5 bg-white/[0.03] backdrop-blur-xl px-6 py-3">
+          <div className="relative flex items-center justify-end gap-2 border-t border-white/[0.06] bg-[#1F2229] px-6 py-3">
             <Button variant="ghost" onClick={onClose} disabled={updateGoal.isPending}>
               Cancelar
             </Button>
             <Button
               onClick={submit}
               disabled={updateGoal.isPending}
-              className="bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-lg shadow-theme-500/25 hover:from-theme-400 hover:to-orange-500"
+              className="bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Save className="size-4" />
               Actualizar

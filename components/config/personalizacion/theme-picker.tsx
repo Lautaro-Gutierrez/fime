@@ -65,8 +65,8 @@ export function ThemePicker() {
               className={cn(
                 "group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-4 text-left transition-all",
                 isActive
-                  ? "border-theme-500/40 ring-1 ring-theme-500/20"
-                  : "border-white/5 hover:border-white/10",
+                  ? "border-theme-500/40 bg-theme-500/10 ring-1 ring-theme-500/20"
+                  : "border-white/[0.06] bg-[#1A1D24] hover:border-white/10",
               )}
             >
               {/* Mini preview */}

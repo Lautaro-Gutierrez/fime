@@ -115,7 +115,7 @@ export function PasskeySection() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-4">
         <div className="flex items-start gap-3 mb-2">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-theme-500/10 text-theme-300 ring-1 ring-theme-500/20">
             <Fingerprint className="size-4" />
@@ -153,7 +153,7 @@ export function PasskeySection() {
               {passkeys.map((pk) => (
                 <div 
                   key={pk.id} 
-                  className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
+                  className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-[#1F2229] px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
                     <KeyRound className="size-3.5 text-muted-foreground" />
