@@ -840,49 +840,42 @@ interface NewGoalDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Mapping of visual styles for each goal type card matching the 10% design pattern
-const GOAL_TYPE_CARD_STYLES: Record<string, { card: string; hoverCard: string; title: string; subtitle: string }> = {
+// Mapping of visual styles for each goal type card matching the Premium / Minimal design
+const GOAL_TYPE_CARD_STYLES: Record<string, { iconBg: string; iconText: string; hoverBorder: string }> = {
   savings: {
-    card: "bg-amber-500/10 text-amber-500",
-    hoverCard: "hover:bg-amber-500/20",
-    title: "text-amber-500",
-    subtitle: "text-amber-500/60",
+    iconBg: "bg-amber-500/10",
+    iconText: "text-amber-500",
+    hoverBorder: "hover:border-amber-500/50",
   },
   purchase: {
-    card: "bg-orange-500/10 text-orange-500",
-    hoverCard: "hover:bg-orange-500/20",
-    title: "text-orange-500",
-    subtitle: "text-orange-500/60",
+    iconBg: "bg-orange-500/10",
+    iconText: "text-orange-500",
+    hoverBorder: "hover:border-orange-500/50",
   },
   expense_cap: {
-    card: "bg-rose-500/10 text-rose-500",
-    hoverCard: "hover:bg-rose-500/20",
-    title: "text-rose-500",
-    subtitle: "text-rose-500/60",
+    iconBg: "bg-rose-500/10",
+    iconText: "text-rose-500",
+    hoverBorder: "hover:border-rose-500/50",
   },
   income_target: {
-    card: "bg-emerald-500/10 text-emerald-500",
-    hoverCard: "hover:bg-emerald-500/20",
-    title: "text-emerald-500",
-    subtitle: "text-emerald-500/60",
+    iconBg: "bg-emerald-500/10",
+    iconText: "text-emerald-500",
+    hoverBorder: "hover:border-emerald-500/50",
   },
   savings_rate: {
-    card: "bg-yellow-500/10 text-yellow-500",
-    hoverCard: "hover:bg-yellow-500/20",
-    title: "text-yellow-500",
-    subtitle: "text-yellow-500/60",
+    iconBg: "bg-yellow-500/10",
+    iconText: "text-yellow-500",
+    hoverBorder: "hover:border-yellow-500/50",
   },
   debt_payoff: {
-    card: "bg-red-500/10 text-red-500",
-    hoverCard: "hover:bg-red-500/20",
-    title: "text-red-500",
-    subtitle: "text-red-500/60",
+    iconBg: "bg-red-500/10",
+    iconText: "text-red-500",
+    hoverBorder: "hover:border-red-500/50",
   },
   passive_income_target: {
-    card: "bg-fuchsia-500/10 text-fuchsia-500",
-    hoverCard: "hover:bg-fuchsia-500/20",
-    title: "text-fuchsia-500",
-    subtitle: "text-fuchsia-500/60",
+    iconBg: "bg-fuchsia-500/10",
+    iconText: "text-fuchsia-500",
+    hoverBorder: "hover:border-fuchsia-500/50",
   },
 };
 
@@ -982,10 +975,9 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
                 {GOALS.map((g, idx) => {
                   const IconComp = g.icon;
                   const styles = GOAL_TYPE_CARD_STYLES[g.id] || {
-                    card: "bg-slate-500/10 text-slate-400",
-                    hoverCard: "hover:bg-slate-500/20",
-                    title: "text-white",
-                    subtitle: "text-slate-400",
+                    iconBg: "bg-slate-500/10",
+                    iconText: "text-slate-400",
+                    hoverBorder: "hover:border-slate-500/50",
                   };
                   return (
                     <motion.button
@@ -997,19 +989,24 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
                       whileTap={{ scale: 0.97 }}
                       onClick={() => handleSelectType(g)}
                       className={cn(
-                        "group relative flex min-h-[100px] flex-col justify-between overflow-hidden rounded-2xl p-4 text-left border border-transparent transition-all duration-200",
-                        styles.card,
-                        styles.hoverCard
+                        "group relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-2xl p-4 text-left border border-white/[0.04] bg-[#1A1D24] transition-all duration-200 hover:bg-[#1F2229]",
+                        styles.hoverBorder
                       )}
                     >
                       <div className="relative shrink-0">
-                        <IconComp className="size-5" />
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                          styles.iconBg,
+                          styles.iconText
+                        )}>
+                          <IconComp className="size-5" />
+                        </div>
                       </div>
                       <div className="relative flex flex-col gap-0.5 mt-3">
-                        <span className={cn("text-sm font-semibold leading-tight", styles.title)}>
+                        <span className="text-sm font-medium leading-tight text-slate-200">
                           {g.label}
                         </span>
-                        <span className={cn("text-[10px] uppercase tracking-wider", styles.subtitle)}>
+                        <span className="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">
                           {g.short}
                         </span>
                       </div>
