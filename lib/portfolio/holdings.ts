@@ -2,6 +2,41 @@ import type { AssetType } from "@/types/database";
 import type { Investment } from "@/hooks/use-investments";
 import type { InitialPosition } from "@/hooks/use-initial-positions";
 import type { QuoteMap } from "@/lib/prices/types";
+import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
+
+function adjustCedearInvestment(tx: Investment): Investment {
+  if (tx.asset_type !== "cedear" || !tx.ticker) return tx;
+  const currentRatio = getCedearRatio(tx.ticker);
+  const txRatio = tx.metadata && tx.metadata.ratio ? parseFloat(String(tx.metadata.ratio)) : null;
+  const hasValidRatio = txRatio !== null && !isNaN(txRatio) && txRatio > 0;
+
+  if (currentRatio && hasValidRatio && currentRatio !== txRatio) {
+    const factor = currentRatio / txRatio;
+    return {
+      ...tx,
+      quantity: tx.quantity * factor,
+      price_usd: tx.price_usd !== null ? tx.price_usd / factor : null,
+    };
+  }
+  return tx;
+}
+
+function adjustCedearInitialPosition(ip: InitialPosition): InitialPosition {
+  if (ip.asset_type !== "cedear" || !ip.ticker) return ip;
+  const currentRatio = getCedearRatio(ip.ticker);
+  const ipRatio = ip.metadata && ip.metadata.ratio ? parseFloat(String(ip.metadata.ratio)) : null;
+  const hasValidRatio = ipRatio !== null && !isNaN(ipRatio) && ipRatio > 0;
+
+  if (currentRatio && hasValidRatio && currentRatio !== ipRatio) {
+    const factor = currentRatio / ipRatio;
+    return {
+      ...ip,
+      quantity: ip.quantity * factor,
+      avg_cost_usd: ip.avg_cost_usd / factor,
+    };
+  }
+  return ip;
+}
 
 // Método de costeo: Average Cost (confirmado en M2).
 // Excluimos bond_ar de V1 (pendiente para V2 con residual factor).
@@ -65,10 +100,13 @@ export function computeHoldings(
   initialPositions: InitialPosition[],
   investments: Investment[],
 ): Holding[] {
+  const adjustedIps = initialPositions.map(adjustCedearInitialPosition);
+  const adjustedTxs = investments.map(adjustCedearInvestment);
+
   const map = new Map<string, Holding>();
 
   // 1) Seed con initial_positions.
-  for (const ip of initialPositions) {
+  for (const ip of adjustedIps) {
     if (ip.asset_type === "bond_ar") continue; // V1 skip (mantener excluido bond_ar, incluir 'on')
     const key = positionKey(ip.asset_type, ip.ticker);
     const existing = map.get(key);
@@ -95,7 +133,7 @@ export function computeHoldings(
   }
 
   // 2) Aplicar txs cronológicamente.
-  const sorted = [...investments].sort((a, b) => {
+  const sorted = [...adjustedTxs].sort((a, b) => {
     const byDate = a.date.localeCompare(b.date);
     if (byDate !== 0) return byDate;
     return a.created_at.localeCompare(b.created_at);
