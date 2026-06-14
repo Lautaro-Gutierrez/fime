@@ -18,7 +18,7 @@ export const CEDEAR_RATIOS: Record<string, number> = {
   AMZN: 144,
   META: 24,
   TSLA: 15,
-  NVDA: 240, // NVDA tuvo split en 2024, el ratio de BYMA actualizó a 240
+  NVDA: 24, // NVDA tuvo split en 2024, el ratio de BYMA actualizó a 24
   AMD: 10,
   INTC: 5,
   NFLX: 48,
