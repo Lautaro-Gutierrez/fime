@@ -348,7 +348,7 @@ function PerfilTab() {
               Etiquetas Personalizadas
             </Label>
             <p className="text-[11px] text-slate-500">
-              Creá y editá etiquetas para categorizar tus transacciones.
+              Creá y editá etiquetas para categorizar tus gastos (se encuentran debajo del detalle/concepto al cargar o editar un gasto).
             </p>
           </div>
           <div className="flex gap-2">
