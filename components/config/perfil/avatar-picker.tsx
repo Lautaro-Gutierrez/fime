@@ -44,7 +44,7 @@ export function AvatarPicker({ currentKey, onSelect }: Props) {
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+      <div className="grid grid-cols-5 gap-3 sm:grid-cols-6 md:grid-cols-8">
         {AVATARS.map((avatar) => {
           const isSelected = avatar.key === selected;
           return (
@@ -56,19 +56,19 @@ export function AvatarPicker({ currentKey, onSelect }: Props) {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               className={cn(
-                "group relative flex flex-col items-center gap-1.5 rounded-2xl border p-3 transition-all",
+                "group relative flex size-14 items-center justify-center rounded-xl border transition-all",
                 isSelected
                   ? "border-theme-500/50 bg-theme-500/10"
-                  : "border-white/[0.06] bg-[#1A1D24] hover:border-white/10",
+                  : "border-white/[0.06] bg-[#1A1D24] hover:bg-white/[0.04]",
               )}
             >
               {/* Image preview */}
-              <div className="relative flex size-12 items-center justify-center">
+              <div className="relative flex size-10 items-center justify-center">
                 <img
                   src={avatar.imageUrl}
                   alt={avatar.label}
                   className={cn(
-                    "size-12 rounded-xl object-cover transition-all",
+                    "size-10 rounded-lg object-cover transition-all",
                     isSelected
                       ? "ring-2 ring-theme-500 brightness-110"
                       : "opacity-70 grayscale-[30%] group-hover:opacity-100 group-hover:grayscale-0",
@@ -83,23 +83,13 @@ export function AvatarPicker({ currentKey, onSelect }: Props) {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-theme-500 shadow-lg shadow-theme-500/30"
+                      className="absolute -right-2 -top-2 flex size-4 items-center justify-center rounded-full bg-theme-500 shadow-lg shadow-theme-500/30"
                     >
                       <Check className="size-2.5 text-black" strokeWidth={3} />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Label */}
-              <span
-                className={cn(
-                  "text-[9px] font-medium transition-colors",
-                  isSelected ? "text-theme-300" : "text-muted-foreground/50 group-hover:text-muted-foreground",
-                )}
-              >
-                {avatar.label}
-              </span>
             </motion.button>
           );
         })}

@@ -36,7 +36,7 @@ import { DensityPicker } from "@/components/config/personalizacion/density-picke
 import { PushNotificationTile } from "@/components/config/push-notification-tile";
 import { CardsList } from "@/components/config/tarjetas/cards-list";
 
-type TabId = "perfil" | "apariencia" | "notificaciones" | "tarjetas" | "danger";
+type TabId = "perfil" | "apariencia" | "notificaciones" | "tarjetas" | "soporte" | "danger";
 
 interface TabDef {
   id: TabId;
@@ -49,6 +49,7 @@ const TABS: TabDef[] = [
   { id: "apariencia", label: "Apariencia", icon: Palette },
   { id: "notificaciones", label: "Notificaciones", icon: Bell },
   { id: "tarjetas", label: "Tarjetas y Bancos", icon: CreditCard },
+  { id: "soporte", label: "Soporte y Guías", icon: BookOpen },
   { id: "danger", label: "Zona de Peligro", icon: AlertOctagon },
 ];
 
@@ -108,6 +109,7 @@ export function ConfiguracionClient() {
               {activeTab === "apariencia" && <AparienciaTab />}
               {activeTab === "notificaciones" && <NotificacionesTab />}
               {activeTab === "tarjetas" && <TarjetasTab />}
+              {activeTab === "soporte" && <SoporteTab />}
               {activeTab === "danger" && <DangerTab />}
             </motion.div>
           </AnimatePresence>
@@ -201,7 +203,7 @@ function PerfilTab() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Mi Perfil</h2>
         <p className="text-xs text-slate-400 mt-1">Gestioná tu identidad, avatar y credenciales.</p>
@@ -244,7 +246,7 @@ function PerfilTab() {
           <Input
             value={email}
             readOnly
-            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24]/50 text-slate-500 cursor-not-allowed"
+            className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-slate-500 cursor-not-allowed"
           />
         </div>
 
@@ -332,7 +334,6 @@ function PerfilTab() {
 function AparienciaTab() {
   const { stealthMode } = usePrefsContext();
   const updatePrefs = useUpdatePreferences();
-  const { restartAll } = useOnboarding();
 
   async function handleStealthToggle() {
     try {
@@ -343,13 +344,8 @@ function AparienciaTab() {
     }
   }
 
-  function handleRestartTours() {
-    restartAll();
-    toast.success("Tours reactivados. Se mostrarán al visitar cada módulo.");
-  }
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Preferencias de la App</h2>
         <p className="text-xs text-slate-400 mt-1">Personalizá el tema, acento de color, densidad visual y privacidad.</p>
@@ -405,28 +401,6 @@ function AparienciaTab() {
         <div className="rounded-xl border border-white/[0.06] bg-[#1A1D24]/30 p-4">
           <DensityPicker />
         </div>
-
-        {/* Reset Guías */}
-        <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#1A1D24]/40 p-4">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold text-white flex items-center gap-1.5">
-              <BookOpen className="size-4 text-fuchsia-400" />
-              Guías Interactivas
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              Volvé a activar los mini-tours contextuales explicativos.
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleRestartTours}
-            className="border-white/[0.08] bg-white/[0.04] text-xs font-semibold hover:bg-white/[0.08]"
-          >
-            Resetear tours
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -459,6 +433,48 @@ function TarjetasTab() {
 
       <div className="flex flex-col gap-4">
         <CardsList />
+      </div>
+    </div>
+  );
+}
+
+// ─── TAB: SOPORTE Y GUÍAS ────────────────────────────────────
+function SoporteTab() {
+  const { restartAll } = useOnboarding();
+
+  function handleRestartTours() {
+    restartAll();
+    toast.success("Tours reactivados. Se mostrarán al visitar cada módulo.");
+  }
+
+  return (
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+      <div>
+        <h2 className="text-lg font-bold text-white">Soporte y Guías</h2>
+        <p className="text-xs text-slate-400 mt-1">Reactivá las guías interactivas para aprender a usar la plataforma.</p>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#1A1D24] p-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold text-white flex items-center gap-1.5">
+              <BookOpen className="size-4 text-fuchsia-400" />
+              Guías Interactivas
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              Volvé a activar los mini-tours contextuales explicativos.
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRestartTours}
+            className="border-white/[0.08] bg-white/[0.04] text-xs font-semibold hover:bg-white/[0.08]"
+          >
+            Resetear tours
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -507,16 +523,16 @@ function DangerTab() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Peligro y Restablecimiento</h2>
         <p className="text-xs text-slate-400 mt-1">Acciones irreversibles sobre tu cuenta y almacenamiento.</p>
       </div>
 
-      <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 flex flex-col gap-4">
+      <div className="rounded-xl border border-rose-500/20 bg-[#1A1D24] p-4 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-rose-300 flex items-center gap-1.5">
-            <AlertOctagon className="size-4" />
+          <span className="text-sm font-semibold text-rose-500 flex items-center gap-1.5">
+            <AlertOctagon className="size-4 text-rose-500" />
             Reiniciar todos los datos
           </span>
           <p className="text-xs text-rose-400/80">
@@ -529,7 +545,7 @@ function DangerTab() {
           onClick={handleWipeData}
           disabled={wiping}
           variant="outline"
-          className="w-fit border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+          className="w-fit border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20"
         >
           {wiping ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
           Reiniciar mi base de datos

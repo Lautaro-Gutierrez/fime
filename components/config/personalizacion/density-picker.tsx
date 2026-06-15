@@ -58,8 +58,8 @@ export function DensityPicker() {
               className={cn(
                 "flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 transition-all",
                 isActive
-                  ? "bg-gradient-to-br from-theme-500 to-orange-600 text-white shadow-md"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-white/[0.1] text-white"
+                  : "text-slate-400 hover:text-white",
               )}
             >
               <Icon className="size-4" />

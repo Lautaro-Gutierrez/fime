@@ -142,7 +142,7 @@ export function OnboardingOverlay() {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/40 pointer-events-auto h-dvh scrollbar-none"
+      className="fixed inset-0 z-[100] overflow-y-auto overflow-x-hidden bg-black/40 pointer-events-auto h-dvh scrollbar-none"
     >
       {/* 1. SPOTLIGHT EFFECT (MÁSCARA) */}
       {coords && (
@@ -177,7 +177,7 @@ export function OnboardingOverlay() {
           transition={{ duration: 0.25, ease: "easeOut" }}
           style={getTooltipStyle()}
           className={cn(
-            "z-50 w-full max-w-sm rounded-2xl p-6",
+            "z-[110] w-full max-w-sm rounded-2xl p-6",
             "border border-white/[0.08] bg-[#0A0F1D]/80 backdrop-blur-xl",
             "shadow-2xl shadow-black/80 ring-1 ring-white/[0.05]",
             coords ? "mx-4 my-2" : ""

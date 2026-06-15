@@ -313,7 +313,7 @@ export default function MetasClient() {
 
         {/* Fila 2: Filtros y Acciones */}
         <div className="flex items-center justify-between mb-5 animate-fade-in delay-1">
-          <div className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1 w-fit">
+          <div id="metas-quest-board" className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1 w-fit">
             <button
               onClick={() => setTab("main")}
               className={cn(
@@ -419,124 +419,101 @@ export default function MetasClient() {
   );
 }
 
-// ─── COMPONENTE: TARJETA DE META (GOAL CARD) ─────────────────
+// ─── COMPONENTE: TARJETA INDIVIDUAL (GOAL CARD) ────────────────
 interface GoalCardProps {
   goal: Goal;
-  progress: GoalProgress;
+  progress: any;
   onEdit: (g: Goal) => void;
-  onDelete: (g: Goal) => void;
+  onDelete: (id: string) => void;
   onQuickAdd: (g: Goal, delta: number) => void;
 }
 
 function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProps) {
   const { stealthMode: isStealthMode } = usePrefsContext();
-  const cfg = GOALS_BY_ID[goal.goal_type];
+  const cfg = GOAL_CONFIGS[goal.goal_type];
   const Icon = cfg.icon;
   const currency = goal.currency;
-  const showQuickAdd = goal.source_type == null && goal.status === "active";
-  const quickAmounts = getQuickAmounts(Number(goal.target_amount));
-  
-  const remaining = Math.max(0, progress.target - progress.current);
-  const pct = Math.round(progress.pct);
 
+  const pct = progress.pct;
+  const hasDeadline = goal.deadline != null;
   const deadlineDate = goal.deadline ? parseISO(goal.deadline) : null;
 
+  const showQuickAdd = progress.isManual && progress.remaining > 0 && !progress.isInverted;
+  const quickAmounts = currency === "USD" ? [10, 50, 100] : [5000, 20000, 50000];
+
   return (
-    <div 
-      className="rounded-[24px] p-6 border flex flex-col relative transition-all duration-300 hover:border-white/10 group"
-      style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}
-    >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-6">
+    <div className="rounded-[24px] border border-white/[0.06] bg-[#1F2229] p-6 flex flex-col min-h-[420px] transition-all duration-300 hover:border-white/10 relative overflow-hidden group">
+      {/* Background radial gradient decoration */}
+      <div 
+        className="absolute -right-12 -top-12 w-36 h-36 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-15 pointer-events-none" 
+        style={{ background: cfg.themeColor }}
+      />
+      
+      {/* Encabezado de la tarjeta */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={cn(
-            "w-10 h-10 rounded-xl border flex items-center justify-center transition-all",
-            cfg.bgClass,
-            cfg.textClass,
-            cfg.borderClass
-          )}>
-            <Icon className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: cfg.bgColor }}>
+            <Icon className="w-5 h-5" style={{ color: cfg.themeColor }} />
           </div>
-          <div>
-            <h3 className="text-base font-bold text-white leading-tight">{goal.name}</h3>
-            <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5 text-muted-foreground">
-              {cfg.short} {currency ? `· ${currency}` : ""}
-            </p>
+          <div className="flex flex-col">
+            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cfg.themeColor }}>
+              {cfg.title}
+            </span>
+            <h3 className="text-sm font-bold text-white truncate max-w-[150px]">{goal.name}</h3>
           </div>
         </div>
-
-        {/* Acciones */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-6 right-6">
-          <button
+        
+        {/* Dropdown de opciones */}
+        <div className="flex items-center gap-1">
+          <button 
             onClick={() => onEdit(goal)}
-            className="rounded-lg p-1.5 text-slate-500 hover:text-white transition-colors bg-white/[0.02] border border-white/[0.04]"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
           >
-            <Pencil className="w-3.5 h-3.5" />
+            <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => onDelete(goal)}
-            className="rounded-lg p-1.5 text-slate-500 hover:text-rose-400 transition-colors bg-white/[0.02] border border-white/[0.04]"
+          <button 
+            onClick={() => onDelete(goal.id)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Center Donut Ring */}
-      <div className="flex justify-center mb-8 relative">
-        <ProgressRing
-          pct={pct}
-          rawPct={progress.rawPct}
-          size={128}
-          strokeWidth={8}
-          color={goal.color || "#10b981"}
-          isInverted={progress.isInverted}
-          label={
-            <span className="text-3xl font-extrabold text-white tnum tracking-tighter">
-              {isStealthMode ? "**" : `${pct}%`}
-            </span>
-          }
-          sublabel={
-            <span className="text-[10px] text-slate-400 font-medium mt-1">
-              {progress.isInverted ? "Tope" : "Completado"}
-            </span>
-          }
-        />
+      {/* Métricas de progreso */}
+      <div className="flex items-baseline gap-1.5 mb-2">
+        <span className="text-2xl font-extrabold text-white font-mono tnum">
+          <PrivateAmount>{formatAmount(progress.current, currency, cfg.isPercentage)}</PrivateAmount>
+        </span>
+        <span className="text-xs text-slate-400">
+          de {formatAmount(progress.target, currency, cfg.isPercentage)}
+        </span>
       </div>
 
-      {/* Amounts and details */}
-      <div className="flex flex-col gap-2.5 mb-6 text-xs">
-        <div className="flex justify-between items-center">
-          <span className="text-slate-400 font-medium">Actual</span>
-          <span className="font-bold text-white tnum tracking-tight">
-            <PrivateAmount>{formatAmount(progress.current, currency, cfg.isPercentage)}</PrivateAmount>
-          </span>
+      {/* Barra de progreso visual */}
+      <div className="mb-4">
+        <div className="flex justify-between text-[10px] font-semibold text-slate-400 mb-1.5 font-mono">
+          <span>Progreso</span>
+          <span style={{ color: cfg.themeColor }}>{Math.round(pct)}%</span>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-slate-400 font-medium">Objetivo</span>
-          <span className="font-bold text-white tnum tracking-tight">
-            <PrivateAmount>{formatAmount(progress.target, currency, cfg.isPercentage)}</PrivateAmount>
-          </span>
+        <div className="w-full h-2 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
+          <div 
+            className="h-full rounded-full transition-all duration-500" 
+            style={{ 
+              width: `${pct}%`,
+              background: `linear-gradient(90deg, ${cfg.themeColor}, ${cfg.themeColor}dd)` 
+            }}
+          />
         </div>
-        {!cfg.isPercentage && (
-          <div className="flex justify-between items-center border-t border-white/[0.06] pt-2 mt-1">
-            <span className="text-slate-400 font-medium">Restante</span>
-            <span className="font-bold text-amber-400 tnum tracking-tight">
-              <PrivateAmount>{formatAmount(remaining, currency, cfg.isPercentage)}</PrivateAmount>
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* ETA & Deadline if exist */}
-      {!showQuickAdd && (progress.pace || progress.eta || deadlineDate) && (
-        <div className="mb-5 flex flex-col gap-1.5 rounded-xl border border-white/[0.06] bg-black/10 p-3 text-[10px]">
-          {progress.pace && progress.pace.perDay > 0 && (
+      {/* Info dinámica según tipo */}
+      {!showQuickAdd && (
+        <div className="text-[11px] text-slate-400 flex flex-col gap-2 border-t border-white/[0.04] pt-4 mt-auto">
+          {progress.pace?.perMonth > 0 && (
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-slate-400">
-                <Zap className="w-3 h-3 text-fuchsia-400" /> Ritmo
-              </span>
-              <span className="font-mono font-medium tnum text-white">
+              <span className="text-slate-400">Ritmo Requerido</span>
+              <span className="font-mono font-medium text-white/70">
                 <PrivateAmount>{formatAmount(progress.pace.perMonth, currency, cfg.isPercentage)}</PrivateAmount> / mes
               </span>
             </div>
@@ -556,7 +533,7 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
       {showQuickAdd && (
         <div className="mt-auto flex flex-col gap-2">
           <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider text-center mb-1">Abonar a meta</span>
-          <div className="flex gap-1.5">
+          <div id="metas-quick-add" className="flex gap-1.5">
             {quickAmounts.map((amt) => (
               <button
                 key={amt}
