@@ -96,7 +96,7 @@ export function AllocationDonut({ holdings }: Props) {
 
   if (total === 0) {
     return (
-      <div className="glass-card rounded-2xl p-6 h-full flex flex-col items-center justify-center gap-3">
+      <div className="rounded-2xl p-6 h-full flex flex-col items-center justify-center gap-3 bg-[#1F2229] border border-white/[0.06]">
         <div className="flex size-11 items-center justify-center rounded-2xl bg-fuchsia-500/15 ring-1 ring-fuchsia-500/30">
           <PieIcon className="size-5 text-fuchsia-300" />
         </div>
@@ -117,18 +117,16 @@ export function AllocationDonut({ holdings }: Props) {
   ];
 
   return (
-    <div className="glass-card rounded-2xl p-6 h-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
-      <h3 className="text-lg font-semibold text-white mb-4">Composición del Portfolio</h3>
-      
-      <div className="h-[240px] relative">
+    <div className="rounded-2xl p-6 h-full bg-[#1F2229] border border-white/[0.06]">
+      <div className="h-[180px] md:h-[240px] relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={70}
-              outerRadius={95}
+              innerRadius="60%"
+              outerRadius="80%"
               paddingAngle={2}
               dataKey="value"
               onMouseEnter={onPieEnter}
@@ -175,32 +173,25 @@ export function AllocationDonut({ holdings }: Props) {
         )}
       </div>
       
-      {/* 3-column legend */}
-      <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-4">
-        {legendColumns.map((column, colIndex) => (
-          <div key={colIndex} className="space-y-2">
-            {column.map((holding) => {
-              const globalIndex = data.findIndex(d => d.id === holding.id);
-              return (
-                <div 
-                  key={holding.id} 
-                  className="flex items-center gap-2 text-xs group cursor-pointer"
-                  onMouseEnter={() => setActiveIndex(globalIndex)}
-                  onMouseLeave={() => setActiveIndex(-1)}
-                >
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
-                    style={{ backgroundColor: holding.color }}
-                  />
-                  <span className="text-white/60 group-hover:text-white transition-colors truncate">
-                    {holding.label}
-                  </span>
-                  <span className="text-white/40 tabular-nums ml-auto">
-                    {holding.weight.toFixed(1)}%
-                  </span>
-                </div>
-              );
-            })}
+      {/* Responsive legend grid */}
+      <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-3 md:text-sm mt-4">
+        {data.map((holding, globalIndex) => (
+          <div 
+            key={holding.id} 
+            className="flex items-center gap-2 group cursor-pointer"
+            onMouseEnter={() => setActiveIndex(globalIndex)}
+            onMouseLeave={() => setActiveIndex(-1)}
+          >
+            <div 
+              className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform group-hover:scale-125"
+              style={{ backgroundColor: holding.color }}
+            />
+            <span className="text-white/60 group-hover:text-white transition-colors truncate">
+              {holding.label}
+            </span>
+            <span className="text-white/40 tabular-nums ml-auto pl-1">
+              {holding.weight.toFixed(1)}%
+            </span>
           </div>
         ))}
       </div>

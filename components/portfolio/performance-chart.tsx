@@ -135,7 +135,7 @@ export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Pro
   const sp500Last = last.sp500 ?? 0;
 
   return (
-    <div className="glass-card rounded-2xl p-6 h-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
+    <div className="rounded-2xl p-6 h-full bg-[#1F2229] border border-white/[0.06]">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h3 className="text-lg font-semibold text-white">
           {onlyPortfolio ? "Historial de Rendimiento" : "Performance vs S&P 500"}
@@ -180,7 +180,7 @@ export function PerformanceChart({ series, onReset, onlyPortfolio = false }: Pro
         )}
       </div>
 
-      <div className="h-[240px]">
+      <div className="h-[200px] md:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
             <defs>

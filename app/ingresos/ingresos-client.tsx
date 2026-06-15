@@ -416,8 +416,8 @@ export default function IngresosClient() {
         {/* Header */}
         <div className="mb-7 animate-fade-in">
           <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">INGRESOS</p>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-white sm:text-3xl">Gestión de Ingresos</h1>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <h1 className="text-2xl font-bold text-white md:text-3xl lg:text-4xl">Gestión de Ingresos</h1>
             <div className="flex items-center gap-3">
               <MonthSelector month={month} onChange={setMonth} />
               <QuickAddIncome />
@@ -442,7 +442,7 @@ export default function IngresosClient() {
           {/* Flujo Libre del Mes Card */}
           <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300">
             <h3 className="text-sm font-semibold text-white mb-4">Flujo Libre del Mes</h3>
-            <div className="flex gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mb-4">
               {/* Ingresos sub-card */}
               <div className="flex-1 rounded-xl p-3 text-center bg-[rgba(20,184,166,0.08)] border border-[rgba(20,184,166,0.15)]">
                 <p className="text-[10px] text-teal-400 font-semibold uppercase mb-1">Ingresos</p>

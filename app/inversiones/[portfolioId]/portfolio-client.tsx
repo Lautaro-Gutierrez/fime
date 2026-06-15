@@ -242,21 +242,17 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 animate-fade-in delay-3">
           {/* Portfolio Composition */}
-          <div className="lg:col-span-2 rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <h3 className="text-sm font-semibold text-white mb-4">Composición del Portfolio</h3>
+          <div className="lg:col-span-2">
             {isLoadingPortfolioData ? (
-               <div className="flex h-[280px] items-center justify-center text-slate-500">Calculando...</div>
+               <div className="flex h-[320px] items-center justify-center text-slate-500 bg-[#1F2229] border border-white/[0.06] rounded-2xl p-6">Calculando...</div>
             ) : (
                <AllocationDonut holdings={holdings} />
             )}
           </div>
           {/* Historial de Rendimiento */}
-          <div className="lg:col-span-3 rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Historial de Rendimiento</h3>
-            </div>
+          <div className="lg:col-span-3">
             {isLoadingPortfolioData ? (
-               <div className="flex h-[280px] items-center justify-center text-slate-500">Calculando...</div>
+               <div className="flex h-[320px] items-center justify-center text-slate-500 bg-[#1F2229] border border-white/[0.06] rounded-2xl p-6">Calculando...</div>
             ) : (
                <PerformanceChart series={returnSeries} onReset={resetHistory} onlyPortfolio={true} />
             )}
@@ -264,10 +260,9 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
         </div>
 
         {/* Holdings Table */}
-        <div className="rounded-2xl p-5 border animate-fade-in delay-4" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-          <h3 className="text-sm font-semibold text-white mb-4">Holdings</h3>
+        <div className="animate-fade-in delay-4">
           {isLoadingPortfolioData ? (
-            <div className="p-8 text-center text-slate-500">Calculando holdings...</div>
+            <div className="p-8 text-center text-slate-500 bg-[#1F2229] border border-white/[0.06] rounded-2xl">Calculando holdings...</div>
           ) : (
             <HoldingsList holdings={holdings} portfolioId={portfolioId} onTransfer={setTransferHolding} />
           )}

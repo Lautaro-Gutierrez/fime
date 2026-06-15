@@ -36,7 +36,7 @@ const HoldingRow = memo(function HoldingRow({ holding: h, portfolioId, onTransfe
   const isPositive = (pnl ?? 0) >= 0;
 
   return (
-    <div className="group flex items-center gap-3 md:gap-4 py-4 px-4 -mx-4 hover:bg-white/[0.02] rounded-lg transition-colors cursor-pointer border-b border-white/[0.04] last:border-0">
+    <div className="group flex items-center gap-3 md:gap-4 py-3 md:py-4 px-2 hover:bg-white/[0.02] rounded-lg transition-colors cursor-pointer border-b border-white/[0.04] last:border-0">
       {/* Ticker Icon */}
       <div className="relative shrink-0 group">
         <AssetLogo 
@@ -50,7 +50,7 @@ const HoldingRow = memo(function HoldingRow({ holding: h, portfolioId, onTransfe
       {/* Name & Type */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-white truncate text-sm md:text-base max-w-[120px] md:max-w-none">{h.label}</span>
+          <span className="font-medium md:font-semibold text-white truncate text-sm md:text-base max-w-[120px] md:max-w-none">{h.label}</span>
           <TypeBadge type={asset.short} asset={asset} />
         </div>
         <p className="text-[10px] text-white/30 truncate mt-0.5 max-w-[120px] md:max-w-none">
@@ -119,14 +119,14 @@ export function HoldingsList({ holdings, portfolioId, onTransfer }: Props) {
   );
 
   return (
-    <div className="glass-card rounded-2xl p-4 md:p-6 bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl mt-4">
+    <div className="rounded-2xl p-4 md:p-6 bg-[#1F2229] border border-white/[0.06]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white">Holdings</h3>
         <span className="text-xs text-white/40">{holdings.length} {holdings.length === 1 ? "posición" : "posiciones"}</span>
       </div>
       
       {/* Table container with horizontal scroll support */}
-      <div className="w-full overflow-x-auto hide-scrollbar">
+      <div className="w-full overflow-x-auto">
         <div className="min-w-[500px]">
           {/* Header */}
           <div className="flex items-center gap-3 md:gap-4 py-2 text-xs text-white/40 border-b border-white/[0.06] uppercase tracking-wider font-medium">
