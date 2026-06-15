@@ -361,7 +361,7 @@ export function QuickAdd({
               )}
             >
               <StickyNote className="size-3.5" />
-              {note ? "Nota agregada" : "Agregar nota"}
+              {note ? "Detalles agregados" : "Detalles adicionales"}
             </button>
           </div>
 
@@ -387,12 +387,12 @@ export function QuickAdd({
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="note" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                  Nota
+                  Detalle / Concepto
                 </Label>
                 <Input
                   id="note"
                   type="text"
-                  placeholder="Opcional"
+                  placeholder="Ej. Compra supermercado, cena familiar..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={120}
