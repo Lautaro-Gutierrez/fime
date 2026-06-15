@@ -424,7 +424,7 @@ interface GoalCardProps {
   goal: Goal;
   progress: any;
   onEdit: (g: Goal) => void;
-  onDelete: (id: string) => void;
+  onDelete: (g: Goal) => void;
   onQuickAdd: (g: Goal, delta: number) => void;
 }
 
@@ -472,7 +472,7 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
             <Edit2 className="w-3.5 h-3.5" />
           </button>
           <button 
-            onClick={() => onDelete(goal.id)}
+            onClick={() => onDelete(goal)}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
