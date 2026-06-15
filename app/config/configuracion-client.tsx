@@ -28,7 +28,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 // Sub-componentes
-import { AvatarPicker } from "@/components/config/perfil/avatar-picker";
 import { PasskeySection } from "@/components/config/perfil/passkey-section";
 import { AccentPicker } from "@/components/config/personalizacion/accent-picker";
 import { ThemePicker } from "@/components/config/personalizacion/theme-picker";
@@ -122,13 +121,20 @@ export function ConfiguracionClient() {
 // ─── TAB: PERFIL ─────────────────────────────────────────────
 function PerfilTab() {
   const supabase = useMemo(() => createClient(), []);
-  const { displayName: currentName, avatarKey } = usePrefsContext();
+  const { displayName: currentName } = usePrefsContext();
   const updatePrefs = useUpdatePreferences();
 
   const [displayName, setDisplayName] = useState(currentName || "");
   const [email, setEmail] = useState("");
   const [nameDirty, setNameDirty] = useState(false);
   const [savingName, setSavingName] = useState(false);
+
+  // Ciclo Financiero
+  const [startDay, setStartDay] = useState("1");
+  
+  // Etiquetas
+  const [tags, setTags] = useState(["Facultad", "Mascotas", "Vacaciones"]);
+  const [newTag, setNewTag] = useState("");
 
   // Contraseña
   const [showPwChange, setShowPwChange] = useState(false);
@@ -202,11 +208,34 @@ function PerfilTab() {
     }
   }
 
+  const handleStartDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setStartDay(val);
+    toast.success(`Día de inicio del ciclo configurado en el día ${val}`);
+  };
+
+  const handleAddTag = () => {
+    const trimmed = newTag.trim();
+    if (!trimmed) return;
+    if (tags.includes(trimmed)) {
+      toast.error("La etiqueta ya existe");
+      return;
+    }
+    setTags([...tags, trimmed]);
+    setNewTag("");
+    toast.success(`Etiqueta #${trimmed} agregada`);
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
+    toast.success(`Etiqueta #${tag} eliminada`);
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Mi Perfil</h2>
-        <p className="text-xs text-slate-400 mt-1">Gestioná tu identidad, avatar y credenciales.</p>
+        <p className="text-xs text-slate-400 mt-1">Gestioná tu identidad y credenciales de acceso.</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -250,9 +279,111 @@ function PerfilTab() {
           />
         </div>
 
-        {/* Avatar picker */}
-        <div className="rounded-xl border border-white/[0.06] bg-[#1A1D24]/30 p-4">
-          <AvatarPicker currentKey={avatarKey} />
+        {/* Ciclo Financiero */}
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Inicio del Mes
+          </Label>
+          <p className="text-xs text-slate-500">
+            Elegí qué día del mes se reinician tus presupuestos y metas.
+          </p>
+          <select
+            value={startDay}
+            onChange={handleStartDayChange}
+            className="h-11 w-full rounded-xl border border-white/[0.06] bg-[#1A1D24] px-3 text-sm font-semibold text-white focus:border-fuchsia-500/50 focus:outline-none"
+          >
+            {Array.from({ length: 10 }).map((_, i) => (
+              <option key={i + 1} value={String(i + 1)}>
+                Día {i + 1}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Etiquetas Personalizadas */}
+        <div className="rounded-xl border border-white/[0.06] bg-[#1A1D24]/30 p-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Etiquetas Personalizadas
+            </Label>
+            <p className="text-[11px] text-slate-500">
+              Creá y editá etiquetas para categorizar tus transacciones.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Nueva etiqueta (ej. Regalos)"
+              className="h-11 flex-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddTag();
+              }}
+            />
+            <Button
+              onClick={handleAddTag}
+              type="button"
+              className="h-11 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] text-xs font-semibold px-4 text-slate-300"
+            >
+              Agregar
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="bg-slate-500/10 text-slate-300 rounded-full px-3 py-1 text-xs flex items-center gap-1.5 border border-white/[0.04]"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="text-slate-500 hover:text-white transition-colors"
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Cuentas Compartidas */}
+        <div className="rounded-xl border border-white/[0.06] bg-[#1A1D24]/30 p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-0.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Cuentas Compartidas / Extensiones
+              </Label>
+              <p className="text-[11px] text-slate-500">
+                Gestioná familiares o extensiones de tarjetas vinculadas.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.info("Funcionalidad para agregar miembros próximamente")}
+              className="text-sm text-cyan-400 hover:text-cyan-300 font-semibold transition-colors whitespace-nowrap"
+            >
+              + Agregar miembro
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            {/* Ejemplo de usuario secundario vinculado */}
+            <div className="flex items-center justify-between rounded-xl bg-[#1A1D24]/60 border border-white/[0.04] p-3 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-xs">
+                  FM
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-white">Florencia Macri</span>
+                  <span className="text-xs text-slate-500">Familiar · florencia@fime.com</span>
+                </div>
+              </div>
+              <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Activo
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Contraseña Change */}
