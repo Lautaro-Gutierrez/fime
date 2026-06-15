@@ -409,14 +409,14 @@ export default function IngresosClient() {
 
   return (
     <Shell>
-      <div className="relative flex flex-col gap-6 p-4 pb-10 sm:p-6 md:p-8">
+      <div className="relative flex flex-col gap-6 p-4 pb-10 md:p-6 lg:p-8">
         {/* Ambient background glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.12),transparent_80%)]" />
 
         {/* Header */}
         <div className="mb-7 animate-fade-in">
           <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">INGRESOS</p>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-2xl font-bold text-white sm:text-3xl">Gestión de Ingresos</h1>
             <div className="flex items-center gap-3">
               <MonthSelector month={month} onChange={setMonth} />
@@ -433,7 +433,7 @@ export default function IngresosClient() {
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
               <span className="text-xs text-slate-500 font-medium">Ingresos del Mes</span>
             </div>
-            <p className="text-4xl font-extrabold text-white tnum">
+            <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">
               <PrivateAmount>{formatARS(totalIncomes)}</PrivateAmount>
             </p>
             <p className="text-xs text-emerald-400 mt-2 font-medium">{deltaStr}</p>

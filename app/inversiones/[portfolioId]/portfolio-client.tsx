@@ -113,11 +113,11 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
 
   return (
     <Shell>
-      <div className="relative z-10 flex flex-col gap-6 p-4 sm:p-6 md:p-8 ambient-glow">
+      <div className="relative z-10 flex flex-col gap-6 p-4 md:p-6 lg:p-8 ambient-glow">
         {/* Header */}
         <div className="mb-5 animate-fade-in">
           <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">PORTFOLIO</p>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <div className="flex flex-wrap items-center justify-between gap-4 w-full">
             <h1 className="text-2xl font-bold text-white">Centro de Inversiones Profesional</h1>
             
             <div className="flex flex-wrap items-center gap-3">
@@ -206,7 +206,7 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
           <div className="relative z-10">
             <p className="text-xs text-slate-400 mb-2 font-medium">Valor del Portfolio</p>
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-extrabold text-white tnum">{formatUSD(totals.total_usd)}</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">{formatUSD(totals.total_usd)}</span>
               {totals.unrealized_pnl_pct !== null && totals.unrealized_pnl_pct !== 0 && (
                 <span className={`font-bold text-lg tnum ${totals.unrealized_pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {totals.unrealized_pnl_pct > 0 ? "+" : ""}{totals.unrealized_pnl_pct.toFixed(2)}%

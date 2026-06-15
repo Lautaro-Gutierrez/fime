@@ -150,7 +150,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
         {/* Content */}
         <main
-          className="flex-1 overflow-y-auto pb-20 md:pb-0"
+          className="flex-1 overflow-y-auto pb-20 md:pb-0 overflow-x-hidden"
           style={{ background: "#1A1D24" }}
         >
           {children}

@@ -242,7 +242,7 @@ export default function DashboardClient() {
 
   return (
     <Shell>
-      <div className="view p-8 ambient-glow view-enter">
+      <div className="view p-4 md:p-6 lg:p-8 ambient-glow view-enter">
         <div className="relative z-10">
 
           {/* ═══════ 1. HEADER ═══════ */}
@@ -256,7 +256,7 @@ export default function DashboardClient() {
                     <div className="h-10 w-48 bg-white/5 animate-pulse rounded" />
                   ) : (
                     <>
-                      <span className="text-4xl font-extrabold text-white tnum">
+                      <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">
                         {isStealthMode ? "••••••" : formatUSD(portfolio.totals.total_usd, false)}
                       </span>
                       <span className={`flex items-center gap-1 text-sm font-semibold ${patrimonioPctChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -296,10 +296,10 @@ export default function DashboardClient() {
                 {3 - Object.values(dismissedInsights).filter(Boolean).length} activas
               </span>
             </div>
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4 w-full">
               {/* Tip de Ahorro */}
               {!dismissedInsights["insight-1"] && (
-                <div className="min-w-[320px] max-w-[340px] rounded-2xl p-4 border card-hover flex-shrink-0 relative" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
+                <div className="w-[85vw] sm:min-w-[320px] flex-shrink-0 snap-center rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
                   <button onClick={() => dismissInsight('insight-1')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
@@ -314,7 +314,7 @@ export default function DashboardClient() {
               )}
               {/* Recordatorio */}
               {!dismissedInsights["insight-2"] && (
-                <div className="min-w-[320px] max-w-[340px] rounded-2xl p-4 border card-hover flex-shrink-0 relative" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.04))", borderColor: "rgba(59,130,246,0.15)" }}>
+                <div className="w-[85vw] sm:min-w-[320px] flex-shrink-0 snap-center rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.04))", borderColor: "rgba(59,130,246,0.15)" }}>
                   <button onClick={() => dismissInsight('insight-2')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
@@ -329,7 +329,7 @@ export default function DashboardClient() {
               )}
               {/* Oportunidad */}
               {!dismissedInsights["insight-3"] && (
-                <div className="min-w-[320px] max-w-[340px] rounded-2xl p-4 border card-hover flex-shrink-0 relative" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(234,179,8,0.04))", borderColor: "rgba(245,158,11,0.15)" }}>
+                <div className="w-[85vw] sm:min-w-[320px] flex-shrink-0 snap-center rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(234,179,8,0.04))", borderColor: "rgba(245,158,11,0.15)" }}>
                   <button onClick={() => dismissInsight('insight-3')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
                   </button>
