@@ -430,7 +430,7 @@ interface GoalCardProps {
 
 function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProps) {
   const { stealthMode: isStealthMode } = usePrefsContext();
-  const cfg = GOAL_CONFIGS[goal.goal_type];
+  const cfg = GOALS_BY_ID[goal.goal_type];
   const Icon = cfg.icon;
   const currency = goal.currency;
 
