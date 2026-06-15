@@ -469,7 +469,7 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
             onClick={() => onEdit(goal)}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
           >
-            <Edit2 className="w-3.5 h-3.5" />
+            <Pencil className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={() => onDelete(goal)}
