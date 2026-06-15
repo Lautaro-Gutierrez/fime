@@ -15,6 +15,7 @@ export type UserPreferences = {
   display_name: string | null;
   onboarding_completed: boolean;
   completed_tours: string[];
+  custom_tags: string[];
   updated_at: string;
 };
 
@@ -27,7 +28,20 @@ export type PreferencesUpdate = {
   display_name?: string | null;
   onboarding_completed?: boolean;
   completed_tours?: string[];
+  custom_tags?: string[];
 };
+
+function getLocalCustomTags(): string[] {
+  if (typeof window === "undefined") return ["Facultad", "Mascotas", "Vacaciones"];
+  const local = localStorage.getItem("fime_local_custom_tags");
+  return local ? JSON.parse(local) : ["Facultad", "Mascotas", "Vacaciones"];
+}
+
+function saveLocalCustomTags(tags: string[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("fime_local_custom_tags", JSON.stringify(tags));
+  }
+}
 
 const PREFS_KEY = ["user_preferences"] as const;
 
@@ -47,7 +61,14 @@ export function usePreferences() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
-      return data as UserPreferences | null;
+      
+      const prefs = data as UserPreferences | null;
+      if (prefs) {
+        if (!prefs.custom_tags) {
+          prefs.custom_tags = getLocalCustomTags();
+        }
+      }
+      return prefs;
     },
   });
 
@@ -80,27 +101,92 @@ export function useUpdatePreferences() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
-      // Lazy upsert: try update first, if no rows affected, insert
-      const { data: updated, error: updateError } = await supabase
-        .from("user_preferences")
-        .update(patch)
-        .eq("user_id", user.id)
-        .select()
-        .maybeSingle();
+      try {
+        // Lazy upsert: try update first, if no rows affected, insert
+        const { data: updated, error: updateError } = await supabase
+          .from("user_preferences")
+          .update(patch)
+          .eq("user_id", user.id)
+          .select()
+          .maybeSingle();
 
-      if (updateError) throw updateError;
+        if (updateError) {
+          if (updateError.message.includes("custom_tags") || updateError.message.includes("column") || updateError.message.includes("schema cache")) {
+            if (patch.custom_tags) saveLocalCustomTags(patch.custom_tags);
+            const fallbackPatch = { ...patch } as any;
+            delete fallbackPatch.custom_tags;
+            const { data: fbUpdated, error: fbUpdateError } = await supabase
+              .from("user_preferences")
+              .update(fallbackPatch)
+              .eq("user_id", user.id)
+              .select()
+              .maybeSingle();
+            if (fbUpdateError) throw fbUpdateError;
+            
+            const result = fbUpdated as UserPreferences;
+            if (result) {
+              result.custom_tags = getLocalCustomTags();
+            }
+            return result;
+          }
+          throw updateError;
+        }
 
-      if (updated) return updated as UserPreferences;
+        if (updated) {
+          const result = updated as UserPreferences;
+          if (result && !result.custom_tags) {
+            result.custom_tags = getLocalCustomTags();
+          }
+          return result;
+        }
 
-      // No row existed — create with defaults + patch
-      const { data: inserted, error: insertError } = await supabase
-        .from("user_preferences")
-        .insert({ user_id: user.id, ...patch })
-        .select()
-        .single();
+        // No row existed — create with defaults + patch
+        const { data: inserted, error: insertError } = await supabase
+          .from("user_preferences")
+          .insert({ user_id: user.id, ...patch })
+          .select()
+          .single();
 
-      if (insertError) throw insertError;
-      return inserted as UserPreferences;
+        if (insertError) throw insertError;
+        
+        const result = inserted as UserPreferences;
+        if (result && !result.custom_tags) {
+          result.custom_tags = getLocalCustomTags();
+        }
+        return result;
+      } catch (err: any) {
+        if (err.message && (err.message.includes("custom_tags") || err.message.includes("column") || err.message.includes("schema cache"))) {
+          if (patch.custom_tags) saveLocalCustomTags(patch.custom_tags);
+          const fallbackPatch = { ...patch } as any;
+          delete fallbackPatch.custom_tags;
+          
+          const { data: fbData, error: fbError } = await supabase
+            .from("user_preferences")
+            .update(fallbackPatch)
+            .eq("user_id", user.id)
+            .select()
+            .maybeSingle();
+          if (fbError) throw fbError;
+          
+          if (fbData) {
+            const result = fbData as UserPreferences;
+            result.custom_tags = getLocalCustomTags();
+            return result;
+          }
+          
+          const { data: fbInserted, error: fbInsertError } = await supabase
+            .from("user_preferences")
+            .insert({ user_id: user.id, ...fallbackPatch })
+            .select()
+            .single();
+          if (fbInsertError) throw fbInsertError;
+          
+          const result = fbInserted as UserPreferences;
+          result.custom_tags = getLocalCustomTags();
+          return result;
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PREFS_KEY });

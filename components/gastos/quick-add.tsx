@@ -22,6 +22,7 @@ import {
 } from "@/lib/format";
 import { useCreateExpense, useUpdateExpense, useDeleteExpense, type Expense } from "@/hooks/use-expenses";
 import { useCreditCards } from "@/hooks/use-credit-cards";
+import { useMembers } from "@/hooks/use-members";
 import { colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
 
@@ -100,10 +101,15 @@ export function QuickAdd({
   const [pickingCard, setPickingCard] = useState(false);
   const [cardId, setCardId] = useState<string | null>(null);
 
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const { data: cards = [] } = useCreditCards();
+  const { data: members = [] } = useMembers();
 
   // Sincronizar datos al abrir en modo edición o creación
   useEffect(() => {
@@ -114,6 +120,9 @@ export function QuickAdd({
         setDate(expenseToEdit.date);
         setNote(expenseToEdit.note ?? "");
         setCardId(expenseToEdit.card_id);
+        setAssignedTo(expenseToEdit.assigned_to ?? null);
+        setTags(expenseToEdit.tags ?? []);
+        setTagInput("");
         
         if (expenseToEdit.is_subscription) {
           setCategory("suscripciones");
@@ -121,7 +130,7 @@ export function QuickAdd({
           setCategory(expenseToEdit.category);
         }
         
-        setShowExtras(!!expenseToEdit.note || expenseToEdit.date !== toISODate(new Date()));
+        setShowExtras(!!expenseToEdit.note || expenseToEdit.date !== toISODate(new Date()) || (expenseToEdit.tags ? expenseToEdit.tags.length > 0 : false));
         setPickingCard(false);
       } else {
         setAmount("");
@@ -132,9 +141,36 @@ export function QuickAdd({
         setShowExtras(false);
         setPickingCard(false);
         setCardId(null);
+        setAssignedTo(null);
+        setTags([]);
+        setTagInput("");
       }
     }
   }, [open, expenseToEdit]);
+
+  const handleAddTagPill = (val: string) => {
+    const clean = val.trim().replace(/,/g, "");
+    if (!clean) return;
+    if (!tags.includes(clean)) {
+      setTags([...tags, clean]);
+    }
+    setTagInput("");
+  };
+
+  const handleTagInputChange = (val: string) => {
+    if (val.endsWith(",")) {
+      handleAddTagPill(val);
+    } else {
+      setTagInput(val);
+    }
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTagPill(tagInput);
+    }
+  };
 
   const today = new Date();
   const maxDate = toISODate(lastOfMonth(today));
@@ -185,6 +221,8 @@ export function QuickAdd({
             note: note.trim() || null,
             card_id: dbCategory === "tarjeta_credito" ? (selectedCardId !== undefined ? selectedCardId : cardId) : null,
             is_subscription: isSubscription,
+            tags,
+            assigned_to: assignedTo,
           },
         });
         toast.success("Gasto actualizado");
@@ -197,6 +235,8 @@ export function QuickAdd({
           note: note.trim() || null,
           card_id: dbCategory === "tarjeta_credito" ? (selectedCardId !== undefined ? selectedCardId : cardId) : null,
           is_subscription: isSubscription,
+          tags,
+          assigned_to: assignedTo,
         });
         toast.success("Gasto registrado");
       }
@@ -359,6 +399,39 @@ export function QuickAdd({
                   className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-white/20 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-500"
                 />
               </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="tagsInput" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  Etiquetas
+                </Label>
+                <div className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-[#1A1D24] p-2 min-h-[44px] justify-center">
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-slate-500/10 text-slate-300 rounded-full px-2.5 py-0.5 text-xs flex items-center gap-1 border border-white/[0.04]"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => setTags(tags.filter((t) => t !== tag))}
+                          className="text-slate-500 hover:text-white transition-colors"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      id="tagsInput"
+                      type="text"
+                      placeholder={tags.length === 0 ? "Escribí y presioná Enter o coma (,)" : "Agregar etiqueta..."}
+                      value={tagInput}
+                      onChange={(e) => handleTagInputChange(e.target.value)}
+                      onKeyDown={handleTagInputKeyDown}
+                      className="flex-1 min-w-[120px] h-7 border-0 bg-transparent p-0 text-sm text-white focus:outline-none focus:ring-0 focus-visible:ring-0 placeholder:text-slate-500"
+                    />
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -400,6 +473,31 @@ export function QuickAdd({
                 Fijo
               </button>
             </div>
+          </div>
+
+          {/* Asignado a Selector */}
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-0.5">
+              <Label htmlFor="assignedTo" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                Asignado a
+              </Label>
+              <span className="text-[10px] text-slate-500">
+                Responsable del gasto
+              </span>
+            </div>
+            <select
+              id="assignedTo"
+              value={assignedTo || ""}
+              onChange={(e) => setAssignedTo(e.target.value || null)}
+              className="h-10 rounded-xl border border-white/[0.06] bg-[#1A1D24] px-3 text-xs font-semibold text-white focus:border-fuchsia-500/50 focus:outline-none"
+            >
+              <option value="">Mi cuenta</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <AnimatePresence mode="wait">

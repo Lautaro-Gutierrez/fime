@@ -13,6 +13,7 @@ type PrefsContextValue = {
   avatarKey: string | null;
   onboardingCompleted: boolean;
   completedTours: string[];
+  customTags: string[];
   isLoading: boolean;
 };
 
@@ -25,6 +26,7 @@ const defaults: PrefsContextValue = {
   avatarKey: null,
   onboardingCompleted: true, // Default to true so it doesn't flash during load
   completedTours: [],
+  customTags: ["Facultad", "Mascotas", "Vacaciones"],
   isLoading: true,
 };
 
@@ -46,6 +48,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     avatarKey: prefs?.avatar_url ?? null,
     onboardingCompleted: prefs?.onboarding_completed ?? false, // Defaults to false for new users without preference row
     completedTours: prefs?.completed_tours ?? [],
+    customTags: prefs?.custom_tags ?? ["Facultad", "Mascotas", "Vacaciones"],
     isLoading,
   };
 

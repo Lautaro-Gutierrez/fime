@@ -9,4 +9,4 @@
   - `[x]` Implementar switches/toggles booleanos en estilo de píldoras o minimalistas con el color de acento
   - `[x]` Conectar todos los paneles a sus respectivos hooks de TanStack Query / Supabase
 - `[x]` Módulo de Configuración: Actualizar `app/config/page.tsx` para renderizar `ConfiguracionClient`
-- `[x]` Verificación: Correr la build del proyecto con `pnpm run build`
+- `[/]` Verificación: Correr la build del proyecto con `pnpm run build`

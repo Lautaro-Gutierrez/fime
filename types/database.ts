@@ -110,6 +110,8 @@ export type Database = {
           is_subscription: boolean;
           created_at: string;
           updated_at: string;
+          tags: string[];
+          assigned_to: string | null;
         };
         Insert: {
           id?: string;
@@ -124,6 +126,8 @@ export type Database = {
           is_subscription?: boolean;
           created_at?: string;
           updated_at?: string;
+          tags?: string[];
+          assigned_to?: string | null;
         };
         Update: {
           id?: string;
@@ -138,6 +142,8 @@ export type Database = {
           is_subscription?: boolean;
           created_at?: string;
           updated_at?: string;
+          tags?: string[];
+          assigned_to?: string | null;
         };
         Relationships: [];
       };
@@ -453,6 +459,7 @@ export type Database = {
           display_name: string | null;
           onboarding_completed: boolean;
           completed_tours: string[];
+          custom_tags: string[];
           updated_at: string;
         };
         Insert: {
@@ -465,6 +472,7 @@ export type Database = {
           display_name?: string | null;
           onboarding_completed?: boolean;
           completed_tours?: string[];
+          custom_tags?: string[];
           updated_at?: string;
         };
         Update: {
@@ -477,6 +485,7 @@ export type Database = {
           display_name?: string | null;
           onboarding_completed?: boolean;
           completed_tours?: string[];
+          custom_tags?: string[];
           updated_at?: string;
         };
         Relationships: [];
@@ -508,6 +517,27 @@ export type Database = {
           auth?: string;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      members: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

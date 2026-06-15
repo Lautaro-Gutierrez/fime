@@ -22,6 +22,8 @@ import { createClient } from "@/lib/supabase/client";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
+import { useMembers, useCreateMember, useDeleteMember } from "@/hooks/use-members";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -121,7 +123,7 @@ export function ConfiguracionClient() {
 // ─── TAB: PERFIL ─────────────────────────────────────────────
 function PerfilTab() {
   const supabase = useMemo(() => createClient(), []);
-  const { displayName: currentName } = usePrefsContext();
+  const { displayName: currentName, customTags } = usePrefsContext();
   const updatePrefs = useUpdatePreferences();
 
   const [displayName, setDisplayName] = useState(currentName || "");
@@ -133,17 +135,15 @@ function PerfilTab() {
   const [startDay, setStartDay] = useState("1");
   
   // Etiquetas
-  const [tags, setTags] = useState(["Facultad", "Mascotas", "Vacaciones"]);
+  const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
 
-  // Contraseña
-  const [showPwChange, setShowPwChange] = useState(false);
-  const [newPw, setNewPw] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-  const [pwLoading, setPwLoading] = useState(false);
-
-  // Logout
-  const [logoutLoading, setLogoutLoading] = useState(false);
+  // Cuentas Compartidas
+  const { data: members = [] } = useMembers();
+  const createMember = useCreateMember();
+  const deleteMember = useDeleteMember();
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [newMemberName, setNewMemberName] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -157,6 +157,12 @@ function PerfilTab() {
       setNameDirty(false);
     }
   }, [currentName]);
+
+  useEffect(() => {
+    if (customTags) {
+      setTags(customTags);
+    }
+  }, [customTags]);
 
   async function handleSaveName() {
     if (!displayName.trim()) return;
@@ -214,22 +220,57 @@ function PerfilTab() {
     toast.success(`Día de inicio del ciclo configurado en el día ${val}`);
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     const trimmed = newTag.trim();
     if (!trimmed) return;
     if (tags.includes(trimmed)) {
       toast.error("La etiqueta ya existe");
       return;
     }
-    setTags([...tags, trimmed]);
+    const newTags = [...tags, trimmed];
+    setTags(newTags);
     setNewTag("");
-    toast.success(`Etiqueta #${trimmed} agregada`);
+    try {
+      await updatePrefs.mutateAsync({ custom_tags: newTags });
+      toast.success(`Etiqueta #${trimmed} agregada`);
+    } catch (err) {
+      toast.error("Error al guardar etiquetas");
+    }
   };
 
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
-    toast.success(`Etiqueta #${tag} eliminada`);
+  const handleRemoveTag = async (tag: string) => {
+    const newTags = tags.filter((t) => t !== tag);
+    setTags(newTags);
+    try {
+      await updatePrefs.mutateAsync({ custom_tags: newTags });
+      toast.success(`Etiqueta #${tag} eliminada`);
+    } catch (err) {
+      toast.error("Error al guardar etiquetas");
+    }
   };
+
+  const handleSaveMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newMemberName.trim();
+    if (!name) return;
+    try {
+      await createMember.mutateAsync({ name });
+      setNewMemberName("");
+      setShowMemberModal(false);
+      toast.success(`Miembro ${name} agregado`);
+    } catch (err) {
+      toast.error("Error al guardar miembro");
+    }
+  };
+
+  // Contraseña
+  const [showPwChange, setShowPwChange] = useState(false);
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+
+  // Logout
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
@@ -360,7 +401,7 @@ function PerfilTab() {
             </div>
             <button
               type="button"
-              onClick={() => toast.info("Funcionalidad para agregar miembros próximamente")}
+              onClick={() => setShowMemberModal(true)}
               className="text-sm text-cyan-400 hover:text-cyan-300 font-semibold transition-colors whitespace-nowrap"
             >
               + Agregar miembro
@@ -368,23 +409,89 @@ function PerfilTab() {
           </div>
           
           <div className="flex flex-col gap-2">
-            {/* Ejemplo de usuario secundario vinculado */}
-            <div className="flex items-center justify-between rounded-xl bg-[#1A1D24]/60 border border-white/[0.04] p-3 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-xs">
-                  FM
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-white">Florencia Macri</span>
-                  <span className="text-xs text-slate-500">Familiar · florencia@fime.com</span>
-                </div>
-              </div>
-              <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Activo
-              </span>
-            </div>
+            {members.length === 0 ? (
+              <span className="text-[11px] text-slate-500">Sin miembros creados. Agrega un miembro arriba.</span>
+            ) : (
+              members.map((member) => {
+                const initials = member.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+                return (
+                  <div key={member.id} className="flex items-center justify-between rounded-xl bg-[#1A1D24]/60 border border-white/[0.04] p-3 text-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-[10px]">
+                        {initials || "M"}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-white">{member.name}</span>
+                        <span className="text-xs text-slate-500">Familiar / Extensión</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`¿Seguro que querés eliminar a ${member.name}?`)) {
+                          deleteMember.mutate(member.id);
+                        }
+                      }}
+                      className="text-xs text-rose-400 hover:text-rose-300 font-semibold px-2 py-1 rounded-lg hover:bg-rose-500/10 transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
+
+        {/* Modal de Nuevo Miembro */}
+        <Dialog open={showMemberModal} onOpenChange={setShowMemberModal}>
+          <DialogContent className="max-w-sm bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-6 text-white">
+            <form onSubmit={handleSaveMember} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <DialogTitle className="text-lg font-bold text-white">Agregar Miembro</DialogTitle>
+                <p className="text-xs text-slate-400">
+                  Ingresá el nombre del familiar o la extensión de tarjeta.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="memberName" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  Nombre
+                </Label>
+                <Input
+                  id="memberName"
+                  type="text"
+                  autoFocus
+                  placeholder="Ej. Florencia Macri"
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowMemberModal(false)}
+                  className="h-10 rounded-xl border-white/[0.06] bg-transparent hover:bg-white/[0.04] text-slate-300"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createMember.isPending || !newMemberName.trim()}
+                  className="h-10 rounded-xl bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white font-semibold shadow-lg shadow-fuchsia-500/20 transition-all border-0"
+                >
+                  {createMember.isPending ? "Guardando..." : "Guardar"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Contraseña Change */}
         <div className="flex flex-col gap-3">

@@ -25,6 +25,8 @@ export type Expense = {
   created_at: string;
   updated_at: string;
   is_subscription: boolean;
+  tags?: string[];
+  assigned_to?: string | null;
 };
 
 export type ExpenseInsert = {
@@ -35,6 +37,8 @@ export type ExpenseInsert = {
   note?: string | null;
   card_id?: string | null;
   is_subscription?: boolean;
+  tags?: string[];
+  assigned_to?: string | null;
 };
 
 export type ExpenseUpdate = Partial<ExpenseInsert>;
@@ -99,13 +103,48 @@ export function useCreateExpense() {
     mutationFn: async (input: ExpenseInsert) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      const { data, error } = await supabase
-        .from("expenses")
-        .insert({ ...input, user_id: user.id })
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Expense;
+      
+      const payload: any = { ...input, user_id: user.id };
+      
+      try {
+        const { data, error } = await supabase
+          .from("expenses")
+          .insert(payload)
+          .select()
+          .single();
+          
+        if (error) {
+          if (error.message.includes('column') || error.code === '42703' || error.message.includes('schema cache')) {
+            console.warn("Database schema does not support 'tags' or 'assigned_to'. Retrying insert without them.");
+            const fallbackPayload = { ...input, user_id: user.id } as any;
+            delete fallbackPayload.tags;
+            delete fallbackPayload.assigned_to;
+            const { data: fbData, error: fbError } = await supabase
+              .from("expenses")
+              .insert(fallbackPayload)
+              .select()
+              .single();
+            if (fbError) throw fbError;
+            return fbData as Expense;
+          }
+          throw error;
+        }
+        return data as Expense;
+      } catch (err: any) {
+        if (err.message && (err.message.includes('column') || err.message.includes('schema cache'))) {
+          const fallbackPayload = { ...input, user_id: user.id } as any;
+          delete fallbackPayload.tags;
+          delete fallbackPayload.assigned_to;
+          const { data: fbData, error: fbError } = await supabase
+            .from("expenses")
+            .insert(fallbackPayload)
+            .select()
+            .single();
+          if (fbError) throw fbError;
+          return fbData as Expense;
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
@@ -126,14 +165,48 @@ export function useUpdateExpense() {
       id: string;
       patch: ExpenseUpdate;
     }) => {
-      const { data, error } = await supabase
-        .from("expenses")
-        .update(patch)
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Expense;
+      try {
+        const { data, error } = await supabase
+          .from("expenses")
+          .update(patch)
+          .eq("id", id)
+          .select()
+          .single();
+          
+        if (error) {
+          if (error.message.includes('column') || error.code === '42703' || error.message.includes('schema cache')) {
+            console.warn("Database schema does not support 'tags' or 'assigned_to'. Retrying update without them.");
+            const fallbackPatch = { ...patch } as any;
+            delete fallbackPatch.tags;
+            delete fallbackPatch.assigned_to;
+            const { data: fbData, error: fbError } = await supabase
+              .from("expenses")
+              .update(fallbackPatch)
+              .eq("id", id)
+              .select()
+              .single();
+            if (fbError) throw fbError;
+            return fbData as Expense;
+          }
+          throw error;
+        }
+        return data as Expense;
+      } catch (err: any) {
+        if (err.message && (err.message.includes('column') || err.message.includes('schema cache'))) {
+          const fallbackPatch = { ...patch } as any;
+          delete fallbackPatch.tags;
+          delete fallbackPatch.assigned_to;
+          const { data: fbData, error: fbError } = await supabase
+            .from("expenses")
+            .update(fallbackPatch)
+            .eq("id", id)
+            .select()
+            .single();
+          if (fbError) throw fbError;
+          return fbData as Expense;
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
