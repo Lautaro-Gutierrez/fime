@@ -446,18 +446,18 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
       {/* Background radial gradient decoration */}
       <div 
         className="absolute -right-12 -top-12 w-36 h-36 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-15 pointer-events-none" 
-        style={{ background: cfg.themeColor }}
+        style={{ background: cfg.color }}
       />
       
       {/* Encabezado de la tarjeta */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: cfg.bgColor }}>
-            <Icon className="w-5 h-5" style={{ color: cfg.themeColor }} />
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", cfg.bgClass)}>
+            <Icon className="w-5 h-5" style={{ color: cfg.color }} />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cfg.themeColor }}>
-              {cfg.title}
+            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cfg.color }}>
+              {cfg.label}
             </span>
             <h3 className="text-sm font-bold text-white truncate max-w-[150px]">{goal.name}</h3>
           </div>
@@ -494,14 +494,14 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
       <div className="mb-4">
         <div className="flex justify-between text-[10px] font-semibold text-slate-400 mb-1.5 font-mono">
           <span>Progreso</span>
-          <span style={{ color: cfg.themeColor }}>{Math.round(pct)}%</span>
+          <span style={{ color: cfg.color }}>{Math.round(pct)}%</span>
         </div>
         <div className="w-full h-2 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
           <div 
             className="h-full rounded-full transition-all duration-500" 
             style={{ 
               width: `${pct}%`,
-              background: `linear-gradient(90deg, ${cfg.themeColor}, ${cfg.themeColor}dd)` 
+              background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}dd)` 
             }}
           />
         </div>
