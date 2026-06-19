@@ -273,7 +273,7 @@ function PerfilTab() {
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+    <div className="w-full max-w-3xl flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Mi Perfil</h2>
         <p className="text-xs text-slate-400 mt-1">Gestioná tu identidad y credenciales de acceso.</p>
@@ -583,7 +583,7 @@ function AparienciaTab() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+    <div className="w-full max-w-3xl flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Preferencias de la App</h2>
         <p className="text-xs text-slate-400 mt-1">Personalizá el tema, acento de color, densidad visual y privacidad.</p>
@@ -686,7 +686,7 @@ function SoporteTab() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+    <div className="w-full max-w-3xl flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Soporte y Guías</h2>
         <p className="text-xs text-slate-400 mt-1">Reactivá las guías interactivas para aprender a usar la plataforma.</p>
@@ -761,7 +761,7 @@ function DangerTab() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+    <div className="w-full max-w-3xl flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold text-white">Peligro y Restablecimiento</h2>
         <p className="text-xs text-slate-400 mt-1">Acciones irreversibles sobre tu cuenta y almacenamiento.</p>
