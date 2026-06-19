@@ -20,6 +20,9 @@ type UseAlertsProps = {
   holdings: ValuedHolding[];
 };
 
+/**
+ * @deprecated Replaced by useSmartInsights("dashboard") from "@/hooks/use-smart-insights"
+ */
 export function useDashboardAlerts({ goals, expenses, holdings }: UseAlertsProps) {
   return useMemo(() => {
     const alerts: DashboardAlert[] = [];

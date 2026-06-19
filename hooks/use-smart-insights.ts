@@ -16,6 +16,7 @@ import { format, subMonths, getDaysInMonth, getDate } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
 import { firstOfMonth, lastOfMonth, monthKey, toISODate } from "@/lib/format";
 import { useUserId } from "@/components/providers/user-provider";
+import { DEFAULT_DISTRIBUTION } from "@/lib/income-categories";
 
 // V1: We only load dashboard rules. In subsequent phases we'll add the others.
 const ALL_RULES = [...dashboardRules];
@@ -97,9 +98,46 @@ export function useSmartInsights(module?: InsightModule) {
     cardsQ.isLoading ||
     portfolioQ.isLoading;
 
-  // Composite Distribution (mocked for now, needs logic from income module)
-  // We'll calculate it simple here, or we can just leave it as null
-  const compositeDistribution = null;
+  // Composite Distribution calculated from actual incomes of the month that have a custom distribution
+  const compositeDistribution = useMemo(() => {
+    const incomes = incomesQ.data || [];
+    const incomesWithDist = incomes.filter((i) => i.distribution !== null);
+
+    if (incomesWithDist.length === 0) {
+      return DEFAULT_DISTRIBUTION;
+    }
+
+    const totalAmountWithDist = incomesWithDist.reduce((sum, i) => sum + (i.amount_ars || 0), 0);
+    if (totalAmountWithDist === 0) {
+      return DEFAULT_DISTRIBUTION;
+    }
+
+    let fixed = 0;
+    let variable = 0;
+    let invest = 0;
+    let save = 0;
+
+    for (const i of incomesWithDist) {
+      const dist = i.distribution!;
+      const weight = (i.amount_ars || 0) / totalAmountWithDist;
+      fixed += dist.fixed_pct * weight;
+      variable += dist.variable_pct * weight;
+      invest += dist.invest_pct * weight;
+      save += dist.save_pct * weight;
+    }
+
+    const roundedFixed = Math.round(fixed);
+    const roundedVariable = Math.round(variable);
+    const roundedInvest = Math.round(invest);
+    const roundedSave = 100 - roundedFixed - roundedVariable - roundedInvest;
+
+    return {
+      fixed_pct: roundedFixed,
+      variable_pct: roundedVariable,
+      invest_pct: roundedInvest,
+      save_pct: roundedSave,
+    };
+  }, [incomesQ.data]);
 
   // Goal progresses
   const goalProgresses = useMemo(() => {

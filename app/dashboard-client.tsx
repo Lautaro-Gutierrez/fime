@@ -16,6 +16,7 @@ import { es } from "date-fns/locale";
 import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid, Tooltip } from "recharts";
 import Link from "next/link";
 import { useSmartInsights } from "@/hooks/use-smart-insights";
+import { SmartInsightsCarousel } from "@/components/dashboard/smart-insights-carousel";
 
 export default function DashboardClient() {
   const { stealthMode: isStealthMode } = usePrefsContext();
@@ -211,9 +212,6 @@ export default function DashboardClient() {
     gaugeMsg = "Gastos elevados, alerta roja";
   }
 
-  const [dismissedInsights, setDismissedInsights] = useState<Record<string, boolean>>({});
-  const dismissInsight = (id: string) => setDismissedInsights(prev => ({ ...prev, [id]: true }));
-
   const isLoading = portfolio.isLoading || incomesQ.isLoading || expensesQ.isLoading || goalsQ.isLoading;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -287,62 +285,7 @@ export default function DashboardClient() {
 
           {/* ═══════ 2. SMART INSIGHTS CAROUSEL ═══════ */}
           <div className="relative z-10 animate-fade-in delay-1 mb-7">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                Smart Insights
-              </h2>
-              <span className="text-[11px] text-slate-500">
-                {3 - Object.values(dismissedInsights).filter(Boolean).length} activas
-              </span>
-            </div>
-            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-4 w-full md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
-              {/* Tip de Ahorro */}
-              {!dismissedInsights["insight-1"] && (
-                <div className="w-[85vw] sm:min-w-[320px] md:w-auto flex-shrink-0 snap-center md:snap-align-none rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
-                  <button onClick={() => dismissInsight('insight-1')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}>
-                      <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tip de Ahorro</span>
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed">Podrías ahorrar <span className="text-emerald-400 font-semibold">$50 extra</span> este mes reduciendo gastos en comida rápida. La categoría representa el 28% de tus egresos.</p>
-                </div>
-              )}
-              {/* Recordatorio */}
-              {!dismissedInsights["insight-2"] && (
-                <div className="w-[85vw] sm:min-w-[320px] md:w-auto flex-shrink-0 snap-center md:snap-align-none rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.04))", borderColor: "rgba(59,130,246,0.15)" }}>
-                  <button onClick={() => dismissInsight('insight-2')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,130,246,0.15)" }}>
-                      <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    </div>
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Recordatorio</span>
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed">Pago de tarjeta de crédito próximo, vence el <span className="text-blue-400 font-semibold">15/06</span>.</p>
-                </div>
-              )}
-              {/* Oportunidad */}
-              {!dismissedInsights["insight-3"] && (
-                <div className="w-[85vw] sm:min-w-[320px] md:w-auto flex-shrink-0 snap-center md:snap-align-none rounded-2xl p-4 border card-hover relative" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(234,179,8,0.04))", borderColor: "rgba(245,158,11,0.15)" }}>
-                  <button onClick={() => dismissInsight('insight-3')} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(245,158,11,0.15)" }}>
-                      <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                    </div>
-                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Oportunidad</span>
-                  </div>
-                  <p className="text-sm text-slate-300 leading-relaxed">Analiza tus suscripciones: podrías liberar <span className="text-amber-400 font-semibold">$30/mes</span>.</p>
-                </div>
-              )}
-            </div>
+            <SmartInsightsCarousel />
           </div>
 
           {/* ═══════ 3. KPI ROW (grid-cols-4) ═══════ */}

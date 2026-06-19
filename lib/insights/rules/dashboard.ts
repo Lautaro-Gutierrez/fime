@@ -226,4 +226,41 @@ export const dashboardRules: InsightRule[] = [
       return null;
     },
   },
+  // 9. dash-goal-pacing-behind (migrated from legacy alerts)
+  {
+    id: "dash-goal-pacing-behind",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      const now = ctx.today;
+      for (const goal of ctx.goals) {
+        if (goal.status !== "active") continue;
+        const pct = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
+
+        if (goal.deadline) {
+          const deadlineDate = new Date(goal.deadline);
+          const startDate = new Date(goal.started_at);
+          const totalDuration = deadlineDate.getTime() - startDate.getTime();
+          const elapsed = now.getTime() - startDate.getTime();
+          const timePct = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
+
+          if (timePct > pct + 20) {
+            return {
+              id: `dash-goal-pacing-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              ruleId: "dash-goal-pacing-behind",
+              module: "dashboard",
+              category: "warning",
+              priority: "medium",
+              title: "Meta atrasada",
+              message: `Vas un poco atrasado con "${goal.name}" (tiempo: ${timePct.toFixed(0)}%, progreso: ${pct.toFixed(0)}%).`,
+              href: "/metas",
+              dismissible: true,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        }
+      }
+      return null;
+    },
+  },
 ];
+
