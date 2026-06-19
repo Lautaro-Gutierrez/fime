@@ -13,61 +13,53 @@ const CATEGORY_CONFIG: Record<
   InsightCategory,
   {
     icon: LucideIcon;
-    borderClass: string;
     bgClass: string;
     textClass: string;
   }
 > = {
   tip: {
     icon: Lightbulb,
-    borderClass: "border-l-amber-500",
     bgClass: "bg-amber-500/10",
-    textClass: "text-amber-500",
+    textClass: "text-amber-400",
   },
   reminder: {
     icon: Bell,
-    borderClass: "border-l-blue-500",
     bgClass: "bg-blue-500/10",
-    textClass: "text-blue-500",
+    textClass: "text-blue-400",
   },
   opportunity: {
     icon: Zap,
-    borderClass: "border-l-emerald-500",
     bgClass: "bg-emerald-500/10",
-    textClass: "text-emerald-500",
+    textClass: "text-emerald-400",
   },
   warning: {
     icon: AlertTriangle,
-    borderClass: "border-l-rose-500",
     bgClass: "bg-rose-500/10",
-    textClass: "text-rose-500",
+    textClass: "text-rose-400",
   },
   achievement: {
     icon: Trophy,
-    borderClass: "border-l-violet-500",
     bgClass: "bg-violet-500/10",
-    textClass: "text-violet-500",
+    textClass: "text-violet-400",
   },
 };
 
 export function SmartInsightCard({ insight, onDismiss }: SmartInsightCardProps) {
   const config = CATEGORY_CONFIG[insight.category];
-  const Icon = config.icon; // Could map insight.icon string if needed
+  const Icon = config.icon;
 
   const content = (
     <div
       className={cn(
-        "group relative flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 backdrop-blur-xl transition-all hover:bg-white/[0.05]",
-        "border-l-4",
-        config.borderClass
+        "group relative flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#1A1D24] p-4 transition-all hover:border-white/[0.1]"
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className={cn("flex size-8 items-center justify-center rounded-lg", config.bgClass)}>
-            <Icon className={cn("size-4", config.textClass)} />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", config.bgClass)}>
+            <Icon className={cn("size-5", config.textClass)} />
           </div>
-          <h4 className="font-semibold tracking-tight text-white/90">{insight.title}</h4>
+          <h4 className="text-slate-200 font-semibold text-base">{insight.title}</h4>
         </div>
         {insight.dismissible && (
           <Button
@@ -79,18 +71,18 @@ export function SmartInsightCard({ insight, onDismiss }: SmartInsightCardProps) 
               onDismiss(insight.id);
             }}
           >
-            <X className="size-3" />
+            <X className="size-3.5" />
             <span className="sr-only">Descartar</span>
           </Button>
         )}
       </div>
-      <p className="text-sm text-white/60 leading-relaxed">{insight.message}</p>
+      <p className="text-slate-400 text-sm leading-relaxed">{insight.message}</p>
     </div>
   );
 
   if (insight.href) {
     return (
-      <Link href={insight.href} className="block outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-theme-400 focus-visible:ring-offset-2 rounded-xl">
+      <Link href={insight.href} className="block outline-none rounded-2xl">
         {content}
       </Link>
     );

@@ -227,24 +227,6 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
           </div>
         </div>
 
-        {/* Investment Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 animate-fade-in delay-2">
-          <div className="rounded-2xl p-4 border card-hover" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.04))", borderColor: "rgba(139,92,246,0.15)" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)" }}><svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg></div>
-              <span className="text-xs font-bold text-violet-400 uppercase tracking-wider">Diversificación</span>
-            </div>
-            <p className="text-sm text-slate-300 leading-relaxed">No tenés renta fija en tu portfolio. Considerá agregar bonos para reducir volatilidad.</p>
-          </div>
-          <div className="rounded-2xl p-4 border card-hover" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}><svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Buen Hábito</span>
-            </div>
-            <p className="text-sm text-slate-300 leading-relaxed">Estás haciendo DCA consistentemente. ¡Seguí así! Llevas 6 meses consecutivos aportando.</p>
-          </div>
-        </div>
-
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 animate-fade-in delay-3">
           {/* Portfolio Composition */}

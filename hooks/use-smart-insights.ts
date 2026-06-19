@@ -14,7 +14,6 @@ import { dashboardRules } from "@/lib/insights/rules/dashboard";
 import { gastosRules } from "@/lib/insights/rules/gastos";
 import { inversionesRules } from "@/lib/insights/rules/inversiones";
 import { ingresosRules } from "@/lib/insights/rules/ingresos";
-import { metasRules } from "@/lib/insights/rules/metas";
 import type { InsightModule, SmartInsight, InsightContext } from "@/lib/insights/types";
 import { format, subMonths, getDaysInMonth, getDate } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
@@ -27,7 +26,6 @@ const ALL_RULES = [
   ...gastosRules,
   ...inversionesRules,
   ...ingresosRules,
-  ...metasRules,
 ];
 
 const MAX_PER_MODULE: Record<InsightModule, number> = {
@@ -258,7 +256,24 @@ export function useSmartInsights(module?: InsightModule) {
 
   const allInsights = useMemo(() => {
     if (isLoading) return null;
-    return evaluateInsights(rawCtx, ALL_RULES, dismissed, MAX_PER_MODULE);
+    const evaluated = evaluateInsights(rawCtx, ALL_RULES, dismissed, MAX_PER_MODULE);
+
+    // Filtro explícito para eliminar cualquier tip o alerta de metas/objetivos
+    const filterMetas = (insights: SmartInsight[]) =>
+      insights.filter(
+        (insight) =>
+          insight.module !== "metas" &&
+          !insight.ruleId.includes("goal") &&
+          !insight.ruleId.includes("meta")
+      );
+
+    return {
+      dashboard: filterMetas(evaluated.dashboard),
+      gastos: filterMetas(evaluated.gastos),
+      inversiones: filterMetas(evaluated.inversiones),
+      ingresos: filterMetas(evaluated.ingresos),
+      metas: [], // Eliminar por completo
+    };
   }, [isLoading, rawCtx, dismissed]);
 
   return {

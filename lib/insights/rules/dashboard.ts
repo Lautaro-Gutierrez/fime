@@ -145,43 +145,7 @@ export const dashboardRules: InsightRule[] = [
       return null;
     },
   },
-  // 6. dash-goal-achievable
-  {
-    id: "dash-goal-achievable",
-    module: "dashboard",
-    evaluate: (ctx): SmartInsight | null => {
-      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
-      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
-      const surplus = totalIncome - totalExpense;
 
-      if (surplus > 0) {
-        // Find a goal that is not achieved, and the remaining amount is <= surplus
-        for (const goal of ctx.goals) {
-          if (goal.status !== "active") continue;
-          // Note: goals amounts might be in USD. We simplify by checking if it's ARS or if we had a quick conversion.
-          // For now, if remaining is strictly > 0 and < surplus
-          const progress = ctx.goalProgresses.get(goal.id);
-          if (progress && progress.remaining > 0 && progress.remaining <= surplus) {
-            return {
-              id: `dash-goal-achievable-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
-              ruleId: "dash-goal-achievable",
-              module: "dashboard",
-              category: "opportunity",
-              priority: "low",
-              title: "Meta completable",
-              message: `La meta "${goal.name}" necesita ${progress.remaining.toLocaleString(
-                "es-AR"
-              )} más. ¡Tu flujo libre del mes lo cubre!`,
-              href: "/metas",
-              dismissible: true,
-              createdAt: new Date().toISOString(),
-            };
-          }
-        }
-      }
-      return null;
-    },
-  },
   // 7. dash-month-closing
   {
     id: "dash-month-closing",
@@ -222,42 +186,6 @@ export const dashboardRules: InsightRule[] = [
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
-      }
-      return null;
-    },
-  },
-  // 9. dash-goal-pacing-behind (migrated from legacy alerts)
-  {
-    id: "dash-goal-pacing-behind",
-    module: "dashboard",
-    evaluate: (ctx): SmartInsight | null => {
-      const now = ctx.today;
-      for (const goal of ctx.goals) {
-        if (goal.status !== "active") continue;
-        const pct = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-
-        if (goal.deadline) {
-          const deadlineDate = new Date(goal.deadline);
-          const startDate = new Date(goal.started_at);
-          const totalDuration = deadlineDate.getTime() - startDate.getTime();
-          const elapsed = now.getTime() - startDate.getTime();
-          const timePct = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
-
-          if (timePct > pct + 20) {
-            return {
-              id: `dash-goal-pacing-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
-              ruleId: "dash-goal-pacing-behind",
-              module: "dashboard",
-              category: "warning",
-              priority: "medium",
-              title: "Meta atrasada",
-              message: `Vas un poco atrasado con "${goal.name}" (tiempo: ${timePct.toFixed(0)}%, progreso: ${pct.toFixed(0)}%).`,
-              href: "/metas",
-              dismissible: true,
-              createdAt: new Date().toISOString(),
-            };
-          }
-        }
       }
       return null;
     },
