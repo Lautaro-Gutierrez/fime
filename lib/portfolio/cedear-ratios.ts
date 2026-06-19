@@ -28,7 +28,7 @@ export const CEDEAR_RATIOS: Record<string, number> = {
   CSCO: 5,
 
   // Comercio electrónico y Fintech
-  MELI: 60,
+  MELI: 120,
   PYPL: 24,
   V: 18,
   MA: 33,
