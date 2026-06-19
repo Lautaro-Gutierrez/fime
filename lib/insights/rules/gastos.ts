@@ -333,4 +333,305 @@ export const gastosRules: InsightRule[] = [
       return null;
     },
   },
+  // 10. gastos-month-improvement
+  {
+    id: "gastos-month-improvement",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth < 10) return null;
+      if (ctx.expensesPrevMonth.length === 0) return null;
+
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      const prevProrated = ctx.expensesPrevMonth.reduce((acc, e) => acc + e.amount, 0)
+        * (ctx.dayOfMonth / getDaysInMonth(subMonths(ctx.currentMonth, 1)));
+
+      if (prevProrated > 0 && totalExpense < prevProrated * 0.9) {
+        return {
+          id: `gastos-month-improvement-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-month-improvement",
+          module: "gastos",
+          category: "achievement",
+          priority: "medium",
+          title: "Gastás menos que el mes pasado",
+          message: `A esta altura del mes, tu gasto total es menor al del mes anterior. Excelente señal de que estás administrando mejor tu dinero.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 11. gastos-unexpected-spike
+  {
+    id: "gastos-unexpected-spike",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const unexpected = ctx.expenses
+        .filter((e) => e.category === "imprevistos")
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      if (unexpected > 20000) {
+        return {
+          id: `gastos-unexpected-spike-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-unexpected-spike",
+          module: "gastos",
+          category: "warning",
+          priority: "medium",
+          title: "Tuviste un gasto no esperado",
+          message: `Este mes registraste $${Math.round(unexpected).toLocaleString("es-AR")} en gastos no previstos. Si esto se repite con frecuencia, puede ser útil reservar una pequeña suma mensual para cubrir este tipo de situaciones.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 12. gastos-credit-card-heavy
+  {
+    id: "gastos-credit-card-heavy",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const total = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (total <= 0) return null;
+
+      const cardExpenses = ctx.expenses
+        .filter((e) => e.card_id !== null)
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      const pct = Math.round((cardExpenses / total) * 100);
+      if (pct > 50) {
+        return {
+          id: `gastos-cc-heavy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-credit-card-heavy",
+          module: "gastos",
+          category: "tip",
+          priority: "low",
+          title: "Más de la mitad de tus gastos son con tarjeta",
+          message: `El ${pct}% de tus gastos de este mes se realizaron con tarjeta de crédito. Recordá pagar el resumen a tiempo para evitar intereses.`,
+          href: "/gastos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 13. gastos-no-variable-expenses
+  {
+    id: "gastos-no-variable-expenses",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth <= 5) return null;
+      const hasVariable = ctx.expenses.some((e) => e.type === "variable");
+      if (!hasVariable && ctx.expenses.length > 0) {
+        return {
+          id: `gastos-no-variable-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-no-variable-expenses",
+          module: "gastos",
+          category: "reminder",
+          priority: "low",
+          title: "Sin gastos del día a día registrados",
+          message: "No registraste ningún gasto variable este mes (salidas, compras, delivery, etc.). Anotarlos te ayuda a ver exactamente adónde va tu dinero.",
+          href: "/gastos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 14. gastos-variable-good-month
+  {
+    id: "gastos-variable-good-month",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth < 15) return null;
+      const dist = ctx.compositeDistribution;
+      if (!dist) return null;
+
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      if (totalIncome <= 0) return null;
+
+      const variableExpense = ctx.expenses
+        .filter((e) => e.type === "variable")
+        .reduce((acc, e) => acc + e.amount, 0);
+      const variableBudget = totalIncome * (dist.variable_pct / 100);
+      if (variableBudget <= 0) return null;
+
+      const pct = Math.round((variableExpense / variableBudget) * 100);
+      if (pct < 60 && variableExpense > 0) {
+        return {
+          id: `gastos-var-good-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-variable-good-month",
+          module: "gastos",
+          category: "achievement",
+          priority: "medium",
+          title: "Controlaste muy bien los gastos del día a día",
+          message: `Llevás solo el ${pct}% de lo planificado para gastos variables. Mantener este control te deja más dinero disponible para ahorrar o invertir.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 15. gastos-food-high
+  {
+    id: "gastos-food-high",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const total = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (total <= 0) return null;
+
+      const foodExpense = ctx.expenses
+        .filter((e) => e.category === "comida")
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      const pct = Math.round((foodExpense / total) * 100);
+      if (foodExpense > 30000 && pct > 30) {
+        return {
+          id: `gastos-food-high-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-food-high",
+          module: "gastos",
+          category: "tip",
+          priority: "low",
+          title: "Gran parte de tus gastos van a comida",
+          message: `La comida representa el ${pct}% de todo lo que gastás este mes ($${Math.round(foodExpense).toLocaleString("es-AR")}). Planificar las compras o cocinar en casa puede generar un ahorro significativo.`,
+          href: "/gastos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 16. gastos-end-of-month-tight
+  {
+    id: "gastos-end-of-month-tight",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const daysLeft = ctx.daysInMonth - ctx.dayOfMonth;
+      if (daysLeft > 5) return null;
+
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (totalIncome <= 0) return null;
+
+      const pct = Math.round((totalExpense / totalIncome) * 100);
+      if (pct > 90) {
+        return {
+          id: `gastos-eom-tight-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-end-of-month-tight",
+          module: "gastos",
+          category: "warning",
+          priority: "high",
+          title: "Queda poco mes y el dinero está ajustado",
+          message: `Llevás gastado el ${pct}% de tus ingresos y todavía quedan ${daysLeft} día${daysLeft !== 1 ? "s" : ""}. Intentá moderar los consumos para cerrar el mes sin quedar en rojo.`,
+          href: "/gastos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 17. gastos-first-week-pace
+  {
+    id: "gastos-first-week-pace",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth < 3 || ctx.dayOfMonth > 7) return null;
+      if (ctx.expensesPrevMonth.length === 0) return null;
+
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      const daysInPrevMonth = getDaysInMonth(subMonths(ctx.currentMonth, 1));
+      const prevMonthTotal = ctx.expensesPrevMonth.reduce((acc, e) => acc + e.amount, 0);
+      const prevDailyAvg = prevMonthTotal / daysInPrevMonth;
+      const currentDailyAvg = ctx.dayOfMonth > 0 ? totalExpense / ctx.dayOfMonth : 0;
+
+      if (prevDailyAvg > 0 && currentDailyAvg < prevDailyAvg * 0.8) {
+        return {
+          id: `gastos-first-week-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-first-week-pace",
+          module: "gastos",
+          category: "tip",
+          priority: "low",
+          title: "Buen inicio de mes",
+          message: "Tu ritmo de gasto en los primeros días del mes es moderado. Si continuás así, cerrarás el mes con un buen saldo disponible.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 18. gastos-fixed-healthy
+  {
+    id: "gastos-fixed-healthy",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      if (totalIncome <= 0) return null;
+
+      const fixedExpense = ctx.expenses
+        .filter((e) => e.type === "fixed")
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      const pct = Math.round((fixedExpense / totalIncome) * 100);
+      if (fixedExpense > 0 && pct < 45) {
+        return {
+          id: `gastos-fixed-healthy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-fixed-healthy",
+          module: "gastos",
+          category: "achievement",
+          priority: "low",
+          title: "Tus gastos fijos están bien organizados",
+          message: `Tus gastos fijos representan el ${pct}% de tus ingresos, muy por debajo del límite del 60%. Eso te da más margen para ahorrar o darte un gusto.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 19. gastos-category-drop
+  {
+    id: "gastos-category-drop",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const expensesByCategory = ctx.expenses.reduce((acc, e) => {
+        acc[e.category] = (acc[e.category] || 0) + e.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const prevExpensesByCategory = ctx.expensesPrevMonth.reduce((acc, e) => {
+        acc[e.category] = (acc[e.category] || 0) + e.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+      for (const [cat, prevAmount] of Object.entries(prevExpensesByCategory)) {
+        const currentAmount = expensesByCategory[cat] || 0;
+        if (prevAmount > 15000 && currentAmount > 0 && currentAmount < prevAmount * 0.7) {
+          const catConfig = CATEGORIES_BY_ID[cat as keyof typeof CATEGORIES_BY_ID];
+          const catName = catConfig ? catConfig.label : cat;
+          const dropPct = Math.round((1 - currentAmount / prevAmount) * 100);
+
+          return {
+            id: `gastos-cat-drop-${cat}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            ruleId: "gastos-category-drop",
+            module: "gastos",
+            category: "achievement",
+            priority: "medium",
+            title: `Bajaste el gasto en ${catName}`,
+            message: `El gasto en ${catName} bajó un ${dropPct}% respecto al mes anterior ($${Math.round(currentAmount).toLocaleString("es-AR")} este mes vs $${Math.round(prevAmount).toLocaleString("es-AR")} el anterior). Un ahorro que suma.`,
+            href: "/gastos",
+            dismissible: true,
+            createdAt: new Date().toISOString(),
+          };
+        }
+      }
+      return null;
+    },
+  },
 ];
+

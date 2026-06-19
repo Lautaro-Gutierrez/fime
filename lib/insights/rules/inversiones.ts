@@ -415,4 +415,256 @@ export const inversionesRules: InsightRule[] = [
       return null;
     },
   },
+  // 12. inv-gain-position
+  {
+    id: "inv-gain-position",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      for (const holding of ctx.holdings) {
+        if (holding.unrealized_pnl_pct !== null && holding.unrealized_pnl_pct > 20) {
+          const ticker = holding.ticker || holding.label;
+          return {
+            id: `inv-gain-pos-${ticker}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            ruleId: "inv-gain-position",
+            module: "inversiones",
+            category: "achievement",
+            priority: "medium",
+            title: "Una inversión viene rindiendo muy bien",
+            message: `El activo ${ticker} acumula una ganancia del ${Math.round(holding.unrealized_pnl_pct)}%. Invertir con visión de largo plazo da sus frutos. Podés evaluar si mantener o tomar ganancias parciales.`,
+            href: "/portfolio",
+            dismissible: true,
+            createdAt: new Date().toISOString(),
+          };
+        }
+      }
+      return null;
+    },
+  },
+  // 13. inv-all-green
+  {
+    id: "inv-all-green",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const activeHoldings = ctx.holdings.filter(
+        (h) => h.asset_type !== "usd_cash" && (h.asset_type as string) !== "ars_cash"
+      );
+      if (activeHoldings.length < 2) return null;
+
+      const allPositive = activeHoldings.every(
+        (h) => h.unrealized_pnl_pct !== null && h.unrealized_pnl_pct > 0
+      );
+
+      if (allPositive) {
+        return {
+          id: `inv-all-green-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-all-green",
+          module: "inversiones",
+          category: "achievement",
+          priority: "medium",
+          title: "Todas tus inversiones están en verde",
+          message: "Cada posición de tu cartera acumula ganancias en este momento. Es un resultado poco común — seguí con la estrategia actual.",
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 14. inv-portfolio-milestone-10k
+  {
+    id: "inv-portfolio-milestone-10k",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.portfolioTotals.total_usd >= 10000) {
+        return {
+          id: `inv-milestone-10k-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-portfolio-milestone-10k",
+          module: "inversiones",
+          category: "achievement",
+          priority: "high",
+          title: "Superaste los USD 10.000 en inversiones",
+          message: "Tu cartera de inversiones supera los USD 10.000. Este es un hito importante en la construcción de tu patrimonio financiero.",
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 15. inv-portfolio-milestone-1k
+  {
+    id: "inv-portfolio-milestone-1k",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const total = ctx.portfolioTotals.total_usd;
+      if (total >= 1000 && total < 10000) {
+        return {
+          id: `inv-milestone-1k-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-portfolio-milestone-1k",
+          module: "inversiones",
+          category: "achievement",
+          priority: "medium",
+          title: "Superaste los USD 1.000 en inversiones",
+          message: "Tu cartera ya supera los USD 1.000. Cada aporte cuenta: los primeros USD 1.000 suelen ser los más difíciles de acumular.",
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 16. inv-positive-return
+  {
+    id: "inv-positive-return",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.returnSeries.length === 0) return null;
+      const latest = ctx.returnSeries[ctx.returnSeries.length - 1];
+      if (latest.portfolio_pct !== null && latest.portfolio_pct > 5) {
+        return {
+          id: `inv-pos-ret-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-positive-return",
+          module: "inversiones",
+          category: "achievement",
+          priority: "medium",
+          title: "Tu cartera viene rindiendo bien",
+          message: `El rendimiento acumulado de tu cartera es de +${latest.portfolio_pct.toFixed(1)}%. Mantenerse invertido y con consistencia es la base del crecimiento patrimonial.`,
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 17. inv-realized-gains
+  {
+    id: "inv-realized-gains",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const realized = ctx.portfolioTotals.realized_pnl_usd;
+      if (realized > 0) {
+        return {
+          id: `inv-realized-gains-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-realized-gains",
+          module: "inversiones",
+          category: "achievement",
+          priority: "medium",
+          title: "Tuviste ganancias en ventas",
+          message: `Acumulás USD ${Math.round(realized).toLocaleString("es-AR")} en ganancias realizadas por ventas de activos. Esas ganancias ya son tuyas.`,
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 18. inv-low-usd-reserve
+  {
+    id: "inv-low-usd-reserve",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalValue = ctx.holdings.reduce((sum, h) => sum + h.current_value_usd, 0);
+      if (totalValue <= 500) return null;
+
+      const hasUsdCash = ctx.holdings.some((h) => h.asset_type === "usd_cash");
+      if (!hasUsdCash) {
+        return {
+          id: `inv-low-usd-res-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-low-usd-reserve",
+          module: "inversiones",
+          category: "tip",
+          priority: "low",
+          title: "No tenés reservas en dólares",
+          message: "Tu cartera no incluye dólares en efectivo. Tener una pequeña reserva en moneda fuerte ayuda a estar preparado ante imprevistos o nuevas oportunidades de compra.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 19. inv-sell-recent
+  {
+    id: "inv-sell-recent",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasRecentSell = ctx.investments.some((inv) => {
+        if (inv.tx_type !== "sell") return false;
+        const txDate = new Date(inv.date);
+        const diffDays = (ctx.today.getTime() - txDate.getTime()) / (1000 * 60 * 60 * 24);
+        return diffDays >= 0 && diffDays <= 30;
+      });
+
+      if (hasRecentSell) {
+        return {
+          id: `inv-sell-recent-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-sell-recent",
+          module: "inversiones",
+          category: "tip",
+          priority: "low",
+          title: "Tuviste una venta reciente",
+          message: "Vendiste activos en los últimos días. Si todavía no reinvertiste ese capital, es un buen momento para evaluar nuevas oportunidades.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 20. inv-time-deposit-present
+  {
+    id: "inv-time-deposit-present",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasTimeDeposit = ctx.holdings.some((h) => h.asset_type === "time_deposit");
+      if (hasTimeDeposit) {
+        return {
+          id: `inv-td-present-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-time-deposit-present",
+          module: "inversiones",
+          category: "reminder",
+          priority: "low",
+          title: "Tenés un plazo fijo en tu cartera",
+          message: "Registrás un plazo fijo como parte de tu cartera. Recordá verificar su fecha de vencimiento para decidir si renovarlo o redirigirlo a otra inversión.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 21. inv-on-opportunity
+  {
+    id: "inv-on-opportunity",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalValue = ctx.holdings.reduce((sum, h) => sum + h.current_value_usd, 0);
+      if (totalValue <= 2000) return null;
+
+      const hasOn = ctx.holdings.some((h) => h.asset_type === "on");
+      if (!hasOn) {
+        return {
+          id: `inv-on-opp-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-on-opportunity",
+          module: "inversiones",
+          category: "opportunity",
+          priority: "low",
+          title: "¿Conocés las Obligaciones Negociables?",
+          message: "Las ONs son instrumentos de renta fija corporativa que pueden ofrecer rendimientos en dólares. Son una opción interesante para diversificar tu cartera conservadora.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
 ];

@@ -195,4 +195,192 @@ export const ingresosRules: InsightRule[] = [
       return null;
     },
   },
+  // 8. ing-no-income-yet
+  {
+    id: "ing-no-income-yet",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.incomes.length === 0 && ctx.dayOfMonth > 5) {
+        return {
+          id: `ing-no-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-no-income-yet",
+          module: "ingresos",
+          category: "reminder",
+          priority: "medium",
+          title: "Todavía no registraste ingresos",
+          message: "Ya pasaron varios días del mes y no hay ingresos cargados. Registrar tu sueldo o ingresos te permite planificar mejor cómo distribuir tu dinero.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 9. ing-usd-income
+  {
+    id: "ing-usd-income",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasUsd = ctx.incomes.some((i) => i.currency === "USD");
+      if (hasUsd) {
+        return {
+          id: `ing-usd-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-usd-income",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Tenés ingresos en dólares",
+          message: "Este mes registraste ingresos en dólares. Cobrar en moneda fuerte es una ventaja importante para proteger tu poder adquisitivo.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 10. ing-passive-income
+  {
+    id: "ing-passive-income",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasPassive = ctx.incomes.some(
+        (i) => i.category === "dividendos" || i.category === "alquiler_cobrado"
+      );
+      if (hasPassive) {
+        return {
+          id: `ing-passive-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-passive-income",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Tenés ingresos pasivos",
+          message: "Registraste ingresos que no dependen de tu trabajo diario. Los ingresos pasivos son una de las formas más sólidas de construir libertad financiera.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 11. ing-bonus-month
+  {
+    id: "ing-bonus-month",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasBonus = ctx.incomes.some((i) => i.category === "bono");
+      if (hasBonus) {
+        return {
+          id: `ing-bonus-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-bonus-month",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Registraste un bono este mes",
+          message: "Recibiste un ingreso extra por bono. Es una buena oportunidad para destinar una parte al ahorro o a reforzar tus inversiones.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 12. ing-freelance-income
+  {
+    id: "ing-freelance-income",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const hasFreelance = ctx.incomes.some((i) => i.category === "freelance");
+      const hasSueldo = ctx.incomes.some((i) => i.category === "sueldo");
+      if (hasFreelance && hasSueldo) {
+        return {
+          id: `ing-freelance-combo-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-freelance-income",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Ingreso extra por trabajo freelance",
+          message: "Este mes sumaste un ingreso freelance además de tu sueldo. Diversificar las fuentes de ingresos es una de las mejores estrategias para ganar estabilidad.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 13. ing-high-save-allocation
+  {
+    id: "ing-high-save-allocation",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const dist = ctx.compositeDistribution;
+      if (dist && dist.save_pct >= 20) {
+        return {
+          id: `ing-high-save-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-high-save-allocation",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Destinás una parte importante al ahorro",
+          message: `Tu plan de distribución reserva el ${dist.save_pct}% al ahorro. Mantener este hábito de forma constante es la base para lograr cualquier objetivo financiero.`,
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 14. ing-single-source-risk
+  {
+    id: "ing-single-source-risk",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.incomes.length === 0) return null;
+      const cats = new Set(ctx.incomes.map((i) => i.category));
+      if (cats.size === 1) {
+        return {
+          id: `ing-single-source-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-single-source-risk",
+          module: "ingresos",
+          category: "tip",
+          priority: "low",
+          title: "Todo tu ingreso viene de una sola fuente",
+          message: "Este mes todos tus ingresos provienen de la misma fuente. Explorar ingresos complementarios (freelance, alquileres, dividendos) reduce el riesgo ante posibles cambios laborales.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 15. ing-income-fully-distributed
+  {
+    id: "ing-income-fully-distributed",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.incomes.length === 0) return null;
+      const allDistributed = ctx.incomes.every((i) => i.distribution !== null);
+      if (allDistributed) {
+        return {
+          id: `ing-fully-dist-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-income-fully-distributed",
+          module: "ingresos",
+          category: "achievement",
+          priority: "low",
+          title: "Tus ingresos están completamente planificados",
+          message: "Asignaste una distribución a todos tus ingresos del mes. Esta práctica te da claridad total sobre a dónde va cada peso que ganás.",
+          href: "/ingresos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
 ];

@@ -30,10 +30,10 @@ const ALL_RULES = [
 
 const MAX_PER_MODULE: Record<InsightModule, number> = {
   dashboard: 3,
-  gastos: 2,
-  inversiones: 2,
-  ingresos: 2,
-  metas: 2,
+  gastos: 3,
+  inversiones: 3,
+  ingresos: 3,
+  metas: 3,
 };
 
 export function useSmartInsights(module?: InsightModule) {

@@ -1,4 +1,5 @@
 import type { InsightRule, SmartInsight } from "../types";
+import { getDaysInMonth, subMonths } from "date-fns";
 
 export const dashboardRules: InsightRule[] = [
   // 1. dash-savings-rate-low
@@ -231,6 +232,161 @@ export const dashboardRules: InsightRule[] = [
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
+      }
+      return null;
+    },
+  },
+  // 11. dash-no-goals
+  {
+    id: "dash-no-goals",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.goals.length === 0) {
+        return {
+          id: `dash-no-goals-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "dash-no-goals",
+          module: "dashboard",
+          category: "tip",
+          priority: "low",
+          title: "Todavía no tenés objetivos",
+          message: "Definir metas concretas (ahorrar para algo, pagar una deuda, invertir una suma) hace que el dinero tenga un propósito claro y motiva a mantener los hábitos.",
+          href: "/metas",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 12. dash-goal-almost-complete
+  {
+    id: "dash-goal-almost-complete",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      for (const goal of ctx.goals) {
+        if (goal.status === "active") {
+          const progress = ctx.goalProgresses.get(goal.id);
+          if (progress && progress.pct >= 85 && progress.pct < 100) {
+            return {
+              id: `dash-goal-almost-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              ruleId: "dash-goal-almost-complete",
+              module: "dashboard",
+              category: "achievement",
+              priority: "high",
+              title: "Estás muy cerca de una meta",
+              message: `Tu meta "${goal.name}" alcanzó el ${Math.round(progress.pct)}% de progreso. Con un poco más de esfuerzo, la completás.`,
+              href: "/metas",
+              dismissible: true,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        }
+      }
+      return null;
+    },
+  },
+  // 13. dash-multiple-cards-due
+  {
+    id: "dash-multiple-cards-due",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      const dueCards = ctx.creditCards.filter((card) => {
+        let daysToDue = card.due_day - ctx.dayOfMonth;
+        if (daysToDue < 0) daysToDue += ctx.daysInMonth;
+        return daysToDue >= 0 && daysToDue <= 7;
+      });
+      if (dueCards.length >= 2) {
+        return {
+          id: `dash-multiple-cards-due-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "dash-multiple-cards-due",
+          module: "dashboard",
+          category: "warning",
+          priority: "high",
+          title: "Varios vencimientos de tarjeta próximos",
+          message: `Tenés ${dueCards.length} tarjetas con vencimiento en los próximos 7 días. Revisá que tengas el dinero disponible para pagar todos los resúmenes a tiempo.`,
+          href: "/gastos",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 14. dash-good-month-combo
+  {
+    id: "dash-good-month-combo",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth >= 10 && ctx.expensesPrevMonth.length > 0) {
+        const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+        const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+        if (totalIncome > 0) {
+          const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
+          const prevProrated = ctx.expensesPrevMonth.reduce((acc, e) => acc + e.amount, 0)
+            * (ctx.dayOfMonth / getDaysInMonth(subMonths(ctx.currentMonth, 1)));
+          if (savingsRate >= 15 && totalExpense < prevProrated) {
+            return {
+              id: `dash-good-combo-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              ruleId: "dash-good-month-combo",
+              module: "dashboard",
+              category: "achievement",
+              priority: "high",
+              title: "Este mes viene muy bien",
+              message: "Estás ahorrando más y gastando menos que el mes anterior al mismo tiempo. Es un resultado excelente — seguí así para cerrar el mes con más dinero.",
+              dismissible: true,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        }
+      }
+      return null;
+    },
+  },
+  // 15. dash-all-modules-active
+  {
+    id: "dash-all-modules-active",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.expenses.length > 0 && ctx.incomes.length > 0 && ctx.investments.length > 0) {
+        return {
+          id: `dash-all-active-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "dash-all-modules-active",
+          module: "dashboard",
+          category: "achievement",
+          priority: "low",
+          title: "Estás usando FiMe al máximo",
+          message: "Registrás gastos, ingresos e inversiones. Tener los tres módulos activos te da una foto completa de tu situación financiera.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 16. dash-mid-month-ok
+  {
+    id: "dash-mid-month-ok",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.dayOfMonth >= 13 && ctx.dayOfMonth <= 17) {
+        const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+        const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+        if (totalIncome > 0) {
+          const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
+          if (savingsRate >= 10) {
+            return {
+              id: `dash-mid-month-ok-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              ruleId: "dash-mid-month-ok",
+              module: "dashboard",
+              category: "tip",
+              priority: "low",
+              title: "A mitad de mes, vas bien",
+              message: "Llegaste a la mitad del mes con un buen control de tus gastos. Si mantenés el ritmo, cerrarás bien.",
+              dismissible: true,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        }
       }
       return null;
     },
