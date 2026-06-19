@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import webpush from "web-push";
-import { clampDayToMonth } from "@/lib/credit-cards";
+import { clampDayToMonth, nextDueDate } from "@/lib/credit-cards";
 import { toISODate } from "@/lib/format";
 import { CATEGORIES_BY_ID } from "@/lib/categories";
 import type { ExpenseCategory } from "@/types/database";
@@ -46,17 +46,26 @@ export async function GET(req: Request) {
     }, {} as Record<string, typeof subs>);
 
     const today = new Date();
-    const todayISO = toISODate(today);
-    const todayDay = today.getDate();
-    const todayMonth = today.getMonth();
-    const todayYear = today.getFullYear();
+    // Generar ventana de 4 días (hoy + próximos 3 días) en local
+    const dates: { iso: string; label: string; diff: number }[] = [];
+    for (let i = 0; i <= 3; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const iso = toISODate(d);
+      let label = "";
+      if (i === 0) label = "hoy";
+      else if (i === 1) label = "mañana";
+      else if (i === 2) label = "en 2 días";
+      else label = "en 3 días";
+      dates.push({ iso, label, diff: i });
+    }
 
     let sentCount = 0;
 
     for (const [userId, userSubs] of Object.entries(subsByUser)) {
       const payloadsToSend: { title: string; body: string; url: string }[] = [];
 
-      // 1. Verificar vencimientos de Tarjetas
+      // 1. Verificar vencimientos de Tarjetas (en los próximos 3 días)
       const { data: cards } = await supabase
         .from("credit_cards")
         .select("*")
@@ -65,35 +74,60 @@ export async function GET(req: Request) {
 
       if (cards) {
         for (const card of cards) {
-          const expectedDueDay = clampDayToMonth(todayYear, todayMonth, card.due_day);
-          if (expectedDueDay === todayDay) {
+          const nextDue = nextDueDate(card.closing_day, card.due_day, today);
+          const nextDueISO = toISODate(nextDue);
+          const dateMatch = dates.find((d) => d.iso === nextDueISO);
+          
+          if (dateMatch) {
+            let bodyText = "";
+            if (dateMatch.diff === 0) {
+              bodyText = `¡Atención! Hoy vence tu tarjeta ${card.name}.`;
+            } else if (dateMatch.diff === 1) {
+              bodyText = `¡Atención! Mañana vence tu tarjeta ${card.name}.`;
+            } else {
+              bodyText = `¡Atención! Tu tarjeta ${card.name} vence ${dateMatch.label}.`;
+            }
+
             payloadsToSend.push({
               title: "Vencimiento de Tarjeta",
-              body: `¡Atención! Hoy vence tu tarjeta ${card.name}.`,
-              url: "/config", // Redirigir a config (donde están las tarjetas) o dashboard
+              body: bodyText,
+              url: "/config",
             });
           }
         }
       }
 
-      // 2. Verificar Gastos Programados (donde la fecha == hoy)
+      // 2. Verificar Gastos Programados (en los próximos 3 días)
       const { data: expenses } = await supabase
         .from("expenses")
         .select("*")
         .eq("user_id", userId)
-        .eq("date", todayISO);
+        .gte("date", dates[0].iso)
+        .lte("date", dates[3].iso);
 
       if (expenses) {
         for (const exp of expenses) {
-          // Normalizar el nombre en caso de typos viejos en BD y obtener la etiqueta limpia
-          const normalizedName = exp.category === ("tarjeta_credit" as any) ? "tarjeta_credito" : exp.category;
-          const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || normalizedName;
+          const dateMatch = dates.find((d) => d.iso === exp.date);
+          if (dateMatch) {
+            // Normalizar el nombre en caso de typos viejos en BD y obtener la etiqueta limpia
+            const normalizedName = exp.category === ("tarjeta_credit" as any) ? "tarjeta_credito" : exp.category;
+            const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || exp.note || normalizedName;
 
-          payloadsToSend.push({
-            title: "Gasto Programado",
-            body: `Hoy tenés un gasto programado de ${categoryLabel} por $${exp.amount}.`,
-            url: "/gastos",
-          });
+            let bodyText = "";
+            if (dateMatch.diff === 0) {
+              bodyText = `Hoy vence: ${exp.note ? exp.note : categoryLabel} por $${exp.amount}.`;
+            } else if (dateMatch.diff === 1) {
+              bodyText = `Mañana vence: ${exp.note ? exp.note : categoryLabel} por $${exp.amount}.`;
+            } else {
+              bodyText = `Vence ${dateMatch.label}: ${exp.note ? exp.note : categoryLabel} por $${exp.amount}.`;
+            }
+
+            payloadsToSend.push({
+              title: "Vencimiento Próximo",
+              body: bodyText,
+              url: "/gastos",
+            });
+          }
         }
       }
 

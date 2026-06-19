@@ -12,16 +12,19 @@ export function PushNotificationTile({ className }: { className?: string }) {
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    if ("Notification" in window) {
+    if ("Notification" in window && "serviceWorker" in navigator) {
       setPermission(Notification.permission);
       
-      navigator.serviceWorker?.getRegistration().then(reg => {
-        if (reg) {
-          reg.pushManager.getSubscription().then(sub => {
-            setSubscribed(!!sub);
-          });
-        }
-      });
+      navigator.serviceWorker.ready
+        .then((reg) => {
+          return reg.pushManager.getSubscription();
+        })
+        .then((sub) => {
+          setSubscribed(!!sub);
+        })
+        .catch((err) => {
+          console.warn("Error al verificar la suscripción del Service Worker:", err);
+        });
     }
   }, []);
 
@@ -34,12 +37,21 @@ export function PushNotificationTile({ className }: { className?: string }) {
     setLoading(true);
     try {
       if (subscribed) {
-        // Unsubscribe logic (local only for now, DB cleanup happens on send failure)
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.getSubscription();
-        if (sub) await sub.unsubscribe();
+        if (sub) {
+          const endpoint = sub.endpoint;
+          await sub.unsubscribe();
+          
+          // Limpiar también en base de datos
+          await fetch("/api/push/subscribe", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint }),
+          });
+        }
         setSubscribed(false);
-        toast.success("Notificaciones desactivadas localmente");
+        toast.success("Notificaciones desactivadas");
         setLoading(false);
         return;
       }
