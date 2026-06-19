@@ -54,18 +54,67 @@ function useSnapshots(portfolioId: string | "ALL") {
       if (error) throw error;
       
       if (portfolioId === "ALL") {
-        // Aggregate snapshots by date for "ALL" portfolios
-        const map = new Map<string, PortfolioSnapshot>();
-        for (const s of (data as PortfolioSnapshot[])) {
-          const existing = map.get(s.date);
-          if (existing) {
-            existing.total_usd += s.total_usd;
-            existing.cashflow_usd += s.cashflow_usd;
-          } else {
-            map.set(s.date, { ...s });
+        const snapshots = data as PortfolioSnapshot[];
+        if (snapshots.length === 0) return [];
+
+        // Obtener fechas únicas ordenadas y lista de IDs de portafolios
+        const uniqueDates = Array.from(new Set(snapshots.map((s) => s.date))).sort();
+        const portIds = Array.from(new Set(snapshots.map((s) => s.portfolio_id)));
+
+        // Mapear snapshots por portfolio_id y fecha
+        const snapMap: Record<string, Record<string, PortfolioSnapshot>> = {};
+        snapshots.forEach((s) => {
+          snapMap[s.portfolio_id] = snapMap[s.portfolio_id] || {};
+          snapMap[s.portfolio_id][s.date] = s;
+        });
+
+        const lastKnownValue: Record<string, number> = {};
+        const aggregated: PortfolioSnapshot[] = [];
+
+        for (const date of uniqueDates) {
+          let total_usd = 0;
+          let cashflow_usd = 0;
+          let sp500_close: number | null = null;
+          const refSnap = snapshots.find((s) => s.date === date);
+
+          for (const portId of portIds) {
+            const snap = snapMap[portId]?.[date];
+            if (snap) {
+              const isFirstAppearance = lastKnownValue[portId] === undefined;
+              lastKnownValue[portId] = snap.total_usd;
+              total_usd += snap.total_usd;
+              cashflow_usd += snap.cashflow_usd;
+              
+              if (snap.sp500_close !== null) {
+                sp500_close = snap.sp500_close;
+              }
+
+              if (isFirstAppearance) {
+                // Al introducir un nuevo portafolio a la serie consolidada, tratamos su saldo inicial
+                // como un flujo de entrada de efectivo (cashflow_usd). Esto evita registrar una
+                // ganancia ficticia en el cálculo de TWR del portafolio consolidado.
+                cashflow_usd += snap.total_usd;
+              }
+            } else {
+              // Si no hay snapshot este día, arrastramos el último valor conocido de este portafolio
+              const lastVal = lastKnownValue[portId] || 0;
+              total_usd += lastVal;
+            }
           }
+
+          aggregated.push({
+            portfolio_id: "ALL",
+            user_id: refSnap?.user_id || "",
+            date,
+            total_usd,
+            cashflow_usd,
+            sp500_close,
+            created_at: refSnap?.created_at || "",
+            updated_at: refSnap?.updated_at || "",
+          });
         }
-        return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+
+        return aggregated;
       }
       
       return data as PortfolioSnapshot[];
