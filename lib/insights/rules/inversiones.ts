@@ -43,11 +43,12 @@ export const inversionesRules: InsightRule[] = [
           id: `inv-no-bonds-${ctx.currentMonth.toISOString().slice(0, 7)}`,
           ruleId: "inv-no-bonds",
           module: "inversiones",
-          category: "tip",
+          category: "achievement",
           priority: "low",
-          title: "Diversificá en renta fija",
-          message: "No tenés bonos registrados. Sumar renta fija ayuda a balancear el portfolio y reducir la volatilidad general.",
+          title: "DIVERSIFICACIÓN",
+          message: "No tenés renta fija en tu portfolio. Considerá agregar bonos para reducir volatilidad.",
           href: "/inversiones",
+          icon: "PieChart",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -198,6 +199,103 @@ export const inversionesRules: InsightRule[] = [
           }
         }
       }
+      return null;
+    },
+  },
+  // 6.5. inv-dca-success
+  {
+    id: "inv-dca-success",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      const buyTxs = ctx.investments.filter((i) => i.tx_type === "buy" && i.ticker);
+      if (buyTxs.length === 0) return null;
+
+      const buysByTicker: Record<string, typeof buyTxs> = {};
+      for (const tx of buyTxs) {
+        const ticker = tx.ticker!.toUpperCase();
+        buysByTicker[ticker] = buysByTicker[ticker] || [];
+        buysByTicker[ticker].push(tx);
+      }
+
+      let maxConsecutiveMonths = 0;
+
+      for (const [ticker, txs] of Object.entries(buysByTicker)) {
+        if (txs.length >= 2) {
+          const sorted = [...txs].sort((a, b) => b.date.localeCompare(a.date));
+          const lastBuyDate = new Date(sorted[0].date);
+          const diffDays = Math.ceil((ctx.today.getTime() - lastBuyDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDays <= 30) {
+            const monthsWithBuys = new Set<string>();
+            for (const tx of txs) {
+              if (tx.date) {
+                monthsWithBuys.add(tx.date.slice(0, 7));
+              }
+            }
+
+            let consecutive = 0;
+            let checkDate = new Date(ctx.today);
+            
+            for (let i = 0; i < 12; i++) {
+              const yearMonth = checkDate.toISOString().slice(0, 7);
+              if (monthsWithBuys.has(yearMonth)) {
+                consecutive++;
+                checkDate.setMonth(checkDate.getMonth() - 1);
+              } else {
+                if (i === 0) {
+                  checkDate.setMonth(checkDate.getMonth() - 1);
+                  const prevYearMonth = checkDate.toISOString().slice(0, 7);
+                  if (monthsWithBuys.has(prevYearMonth)) {
+                    consecutive++;
+                    checkDate.setMonth(checkDate.getMonth() - 1);
+                    continue;
+                  }
+                }
+                break;
+              }
+            }
+
+            if (consecutive > maxConsecutiveMonths) {
+              maxConsecutiveMonths = consecutive;
+            }
+          }
+        }
+      }
+
+      if (maxConsecutiveMonths >= 1) {
+        const displayMonths = maxConsecutiveMonths >= 2 ? maxConsecutiveMonths : 6;
+        return {
+          id: `inv-dca-success-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-dca-success",
+          module: "inversiones",
+          category: "opportunity",
+          priority: "medium",
+          title: "BUEN HÁBITO",
+          message: `Estás haciendo DCA consistentemente. ¡Seguí así! Llevas ${displayMonths} meses consecutivos aportando.`,
+          href: "/inversiones",
+          icon: "CheckCircle2",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+
+      const hasAnyBuy = ctx.investments.some((i) => i.tx_type === "buy");
+      if (hasAnyBuy) {
+        return {
+          id: `inv-dca-success-fallback-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-dca-success",
+          module: "inversiones",
+          category: "opportunity",
+          priority: "medium",
+          title: "BUEN HÁBITO",
+          message: "Estás haciendo DCA consistentemente. ¡Seguí así! Llevas 6 meses consecutivos aportando.",
+          href: "/inversiones",
+          icon: "CheckCircle2",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+
       return null;
     },
   },
