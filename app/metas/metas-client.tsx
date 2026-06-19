@@ -447,8 +447,14 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
   const showQuickAdd = progress.isManual && progress.remaining > 0 && !progress.isInverted;
   const quickAmounts = currency === "USD" ? [10, 50, 100] : [5000, 20000, 50000];
 
+  const remainingFormatted = isStealthMode
+    ? "•••••• restantes"
+    : progress.remaining > 0
+      ? `${formatAmount(progress.remaining, currency, cfg.isPercentage)} restantes`
+      : "¡Meta alcanzada!";
+
   return (
-    <div className="rounded-[24px] border border-white/[0.06] bg-[#1F2229] p-6 flex flex-col min-h-[420px] transition-all duration-300 hover:border-white/10 relative overflow-hidden group">
+    <div className="rounded-[24px] border border-white/[0.06] bg-[#1F2229] p-6 flex flex-col min-h-[420px] transition-all duration-300 hover:border-white/10 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] relative overflow-hidden group">
       {/* Background radial gradient decoration */}
       <div 
         className="absolute -right-12 -top-12 w-36 h-36 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-15 pointer-events-none" 
@@ -456,21 +462,19 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
       />
       
       {/* Encabezado de la tarjeta */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", cfg.bgClass)}>
-            <Icon className="w-5 h-5" style={{ color: cfg.color }} />
+      <div className="flex items-center justify-between mb-4">
+        {/* Category / Icon Badge */}
+        <div className="flex items-center gap-2">
+          <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", cfg.bgClass)}>
+            <Icon className="w-3.5 h-3.5" style={{ color: cfg.color }} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cfg.color }}>
-              {cfg.label}
-            </span>
-            <h3 className="text-sm font-bold text-white truncate max-w-[150px]">{goal.name}</h3>
-          </div>
+          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: cfg.color }}>
+            {cfg.label}
+          </span>
         </div>
         
-        {/* Dropdown de opciones */}
-        <div className="flex items-center gap-1">
+        {/* Acciones */}
+        <div className="flex items-center gap-1 z-20">
           <button 
             onClick={() => onEdit(goal)}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
@@ -486,72 +490,79 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
         </div>
       </div>
 
-      {/* Métricas de progreso */}
-      <div className="flex items-baseline gap-1.5 mb-2">
-        <span className="text-2xl font-extrabold text-white font-mono tnum">
-          <PrivateAmount>{formatAmount(progress.current, currency, cfg.isPercentage)}</PrivateAmount>
-        </span>
-        <span className="text-xs text-slate-400">
-          de {formatAmount(progress.target, currency, cfg.isPercentage)}
-        </span>
-      </div>
-
-      {/* Barra de progreso visual */}
-      <div className="mb-4">
-        <div className="flex justify-between text-[10px] font-semibold text-slate-400 mb-1.5 font-mono">
-          <span>Progreso</span>
-          <span style={{ color: cfg.color }}>{Math.round(pct)}%</span>
-        </div>
-        <div className="w-full h-2 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
-          <div 
-            className="h-full rounded-full transition-all duration-500" 
-            style={{ 
-              width: `${pct}%`,
-              background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}dd)` 
-            }}
+      {/* Círculo de progreso circular (ProgressRing) */}
+      <div className="flex flex-col items-center justify-center my-3">
+        <div className="relative w-28 h-28">
+          <ProgressRing 
+            pct={pct} 
+            rawPct={progress.rawPct} 
+            size={112} 
+            strokeWidth={8} 
+            color={cfg.color || "#F59E0B"}
+            isInverted={progress.isInverted}
+            label={null}
           />
-        </div>
-      </div>
-
-      {/* Info dinámica según tipo */}
-      {!showQuickAdd && (
-        <div className="text-[11px] text-slate-400 flex flex-col gap-2 border-t border-white/[0.04] pt-4 mt-auto">
-          {progress.pace?.perMonth > 0 && (
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Ritmo Requerido</span>
-              <span className="font-mono font-medium text-white/70">
-                <PrivateAmount>{formatAmount(progress.pace.perMonth, currency, cfg.isPercentage)}</PrivateAmount> / mes
-              </span>
-            </div>
-          )}
-          {deadlineDate && (
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Fecha Límite</span>
-              <span className="font-mono font-medium text-white/70">
-                {format(deadlineDate, "dd MMM yyyy", { locale: es })}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Quick Add sum options (Abonar a meta) */}
-      {showQuickAdd && (
-        <div className="mt-auto flex flex-col gap-2">
-          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider text-center mb-1">Abonar a meta</span>
-          <div id="metas-quick-add" className="flex gap-1.5">
-            {quickAmounts.map((amt) => (
-              <button
-                key={amt}
-                onClick={() => onQuickAdd(goal, amt)}
-                className="flex-1 py-2 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] font-mono text-[11px] font-bold text-white tnum tracking-tight transition-colors"
-              >
-                +{amt.toLocaleString("es-AR")}
-              </button>
-            ))}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xl font-bold text-white [font-feature-settings:'tnum']">
+              {isStealthMode ? "**" : `${Math.round(pct)}%`}
+            </span>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Información de la meta */}
+      <div className="flex flex-col items-center text-center mt-2 mb-4 w-full">
+        <h3 className="text-base font-bold text-white truncate w-full">{goal.name}</h3>
+        
+        {/* Valores actual / total */}
+        <p className="text-xs text-slate-400 mt-1.5 [font-feature-settings:'tnum'] truncate w-full">
+          {isStealthMode ? "••••••" : `${formatAmount(progress.current, currency, cfg.isPercentage)} / ${formatAmount(progress.target, currency, cfg.isPercentage)}`}
+        </p>
+
+        {/* Restante */}
+        <p className="text-xs text-amber-400 font-semibold [font-feature-settings:'tnum'] mt-1 truncate w-full">
+          {remainingFormatted}
+        </p>
+      </div>
+
+      {/* Info dinámica o Quick Add */}
+      <div className="mt-auto border-t border-white/[0.04] pt-4 w-full">
+        {showQuickAdd ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider text-center">Abonar a meta</span>
+            <div id="metas-quick-add" className="flex gap-1.5">
+              {quickAmounts.map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => onQuickAdd(goal, amt)}
+                  className="flex-1 py-2 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] font-mono text-[10px] font-bold text-white tnum tracking-tight transition-colors"
+                >
+                  +{amt.toLocaleString("es-AR")}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-[11px] text-slate-400 flex flex-col gap-1.5">
+            {progress.pace?.perMonth > 0 && (
+              <div className="flex items-center justify-between">
+                <span>Ritmo Requerido</span>
+                <span className="font-mono font-medium text-white/70">
+                  <PrivateAmount>{formatAmount(progress.pace.perMonth, currency, cfg.isPercentage)}</PrivateAmount> / mes
+                </span>
+              </div>
+            )}
+            {deadlineDate && (
+              <div className="flex items-center justify-between">
+                <span>Fecha Límite</span>
+                <span className="font-mono font-medium text-white/70">
+                  {format(deadlineDate, "dd MMM yyyy", { locale: es })}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
