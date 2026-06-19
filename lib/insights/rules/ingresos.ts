@@ -33,8 +33,8 @@ export const ingresosRules: InsightRule[] = [
           module: "ingresos",
           category: "warning",
           priority: "medium",
-          title: "Presupuesto desviado",
-          message: `Tus gastos reales en el mes se desvían de tu distribución ideal planificada (Fijos: ${Math.round(realFixedPct)}% vs plan: ${dist.fixed_pct}%, Variables: ${Math.round(realVariablePct)}% vs plan: ${dist.variable_pct}%).`,
+          title: "Desviación del Plan de Distribución",
+          message: `Los egresos actuales registran desvíos respecto a la planificación original (Gastos fijos: ${Math.round(realFixedPct)}% vs. planificado: ${dist.fixed_pct}%; Gastos variables: ${Math.round(realVariablePct)}% vs. planificado: ${dist.variable_pct}%). Se aconseja revisar las asignaciones.`,
           href: "/ingresos",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -44,63 +44,7 @@ export const ingresosRules: InsightRule[] = [
       return null;
     },
   },
-  // 2. ing-income-drop
-  {
-    id: "ing-income-drop",
-    module: "ingresos",
-    evaluate: (ctx): SmartInsight | null => {
-      if (ctx.incomesPrevMonth.length === 0) return null;
-
-      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
-      const totalPrevIncome = ctx.incomesPrevMonth.reduce((acc, i) => acc + i.amount_ars, 0);
-
-      if (totalPrevIncome > 0 && totalIncome < totalPrevIncome * 0.8) {
-        const dropPct = Math.round((1 - totalIncome / totalPrevIncome) * 100);
-        return {
-          id: `ing-drop-${ctx.currentMonth.toISOString().slice(0, 7)}`,
-          ruleId: "ing-income-drop",
-          module: "ingresos",
-          category: "warning",
-          priority: "high",
-          title: "Caída de ingresos",
-          message: `Tus ingresos totales este mes bajaron un ${dropPct}% en comparación con el mes pasado ($${Math.round(totalIncome).toLocaleString("es-AR")} vs $${Math.round(totalPrevIncome).toLocaleString("es-AR")}).`,
-          dismissible: true,
-          createdAt: new Date().toISOString(),
-        };
-      }
-
-      return null;
-    },
-  },
-  // 3. ing-income-growth
-  {
-    id: "ing-income-growth",
-    module: "ingresos",
-    evaluate: (ctx): SmartInsight | null => {
-      if (ctx.incomesPrevMonth.length === 0) return null;
-
-      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
-      const totalPrevIncome = ctx.incomesPrevMonth.reduce((acc, i) => acc + i.amount_ars, 0);
-
-      if (totalPrevIncome > 0 && totalIncome > totalPrevIncome * 1.1) {
-        const growthPct = Math.round((totalIncome / totalPrevIncome - 1) * 100);
-        return {
-          id: `ing-growth-${ctx.currentMonth.toISOString().slice(0, 7)}`,
-          ruleId: "ing-income-growth",
-          module: "ingresos",
-          category: "achievement",
-          priority: "medium",
-          title: "¡Ingresos en aumento!",
-          message: `Tus ingresos aumentaron un ${growthPct}% respecto al mes anterior. ¡Excelente!`,
-          dismissible: true,
-          createdAt: new Date().toISOString(),
-        };
-      }
-
-      return null;
-    },
-  },
-  // 4. ing-no-distribution-set
+  // 2. ing-no-distribution-set
   {
     id: "ing-no-distribution-set",
     module: "ingresos",
@@ -115,8 +59,8 @@ export const ingresosRules: InsightRule[] = [
           module: "ingresos",
           category: "reminder",
           priority: "medium",
-          title: "Ingresos sin distribuir",
-          message: "Registraste ingresos este mes pero ninguno cuenta con distribución activa. Te sugerimos configurarlos para tus metas.",
+          title: "Planificación de Ingresos",
+          message: "Se han registrado ingresos en el periodo sin una distribución planificada. Asignar proporciones de destino para gastos fijos, consumos variables y ahorro facilita la organización financiera.",
           href: "/ingresos",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -126,7 +70,7 @@ export const ingresosRules: InsightRule[] = [
       return null;
     },
   },
-  // 5. ing-invest-ratio-low
+  // 3. ing-invest-ratio-low
   {
     id: "ing-invest-ratio-low",
     module: "ingresos",
@@ -141,14 +85,113 @@ export const ingresosRules: InsightRule[] = [
           module: "ingresos",
           category: "tip",
           priority: "low",
-          title: "Inversión recomendada baja",
-          message: `Destinás solo un ${dist.invest_pct}% de tu presupuesto ideal a inversiones. Considerá aumentarlo para potenciar tus metas financieras.`,
+          title: "Asignación de Capital para Inversión",
+          message: `La proporción destinada a inversión se sitúa en el ${dist.invest_pct}% de los ingresos planificados. Incrementar paulatinamente este porcentaje contribuye a acelerar la consolidación de su patrimonio de largo plazo.`,
           href: "/ingresos",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
       }
 
+      return null;
+    },
+  },
+  // 4. ing-free-flow (NEW: surplus management)
+  {
+    id: "ing-free-flow",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      const surplus = totalIncome - totalExpense;
+
+      if (totalIncome > 0 && surplus > totalIncome * 0.1 && ctx.dayOfMonth >= 10) {
+        return {
+          id: `ing-free-flow-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-free-flow",
+          module: "ingresos",
+          category: "opportunity",
+          priority: "medium",
+          title: "Gestión de Excedentes",
+          message: "Tus ingresos superan a tus gastos actuales. Considera destinar este excedente para fortalecer tu fondo de emergencia o aprovechar nuevas oportunidades de inversión.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 5. ing-expense-ratio (NEW: expense-to-income ratio)
+  {
+    id: "ing-expense-ratio",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (totalIncome <= 0) return null;
+
+      const pct = Math.round((totalExpense / totalIncome) * 100);
+      if (pct > 0) {
+        return {
+          id: `ing-expense-ratio-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-expense-ratio",
+          module: "ingresos",
+          category: "tip",
+          priority: "medium",
+          title: "Proporción de Gastos vs. Ingresos",
+          message: `Tus gastos representan el ${pct}% de tus ingresos de este mes. Mantener este porcentaje bajo control es la clave principal para construir un patrimonio sólido.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 6. ing-savings-target (NEW: savings target check)
+  {
+    id: "ing-savings-target",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (totalIncome <= 0) return null;
+
+      const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
+      if (savingsRate > 20 && ctx.dayOfMonth >= 15) {
+        return {
+          id: `ing-savings-target-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-savings-target",
+          module: "ingresos",
+          category: "achievement",
+          priority: "medium",
+          title: "Capacidad de Ahorro Mensual",
+          message: `La proporción de ingresos no consumidos es superior al 20% (${Math.round(savingsRate)}%). Destinar estos recursos al ahorro sistemático consolida la estabilidad financiera a largo plazo.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 7. ing-diversified-sources (NEW: multiple income entries)
+  {
+    id: "ing-diversified-sources",
+    module: "ingresos",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.incomes.length >= 2) {
+        return {
+          id: `ing-diversified-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "ing-diversified-sources",
+          module: "ingresos",
+          category: "achievement",
+          priority: "low",
+          title: "Diversificación de Ingresos",
+          message: "Se registran múltiples fuentes de ingresos durante el periodo. Disponer de flujos complementarios reduce la dependencia de un único empleador o cliente.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
       return null;
     },
   },

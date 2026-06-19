@@ -27,8 +27,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "warning",
           priority: "critical",
-          title: "Ritmo de gasto crítico",
-          message: `Tu promedio diario de gasto ($${Math.round(dailyPace).toLocaleString("es-AR")}) está un ${Math.round((ratio - 1) * 100)}% por encima del mes pasado.`,
+          title: "Control de Presupuesto Diario",
+          message: `El promedio de gasto actual es significativamente superior al del mes anterior. Se recomienda moderar los consumos no esenciales para evitar comprometer la liquidez antes de la finalización del periodo.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -41,8 +41,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "warning",
           priority: "high",
-          title: "Gasto diario acelerado",
-          message: `Tu ritmo diario es un ${Math.round((ratio - 1) * 100)}% mayor al promedio diario del mes anterior.`,
+          title: "Control de Presupuesto Diario",
+          message: `El promedio de gasto actual es superior al del mes anterior. Es recomendable revisar las categorías de mayor consumo para mantener el equilibrio financiero del mes.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -80,8 +80,8 @@ export const gastosRules: InsightRule[] = [
             module: "gastos",
             category: "warning",
             priority: "medium",
-            title: `Aumento en ${catName}`,
-            message: `Gastaste un ${increasePct}% más en ${catName} respecto al mes pasado ($${Math.round(amount).toLocaleString("es-AR")} vs $${Math.round(prevAmount).toLocaleString("es-AR")}).`,
+            title: `Aumento de Gastos en ${catName}`,
+            message: `Se registra un incremento del ${increasePct}% en la categoría de ${catName} en comparación con el mes anterior ($${Math.round(amount).toLocaleString("es-AR")} frente a $${Math.round(prevAmount).toLocaleString("es-AR")}). Se aconseja evaluar si este comportamiento corresponde a una necesidad puntual o requiere corrección.`,
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
@@ -112,8 +112,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "warning",
           priority: "high",
-          title: "Gastos fijos elevados",
-          message: `Tus gastos fijos representan el ${Math.round(ratio)}% de tus ingresos, superando el límite del 60% recomendado.`,
+          title: "Revisión de Gastos Fijos",
+          message: `Los gastos fijos representan el ${Math.round(ratio)}% de los ingresos de este mes, superando la recomendación general del 60%. Reducir suscripciones o servicios no esenciales ayuda a liberar capacidad de ahorro.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -140,8 +140,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "tip",
           priority: "low",
-          title: "Revisá tus suscripciones",
-          message: `Tenés $${Math.round(subExpense).toLocaleString("es-AR")} acumulados en suscripciones. Evaluá dar de baja las que no uses.`,
+          title: "Optimización de Suscripciones",
+          message: `El gasto acumulado en suscripciones activas alcanza los $${Math.round(subExpense).toLocaleString("es-AR")}. Revisar y rescindir aquellos servicios de bajo uso recurrente optimizará el flujo de caja mensual.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -180,8 +180,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "warning",
           priority: "high",
-          title: "Presupuesto fijos superado",
-          message: `Excediste tu presupuesto teórico de gastos fijos por $${Math.round(diff).toLocaleString("es-AR")} ($${Math.round(fixedExpense).toLocaleString("es-AR")} vs $${Math.round(fixedBudget).toLocaleString("es-AR")}).`,
+          title: "Revisión de Gastos Fijos",
+          message: `Los gastos fijos han superado el presupuesto planificado en $${Math.round(diff).toLocaleString("es-AR")}. Reducir suscripciones o servicios no esenciales ayuda a liberar capacidad de ahorro.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -195,8 +195,8 @@ export const gastosRules: InsightRule[] = [
           module: "gastos",
           category: "warning",
           priority: "medium",
-          title: "Presupuesto variables superado",
-          message: `Excediste tu presupuesto de gastos variables por $${Math.round(diff).toLocaleString("es-AR")} ($${Math.round(variableExpense).toLocaleString("es-AR")} vs $${Math.round(variableBudget).toLocaleString("es-AR")}).`,
+          title: "Control de Gastos Variables",
+          message: `Los gastos de carácter variable superan la asignación definida en $${Math.round(diff).toLocaleString("es-AR")}. Se sugiere adecuar los consumos discrecionales para preservar la proyección presupuestaria general.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -230,14 +230,106 @@ export const gastosRules: InsightRule[] = [
             module: "gastos",
             category: "tip",
             priority: "medium",
-            title: "Concentración de gastos",
-            message: `La categoría "${catName}" concentra el ${Math.round(pct)}% de todos tus gastos del mes.`,
+            title: "Concentración de Consumo",
+            message: `La categoría "${catName}" representa el ${Math.round(pct)}% de los egresos acumulados del mes. Monitorear este rubro central permitirá identificar oportunidades eficientes de ahorro estructural.`,
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
         }
       }
 
+      return null;
+    },
+  },
+  // 7. gastos-savings-progress
+  {
+    id: "gastos-savings-progress",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (totalIncome <= 0) return null;
+
+      const expensePct = (totalExpense / totalIncome) * 100;
+      if (expensePct < 40 && ctx.dayOfMonth >= 15) {
+        return {
+          id: `gastos-savings-progress-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-savings-progress",
+          module: "gastos",
+          category: "achievement",
+          priority: "medium",
+          title: "Optimización Presupuestaria",
+          message: "El nivel de egresos actual se mantiene significativamente por debajo del volumen de ingresos. Mantener este margen financiero consolidará el patrimonio mensual para futuras inversiones.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 8. gastos-favorable-trend
+  {
+    id: "gastos-favorable-trend",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      const totalPrevExpense = ctx.expensesPrevMonth.reduce((acc, e) => acc + e.amount, 0);
+      const daysInPrevMonth = getDaysInMonth(subMonths(ctx.currentMonth, 1));
+      
+      const dailyPace = ctx.dayOfMonth > 0 ? totalExpense / ctx.dayOfMonth : 0;
+      const prevDailyPace = totalPrevExpense / daysInPrevMonth;
+
+      if (prevDailyPace <= 0 || dailyPace <= 0) return null;
+
+      const ratio = dailyPace / prevDailyPace;
+      if (ratio < 0.9 && ctx.dayOfMonth >= 10) {
+        return {
+          id: `gastos-favorable-trend-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-favorable-trend",
+          module: "gastos",
+          category: "achievement",
+          priority: "medium",
+          title: "Tendencia Favorable de Gasto",
+          message: "El promedio de gasto diario actual registra una disminución respecto al mes anterior. Mantener esta disciplina presupuestaria facilitará un cierre de mes con mayor excedente financiero.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 9. gastos-variable-efficiency
+  {
+    id: "gastos-variable-efficiency",
+    module: "gastos",
+    evaluate: (ctx): SmartInsight | null => {
+      const dist = ctx.compositeDistribution;
+      if (!dist) return null;
+
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      if (totalIncome <= 0) return null;
+
+      const variableExpense = ctx.expenses
+        .filter((e) => e.type === "variable")
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      const variableBudget = totalIncome * (dist.variable_pct / 100);
+      if (variableBudget <= 0) return null;
+
+      const variablePct = (variableExpense / variableBudget) * 100;
+      if (variablePct < 30 && ctx.dayOfMonth >= 15) {
+        return {
+          id: `gastos-var-efficiency-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "gastos-variable-efficiency",
+          module: "gastos",
+          category: "tip",
+          priority: "low",
+          title: "Gestión Eficiente de Gastos Variables",
+          message: "Se observa una asignación muy conservadora en los gastos variables a esta altura del mes. Este control riguroso de consumos eventuales contribuye a fortalecer el fondo de reserva.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
       return null;
     },
   },

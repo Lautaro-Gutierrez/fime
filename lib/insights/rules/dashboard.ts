@@ -1,6 +1,4 @@
 import type { InsightRule, SmartInsight } from "../types";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 export const dashboardRules: InsightRule[] = [
   // 1. dash-savings-rate-low
@@ -13,7 +11,7 @@ export const dashboardRules: InsightRule[] = [
       if (totalIncome <= 0) return null;
 
       const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
-      if (savingsRate >= 10 || savingsRate < 0) return null; // If negative, maybe there's a surplus/deficit alert instead
+      if (savingsRate >= 10 || savingsRate < 0) return null;
 
       return {
         id: `dash-savings-rate-low-${ctx.currentMonth.toISOString().slice(0, 7)}`,
@@ -21,10 +19,10 @@ export const dashboardRules: InsightRule[] = [
         module: "dashboard",
         category: "warning",
         priority: "high",
-        title: "Tasa de ahorro baja",
-        message: `Tu tasa de ahorro este mes es del ${savingsRate.toFixed(
+        title: "Capacidad de Ahorro Mensual",
+        message: `El nivel de ahorro actual representa el ${savingsRate.toFixed(
           1
-        )}%. Intentá superar el 15% para mantener tu colchón.`,
+        )}% de los ingresos percibidos. Es recomendable apuntar a un mínimo del 15% para constituir un fondo de reserva eficiente.`,
         dismissible: true,
         createdAt: new Date().toISOString(),
       };
@@ -50,8 +48,8 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "warning",
           priority: "high",
-          title: "Pico de gastos",
-          message: `Gastaste un ${excessPct}% más que el mes pasado a esta altura. Revisá tus gastos variables.`,
+          title: "Control de Presupuesto Mensual",
+          message: `El nivel total de egresos es un ${excessPct}% superior al registrado el mes anterior en esta misma fecha. Se sugiere revisar los gastos no esenciales para mantener el equilibrio del periodo.`,
           href: "/gastos",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -65,26 +63,21 @@ export const dashboardRules: InsightRule[] = [
     id: "dash-card-due-soon",
     module: "dashboard",
     evaluate: (ctx): SmartInsight | null => {
-      // Find cards due in <= 5 days
       for (const card of ctx.creditCards) {
-        // Simple logic for due days: if dayOfMonth is close to due_day
-        // Real logic is more complex with closing_day, but we'll approximate:
         let daysToDue = card.due_day - ctx.dayOfMonth;
-        if (daysToDue < 0) daysToDue += ctx.daysInMonth; // It's next month
+        if (daysToDue < 0) daysToDue += ctx.daysInMonth;
 
         if (daysToDue >= 0 && daysToDue <= 5) {
-          // See if there's an expense with this card id in the current billing cycle
-          // We can just alert on the date proximity for now
           return {
             id: `dash-card-due-${card.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
             ruleId: "dash-card-due-soon",
             module: "dashboard",
             category: "reminder",
             priority: "high",
-            title: "Vencimiento de tarjeta",
-            message: `Tu tarjeta ${card.brand || card.name} vence en ${daysToDue} día${
+            title: "Vencimiento de Compromisos Financieros",
+            message: `La tarjeta de crédito ${card.brand || card.name} presenta un vencimiento en ${daysToDue} día${
               daysToDue !== 1 ? "s" : ""
-            }.`,
+            }. El pago puntual evita recargos por intereses y mantiene el historial crediticio favorable.`,
             href: "/gastos",
             dismissible: true,
             createdAt: new Date().toISOString(),
@@ -99,7 +92,6 @@ export const dashboardRules: InsightRule[] = [
     id: "dash-no-expenses-logged",
     module: "dashboard",
     evaluate: (ctx): SmartInsight | null => {
-      // If we are past day 3 and no expenses logged yet in the last 3 days
       if (ctx.expenses.length === 0 && ctx.dayOfMonth > 3) {
         return {
           id: `dash-no-expenses-${ctx.currentMonth.toISOString().slice(0, 7)}`,
@@ -107,8 +99,8 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "reminder",
           priority: "medium",
-          title: "Días sin registros",
-          message: `Hace unos días que no registrás gastos. ¿Querés cargar los pendientes?`,
+          title: "Registro de Operaciones Diarias",
+          message: `No se han registrado movimientos de gastos en los últimos días. El seguimiento regular de los consumos diarios es indispensable para un control presupuestario preciso.`,
           href: "/gastos",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -133,10 +125,10 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "opportunity",
           priority: "medium",
-          title: "Flujo libre alto",
-          message: `Tenés un excedente de $${surplus.toLocaleString(
+          title: "Gestión de Excedentes",
+          message: `Se registra un saldo disponible de $${surplus.toLocaleString(
             "es-AR"
-          )}. ¿Consideraste invertir una parte?`,
+          )}. Destinar una fracción de estos fondos a opciones de inversión ayuda a proteger el valor del capital.`,
           href: "/inversiones",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -145,7 +137,6 @@ export const dashboardRules: InsightRule[] = [
       return null;
     },
   },
-
   // 7. dash-month-closing
   {
     id: "dash-month-closing",
@@ -159,8 +150,8 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "reminder",
           priority: "low",
-          title: "Cierre de mes",
-          message: `Quedan ${daysLeft} días para cerrar el mes. Revisá que no falten gastos por cargar.`,
+          title: "Cierre del Ejercicio Mensual",
+          message: `Restan ${daysLeft} días para la finalización del mes actual. Se aconseja registrar todos los gastos devengados para consolidar la contabilidad del periodo.`,
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -180,8 +171,8 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "tip",
           priority: "low",
-          title: "Primeros pasos",
-          message: `¿Sabías que invertir regularmente puede multiplicar tus ahorros? Empezá a registrar tus activos.`,
+          title: "Iniciación en Inversiones",
+          message: `Aún no se registran colocaciones financieras activas. Asignar una porción del ahorro mensual a instrumentos financieros favorece la preservación e incremento del capital en el tiempo.`,
           href: "/inversiones",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -190,5 +181,58 @@ export const dashboardRules: InsightRule[] = [
       return null;
     },
   },
-];
+  // 9. dash-financial-health-check
+  {
+    id: "dash-financial-health-check",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      const totalExpense = ctx.expenses.reduce((acc, e) => acc + e.amount, 0);
+      if (totalIncome <= 0) return null;
 
+      const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
+      if (savingsRate >= 25 && ctx.dayOfMonth >= 15) {
+        return {
+          id: `dash-health-check-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "dash-financial-health-check",
+          module: "dashboard",
+          category: "achievement",
+          priority: "medium",
+          title: "Desempeño Financiero Saludable",
+          message: `La tasa de ahorro de este periodo se sitúa en un excelente ${savingsRate.toFixed(1)}%. Este excedente constituye un pilar clave para el crecimiento de su patrimonio.`,
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 10. dash-recurring-subscriptions-check
+  {
+    id: "dash-recurring-subscriptions-check",
+    module: "dashboard",
+    evaluate: (ctx): SmartInsight | null => {
+      const totalIncome = ctx.incomes.reduce((acc, i) => acc + i.amount_ars, 0);
+      if (totalIncome <= 0) return null;
+
+      const subExpense = ctx.expenses
+        .filter((e) => e.is_subscription)
+        .reduce((acc, e) => acc + e.amount, 0);
+
+      if (subExpense > 0 && (subExpense / totalIncome) * 100 < 3 && ctx.dayOfMonth >= 15) {
+        return {
+          id: `dash-sub-check-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "dash-recurring-subscriptions-check",
+          module: "dashboard",
+          category: "achievement",
+          priority: "low",
+          title: "Estructura de Gastos Fijos Eficiente",
+          message: "El gasto mensual en suscripciones y servicios fijos se mantiene bajo control, representando un porcentaje mínimo de sus ingresos totales.",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+];

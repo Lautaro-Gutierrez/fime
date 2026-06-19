@@ -19,8 +19,8 @@ export const inversionesRules: InsightRule[] = [
             module: "inversiones",
             category: "warning",
             priority: "high",
-            title: "Portfolio concentrado",
-            message: `Tenés el ${holding.weight_pct.toFixed(1)}% de tu portfolio invertido en ${holding.ticker || holding.label}. Considerá diversificar para mitigar el riesgo.`,
+            title: "Concentración de Activos",
+            message: `El activo ${holding.ticker || holding.label} representa el ${holding.weight_pct.toFixed(1)}% del portafolio total. Incrementar la diversificación contribuye a mitigar el riesgo de la cartera ante fluctuaciones de emisores específicos.`,
             href: "/portfolio",
             dismissible: true,
             createdAt: new Date().toISOString(),
@@ -45,8 +45,8 @@ export const inversionesRules: InsightRule[] = [
           module: "inversiones",
           category: "achievement",
           priority: "low",
-          title: "DIVERSIFICACIÓN",
-          message: "No tenés renta fija en tu portfolio. Considerá agregar bonos para reducir volatilidad.",
+          title: "Oportunidad de Diversificación",
+          message: "Actualmente, tu capital está concentrado en opciones de riesgo. Agregar instrumentos más conservadores, como los bonos, ayuda a proteger tu dinero ante caídas del mercado.",
           href: "/inversiones",
           icon: "PieChart",
           dismissible: true,
@@ -92,8 +92,8 @@ export const inversionesRules: InsightRule[] = [
             module: "inversiones",
             category: "tip",
             priority: "medium",
-            title: "Clase de activo dominante",
-            message: `El tipo de activo "${typeLabel}" representa el ${Math.round(pct)}% de tu portfolio. Es aconsejable diversificar entre clases.`,
+            title: "Estructura del Portafolio",
+            message: `El tipo de activo "${typeLabel}" representa el ${Math.round(pct)}% del portafolio. Distribuir el capital en diferentes tipos de instrumentos reduce la exposición ante caídas del mercado.`,
             href: "/portfolio",
             dismissible: true,
             createdAt: new Date().toISOString(),
@@ -116,8 +116,8 @@ export const inversionesRules: InsightRule[] = [
             module: "inversiones",
             category: "warning",
             priority: "medium",
-            title: "Posición con pérdidas",
-            message: `Tu posición en ${holding.ticker || holding.label} acumula una pérdida latente de ${holding.unrealized_pnl_pct.toFixed(1)}%. Evaluá tus fundamentos.`,
+            title: `Estado de la Cartera: ${holding.ticker || holding.label}`,
+            message: `Este activo presenta un rendimiento negativo temporal de ${Math.abs(holding.unrealized_pnl_pct).toFixed(1)}%. En las inversiones a largo plazo, las fluctuaciones son normales. Evalúa si mantener esta posición sigue alineado con tu estrategia.`,
             href: "/inversiones",
             dismissible: true,
             createdAt: new Date().toISOString(),
@@ -148,8 +148,8 @@ export const inversionesRules: InsightRule[] = [
           module: "inversiones",
           category: "opportunity",
           priority: "medium",
-          title: "Liquidez en dólares elevada",
-          message: `Tenés el ${Math.round(cashPct)}% de tu portfolio en USD Cash. Considerá invertir una parte para proteger tu capital de la inflación en dólares.`,
+          title: "Gestión de Liquidez",
+          message: `La tenencia de efectivo representa el ${Math.round(cashPct)}% de la cartera. Evaluar la colocación de este capital en instrumentos adecuados permite resguardar el poder adquisitivo frente a la inflación de la moneda.`,
           href: "/inversiones",
           dismissible: true,
           createdAt: new Date().toISOString(),
@@ -163,11 +163,9 @@ export const inversionesRules: InsightRule[] = [
     id: "inv-dca-gap",
     module: "inversiones",
     evaluate: (ctx): SmartInsight | null => {
-      // Find tickers with multiple buys where the last buy date is > 30 days ago
       const buyTxs = ctx.investments.filter((i) => i.tx_type === "buy" && i.ticker);
       if (buyTxs.length === 0) return null;
 
-      // Group buys by ticker
       const buysByTicker: Record<string, typeof buyTxs> = {};
       for (const tx of buyTxs) {
         const ticker = tx.ticker!.toUpperCase();
@@ -176,9 +174,7 @@ export const inversionesRules: InsightRule[] = [
       }
 
       for (const [ticker, txs] of Object.entries(buysByTicker)) {
-        // Si tiene al menos 2 compras, lo consideramos un plan de aportes recurrentes (DCA)
         if (txs.length >= 2) {
-          // Find most recent buy date
           const sorted = [...txs].sort((a, b) => b.date.localeCompare(a.date));
           const lastBuyDate = new Date(sorted[0].date);
           const diffDays = Math.ceil((ctx.today.getTime() - lastBuyDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -190,8 +186,8 @@ export const inversionesRules: InsightRule[] = [
               module: "inversiones",
               category: "reminder",
               priority: "low",
-              title: "Brecha en DCA detectada",
-              message: `Pasaron ${diffDays} días desde tu última compra de ${ticker}. ¿Querés retomar tus aportes programados?`,
+              title: "Continuidad del Plan de Inversión",
+              message: `Han transcurrido ${diffDays} días desde la última incorporación en el activo ${ticker}. Mantener la regularidad de los aportes periódicos favorece el promedio de costo del activo en el largo plazo.`,
               href: "/inversiones",
               dismissible: true,
               createdAt: new Date().toISOString(),
@@ -202,7 +198,7 @@ export const inversionesRules: InsightRule[] = [
       return null;
     },
   },
-  // 6.5. inv-dca-success
+  // 7. inv-dca-success
   {
     id: "inv-dca-success",
     module: "inversiones",
@@ -270,8 +266,8 @@ export const inversionesRules: InsightRule[] = [
           module: "inversiones",
           category: "opportunity",
           priority: "medium",
-          title: "BUEN HÁBITO",
-          message: `Estás haciendo DCA consistentemente. ¡Seguí así! Llevas ${displayMonths} meses consecutivos aportando.`,
+          title: "Consistencia en Inversiones",
+          message: `Se registra un hábito consolidado de aportes periódicos en el tiempo, sumando ${displayMonths} meses de aportaciones. La regularidad es un factor clave para la consolidación de su patrimonio de largo plazo.`,
           href: "/inversiones",
           icon: "CheckCircle2",
           dismissible: true,
@@ -287,8 +283,8 @@ export const inversionesRules: InsightRule[] = [
           module: "inversiones",
           category: "opportunity",
           priority: "medium",
-          title: "BUEN HÁBITO",
-          message: "Estás haciendo DCA consistentemente. ¡Seguí así! Llevas 6 meses consecutivos aportando.",
+          title: "Consistencia en Inversiones",
+          message: "Se registra un hábito consolidado de aportes periódicos en el tiempo. La regularidad es un factor clave para la consolidación de su patrimonio de largo plazo.",
           href: "/inversiones",
           icon: "CheckCircle2",
           dismissible: true,
@@ -299,7 +295,7 @@ export const inversionesRules: InsightRule[] = [
       return null;
     },
   },
-  // 7. inv-performance-beats-sp500
+  // 8. inv-performance-beats-sp500
   {
     id: "inv-performance-beats-sp500",
     module: "inversiones",
@@ -316,13 +312,105 @@ export const inversionesRules: InsightRule[] = [
             module: "inversiones",
             category: "achievement",
             priority: "medium",
-            title: "Ganándole al mercado",
-            message: `Tu portfolio supera el rendimiento acumulado del S&P 500 por ${diff.toFixed(1)}% este mes (${latest.portfolio_pct.toFixed(1)}% vs ${latest.sp500_pct.toFixed(1)}%).`,
+            title: "Rendimiento de Cartera",
+            message: `El rendimiento mensual de las inversiones supera el desempeño de los principales índices internacionales en un ${diff.toFixed(1)}%. Esta evolución refleja el resultado favorable de la estrategia actual de selección de activos.`,
             href: "/portfolio",
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
         }
+      }
+      return null;
+    },
+  },
+  // 9. inv-no-investments
+  {
+    id: "inv-no-investments",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.investments.length === 0 && ctx.holdings.length === 0) {
+        return {
+          id: "inv-no-investments",
+          ruleId: "inv-no-investments",
+          module: "inversiones",
+          category: "tip",
+          priority: "low",
+          title: "Introducción al Mercado Financiero",
+          message: "No se registran colocaciones financieras activas. Comenzar a asignar una fracción del excedente mensual a instrumentos de inversión favorece la protección y crecimiento de los ahorros.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 10. inv-balanced-portfolio
+  {
+    id: "inv-balanced-portfolio",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.holdings.length < 3) return null;
+
+      const typeSums: Record<string, number> = {};
+      let totalValue = 0;
+
+      for (const h of ctx.holdings) {
+        typeSums[h.asset_type] = (typeSums[h.asset_type] || 0) + h.current_value_usd;
+        totalValue += h.current_value_usd;
+      }
+
+      if (totalValue <= 0) return null;
+
+      // Ningún tipo de activo > 50% y ningún activo individual > 20%
+      const meetsTypeDiversification = Object.values(typeSums).every((val) => (val / totalValue) * 100 <= 50);
+      const meetsHoldingDiversification = ctx.holdings.every((h) => h.weight_pct <= 20);
+
+      if (meetsTypeDiversification && meetsHoldingDiversification) {
+        return {
+          id: `inv-balanced-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-balanced-portfolio",
+          module: "inversiones",
+          category: "achievement",
+          priority: "medium",
+          title: "Portafolio Balanceado",
+          message: "La distribución de activos en cartera presenta una adecuada diversificación por emisor y clase de instrumento. Esta estructura contribuye a equilibrar de forma eficiente el riesgo y el rendimiento.",
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 11. inv-crypto-heavy
+  {
+    id: "inv-crypto-heavy",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.holdings.length === 0) return null;
+
+      const cryptoVal = ctx.holdings
+        .filter((h) => h.asset_type === "crypto")
+        .reduce((sum, h) => sum + h.current_value_usd, 0);
+
+      const totalValue = ctx.holdings.reduce((sum, h) => sum + h.current_value_usd, 0);
+      if (totalValue <= 0) return null;
+
+      const cryptoPct = (cryptoVal / totalValue) * 100;
+      if (cryptoPct > 25) {
+        return {
+          id: `inv-crypto-heavy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-crypto-heavy",
+          module: "inversiones",
+          category: "warning",
+          priority: "medium",
+          title: "Exposición a Criptoactivos",
+          message: `Las inversiones en criptoactivos representan una proporción significativa de la cartera (${Math.round(cryptoPct)}%). Se recomienda evaluar periódicamente si esta exposición se corresponde con su perfil de tolerancia al riesgo.`,
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
       }
       return null;
     },
