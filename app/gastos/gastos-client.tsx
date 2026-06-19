@@ -13,6 +13,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { ModuleInsightsPanel } from "@/components/module-insights-panel";
 
 function getSubscriptionStyles(name: string): { letter: string; bgStyle: string } {
   const cleanName = name.trim();
@@ -39,7 +40,6 @@ function getSubscriptionStyles(name: string): { letter: string; bgStyle: string 
 
 export default function GastosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
-  const [dismissedInsights, setDismissedInsights] = useState<Record<string, boolean>>({});
 
   // Controlled modal state
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -55,8 +55,6 @@ export default function GastosClient() {
   
   const pctFijos = Math.min(100, Math.round((fixed / budgetFijos) * 100));
   const pctVariables = Math.min(100, Math.round((variable / budgetVariables) * 100));
-
-  const dismissInsight = (id: string) => setDismissedInsights(prev => ({ ...prev, [id]: true }));
 
   const handleNewExpense = () => {
     setEditingExpense(null);
@@ -451,36 +449,7 @@ export default function GastosClient() {
 
         {/* Smart Insights Gastos */}
         <div className="relative z-10 animate-fade-in delay-1">
-          <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-            {!dismissedInsights["insight-g1"] && (
-              <div id="insight-g1" className="min-w-[320px] max-w-[340px] rounded-2xl p-4 border card-hover flex-shrink-0 relative" style={{ background: "linear-gradient(135deg, rgba(244,63,94,0.08), rgba(225,29,72,0.04))", borderColor: "rgba(244,63,94,0.15)" }}>
-                <button onClick={() => dismissInsight("insight-g1")} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(244,63,94,0.15)" }}>
-                    <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                  </div>
-                  <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">Alerta Presupuesto</span>
-                </div>
-                <p className="text-sm text-slate-300 leading-relaxed">Alcanzaste el <span className="text-rose-400 font-semibold">90%</span> de tu presupuesto en Comida. Te quedan $15.000.</p>
-              </div>
-            )}
-            {!dismissedInsights["insight-g2"] && (
-              <div id="insight-g2" className="min-w-[320px] max-w-[340px] rounded-2xl p-4 border card-hover flex-shrink-0 relative" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.04))", borderColor: "rgba(16,185,129,0.15)" }}>
-                <button onClick={() => dismissInsight("insight-g2")} className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}>
-                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Sugerencia de Ahorro</span>
-                </div>
-                <p className="text-sm text-slate-300 leading-relaxed">Tus gastos en Transporte bajaron un 15%. Considerá destinar la diferencia al Ahorro.</p>
-              </div>
-            )}
-          </div>
+          <ModuleInsightsPanel module="gastos" />
         </div>
 
         {/* Summary + Calendar Grid */}

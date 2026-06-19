@@ -3,6 +3,7 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/layout/shell";
+import { ModuleInsightsPanel } from "@/components/module-insights-panel";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -284,6 +285,11 @@ export default function MetasClient() {
               Nuevo objetivo
             </button>
           </div>
+        </div>
+
+        {/* Smart Insights Metas */}
+        <div className="animate-fade-in delay-1">
+          <ModuleInsightsPanel module="metas" />
         </div>
 
         {/* Fila 1: KPIs */}

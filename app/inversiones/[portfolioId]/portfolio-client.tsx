@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { Shell } from "@/components/layout/shell";
+import { ModuleInsightsPanel } from "@/components/module-insights-panel";
 import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 
 // Portfolios
@@ -149,6 +150,11 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
               </Sheet>
             </div>
           </div>
+        </div>
+
+        {/* Smart Insights Inversiones */}
+        <div className="animate-fade-in delay-1">
+          <ModuleInsightsPanel module="inversiones" />
         </div>
 
         {/* FX Strip */}

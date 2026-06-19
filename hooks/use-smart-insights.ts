@@ -11,6 +11,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { computeGoalProgress, type GoalProgress, type ProgressContext } from "@/lib/goals/progress";
 import { evaluateInsights } from "@/lib/insights/engine";
 import { dashboardRules } from "@/lib/insights/rules/dashboard";
+import { gastosRules } from "@/lib/insights/rules/gastos";
+import { inversionesRules } from "@/lib/insights/rules/inversiones";
+import { ingresosRules } from "@/lib/insights/rules/ingresos";
+import { metasRules } from "@/lib/insights/rules/metas";
 import type { InsightModule, SmartInsight, InsightContext } from "@/lib/insights/types";
 import { format, subMonths, getDaysInMonth, getDate } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
@@ -18,8 +22,13 @@ import { firstOfMonth, lastOfMonth, monthKey, toISODate } from "@/lib/format";
 import { useUserId } from "@/components/providers/user-provider";
 import { DEFAULT_DISTRIBUTION } from "@/lib/income-categories";
 
-// V1: We only load dashboard rules. In subsequent phases we'll add the others.
-const ALL_RULES = [...dashboardRules];
+const ALL_RULES = [
+  ...dashboardRules,
+  ...gastosRules,
+  ...inversionesRules,
+  ...ingresosRules,
+  ...metasRules,
+];
 
 const MAX_PER_MODULE: Record<InsightModule, number> = {
   dashboard: 3,

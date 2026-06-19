@@ -26,6 +26,7 @@ import { PrivateAmount } from "@/components/ui/private-amount";
 import { INCOME_CATEGORIES_BY_ID } from "@/lib/income-categories";
 import type { IncomeCategory } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { ModuleInsightsPanel } from "@/components/module-insights-panel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -423,6 +424,11 @@ export default function IngresosClient() {
               <QuickAddIncome />
             </div>
           </div>
+        </div>
+
+        {/* Smart Insights Ingresos */}
+        <div className="animate-fade-in delay-1">
+          <ModuleInsightsPanel module="ingresos" />
         </div>
 
         {/* Row 1: Ingresos del Mes + Flujo Libre */}
