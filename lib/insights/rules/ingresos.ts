@@ -187,7 +187,7 @@ export const ingresosRules: InsightRule[] = [
           category: "achievement",
           priority: "low",
           title: "Diversificación de Ingresos",
-          message: "Se registran múltiples fuentes de ingresos durante el periodo. Disponer de flujos complementarios reduce la dependencia de un único empleador o cliente.",
+          message: "Se registran múltiples fuentes de ingresos durante el periodo. Disponer de ingresos adicionales reduce la dependencia de un único empleador o cliente.",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };

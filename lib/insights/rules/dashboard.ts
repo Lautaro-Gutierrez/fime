@@ -48,7 +48,7 @@ export const dashboardRules: InsightRule[] = [
           module: "dashboard",
           category: "warning",
           priority: "high",
-          title: "Control de Presupuesto Mensual",
+          title: "Control de Gastos Mensuales",
           message: `El nivel total de egresos es un ${excessPct}% superior al registrado el mes anterior en esta misma fecha. Se sugiere revisar los gastos no esenciales para mantener el equilibrio del periodo.`,
           href: "/gastos",
           dismissible: true,
