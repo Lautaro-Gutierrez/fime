@@ -491,19 +491,19 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
       </div>
 
       {/* Círculo de progreso circular (ProgressRing) */}
-      <div className="flex flex-col items-center justify-center my-3">
-        <div className="relative w-28 h-28">
+      <div className="flex flex-col items-center justify-center my-6">
+        <div className="relative w-40 h-40">
           <ProgressRing 
             pct={pct} 
             rawPct={progress.rawPct} 
-            size={112} 
-            strokeWidth={8} 
+            size={160} 
+            strokeWidth={12} 
             color={cfg.color || "#F59E0B"}
             isInverted={progress.isInverted}
             label={null}
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-bold text-white [font-feature-settings:'tnum']">
+            <span className="text-3xl font-black text-white [font-feature-settings:'tnum']">
               {isStealthMode ? "**" : `${Math.round(pct)}%`}
             </span>
           </div>
@@ -512,15 +512,15 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
 
       {/* Información de la meta */}
       <div className="flex flex-col items-center text-center mt-2 mb-4 w-full">
-        <h3 className="text-base font-bold text-white truncate w-full">{goal.name}</h3>
+        <h3 className="text-lg font-bold text-white truncate w-full">{goal.name}</h3>
         
         {/* Valores actual / total */}
-        <p className="text-xs text-slate-400 mt-1.5 [font-feature-settings:'tnum'] truncate w-full">
+        <p className="text-sm text-slate-400 mt-1.5 [font-feature-settings:'tnum'] truncate w-full">
           {isStealthMode ? "••••••" : `${formatAmount(progress.current, currency, cfg.isPercentage)} / ${formatAmount(progress.target, currency, cfg.isPercentage)}`}
         </p>
 
         {/* Restante */}
-        <p className="text-xs text-amber-400 font-semibold [font-feature-settings:'tnum'] mt-1 truncate w-full">
+        <p className="text-sm text-amber-400 font-bold [font-feature-settings:'tnum'] mt-1 truncate w-full">
           {remainingFormatted}
         </p>
       </div>
