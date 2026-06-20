@@ -26,16 +26,54 @@ interface InvestorProfileTestProps {
 
 export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestProps) {
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number | number[]>>({});
   const [showResult, setShowResult] = useState<boolean>(false);
 
   const saveProfile = useSaveInvestorProfile();
 
-  const handleSelectOption = (questionId: string, score: number) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: score,
-    }));
+  const handleSelectOption = (questionId: string, score: number, isMultiSelect?: boolean) => {
+    setAnswers((prev) => {
+      const current = prev[questionId];
+      if (isMultiSelect) {
+        let nextArray: number[];
+        if (Array.isArray(current)) {
+          if (current.includes(score)) {
+            nextArray = current.filter((val) => val !== score);
+          } else {
+            nextArray = [...current, score];
+          }
+        } else {
+          nextArray = [score];
+        }
+        return {
+          ...prev,
+          [questionId]: nextArray,
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: score,
+        };
+      }
+    });
+  };
+
+  const getQuestionScore = (questionId: string, value: number | number[] | undefined, isMultiSelect?: boolean): number => {
+    if (value === undefined) return 0;
+    if (isMultiSelect) {
+      if (Array.isArray(value) && value.length > 0) {
+        return Math.max(...value); // ALyC standard: maximum tier selected is user's knowledge/experience score
+      }
+      return 0;
+    }
+    return typeof value === "number" ? value : 0;
+  };
+
+  const calculateTotalScore = (currentAnswers: Record<string, number | number[]>) => {
+    return INVESTOR_QUESTIONS.reduce((sum, q) => {
+      const val = currentAnswers[q.id];
+      return sum + getQuestionScore(q.id, val, q.isMultiSelect);
+    }, 0);
   };
 
   const handleNext = () => {
@@ -43,11 +81,11 @@ export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestP
       setCurrentStep((prev) => prev + 1);
     } else {
       // Calculate final score
-      const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+      const totalScore = calculateTotalScore(answers);
       const result = calculateProfile(totalScore);
       
       saveProfile.mutate(
-        { answers, total_score: totalScore, result },
+        { answers: answers as Record<string, number>, total_score: totalScore, result },
         {
           onSuccess: () => {
             setShowResult(true);
@@ -59,7 +97,7 @@ export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestP
 
   const handlePrev = () => {
     if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
+      setCurrentStep((prev) => prev + 1 - 1 - 1); // equivalent to currentStep - 1
     }
   };
 
@@ -75,11 +113,16 @@ export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestP
   };
 
   const currentQuestion = INVESTOR_QUESTIONS[currentStep];
-  const isOptionSelected = currentQuestion ? answers[currentQuestion.id] !== undefined : false;
+  const isOptionSelected = currentQuestion
+    ? currentQuestion.isMultiSelect
+      ? Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as number[]).length > 0
+      : answers[currentQuestion.id] !== undefined
+    : false;
+
   const progressPercent = ((currentStep + (showResult ? 1 : 0)) / INVESTOR_QUESTIONS.length) * 100;
 
   // Calculate profile results
-  const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+  const totalScore = calculateTotalScore(answers);
   const calculatedResultKey = calculateProfile(totalScore);
   const resultDetails = PROFILE_RESULTS[calculatedResultKey];
 
@@ -122,18 +165,27 @@ export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestP
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-4"
               >
-                <h3 className="text-lg font-bold text-white leading-snug">
-                  {currentQuestion.question}
-                </h3>
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-lg font-bold text-white leading-snug">
+                    {currentQuestion.question}
+                  </h3>
+                  {currentQuestion.isMultiSelect && (
+                    <span className="text-[10px] uppercase font-bold text-fuchsia-400 tracking-wider">
+                      Selección múltiple (podés elegir más de una opción)
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex flex-col gap-2 mt-2">
                   {currentQuestion.options.map((option) => {
-                    const isSelected = answers[currentQuestion.id] === option.value;
+                    const isSelected = currentQuestion.isMultiSelect
+                      ? Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as number[]).includes(option.value)
+                      : answers[currentQuestion.id] === option.value;
                     return (
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => handleSelectOption(currentQuestion.id, option.value)}
+                        onClick={() => handleSelectOption(currentQuestion.id, option.value, currentQuestion.isMultiSelect)}
                         className={cn(
                           "flex items-center gap-4 rounded-xl p-4 text-left text-xs font-medium border transition-all duration-200",
                           isSelected
@@ -141,17 +193,30 @@ export function InvestorProfileTest({ open, onOpenChange }: InvestorProfileTestP
                             : "bg-[#1A1D24] border-white/[0.06] hover:bg-white/[0.04] text-slate-300"
                         )}
                       >
-                        {/* Radio Dot Indicator */}
+                        {/* Checkbox or Radio Indicator */}
                         <div
                           className={cn(
-                            "w-4 h-4 rounded-full border flex items-center justify-center transition-all",
+                            "w-4 h-4 border flex items-center justify-center transition-all shrink-0",
+                            currentQuestion.isMultiSelect ? "rounded" : "rounded-full",
                             isSelected
                               ? "border-[#d946ef] bg-[#d946ef]"
                               : "border-white/20 bg-transparent"
                           )}
                         >
                           {isSelected && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-white animate-scaleIn" />
+                            currentQuestion.isMultiSelect ? (
+                              <svg
+                                className="w-2.5 h-2.5 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={4}
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <div className="w-1.5 h-1.5 rounded-full bg-white animate-scaleIn" />
+                            )
                           )}
                         </div>
                         <span className="flex-1 leading-normal">{option.text}</span>

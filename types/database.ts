@@ -452,7 +452,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          answers: Record<string, number>;
+          answers: Record<string, number | number[]>;
           total_score: number;
           result: "conservador" | "moderado" | "agresivo";
           created_at: string;
@@ -460,7 +460,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          answers: Record<string, number>;
+          answers: Record<string, number | number[]>;
           total_score: number;
           result: "conservador" | "moderado" | "agresivo";
           created_at?: string;
@@ -468,7 +468,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          answers?: Record<string, number>;
+          answers?: Record<string, number | number[]>;
           total_score?: number;
           result?: "conservador" | "moderado" | "agresivo";
           created_at?: string;

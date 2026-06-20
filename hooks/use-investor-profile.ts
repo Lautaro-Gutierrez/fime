@@ -9,7 +9,7 @@ import type { InvestorProfileType } from "@/lib/investor-profile";
 export interface InvestorProfileTestRecord {
   id: string;
   user_id: string;
-  answers: Record<string, number>;
+  answers: Record<string, number | number[]>;
   total_score: number;
   result: InvestorProfileType;
   created_at: string;
@@ -44,7 +44,7 @@ export function useSaveInvestorProfile() {
 
   return useMutation({
     mutationFn: async (payload: {
-      answers: Record<string, number>;
+      answers: Record<string, number | number[]>;
       total_score: number;
       result: InvestorProfileType;
     }) => {

@@ -9,6 +9,7 @@ export interface ProfileQuestion {
   id: string;
   question: string;
   options: ProfileOption[];
+  isMultiSelect?: boolean;
 }
 
 export const INVESTOR_QUESTIONS: ProfileQuestion[] = [
@@ -24,6 +25,7 @@ export const INVESTOR_QUESTIONS: ProfileQuestion[] = [
   {
     id: "knowledge",
     question: "¿Qué instrumentos financieros conocés u operaste alguna vez?",
+    isMultiSelect: true,
     options: [
       { value: 1, text: "Solo plazo fijo, cuentas remuneradas o fondos money market" },
       { value: 2, text: "Bonos (soberanos o corporativos), ONs (Obligaciones Negociables)" },
