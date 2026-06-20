@@ -6,10 +6,14 @@ export const inversionesRules: InsightRule[] = [
     id: "inv-concentration",
     module: "inversiones",
     evaluate: (ctx): SmartInsight | null => {
-      // Un activo > 30% del portfolio (excl. usd_cash)
+      // Umbral dinámico según perfil de inversor (conservador es más estricto, agresivo tolera más)
+      const threshold = ctx.investorProfile === "conservador" ? 20 
+                      : ctx.investorProfile === "agresivo" ? 45 
+                      : 30; // default / moderado
+
       for (const holding of ctx.holdings) {
         if (
-          holding.weight_pct > 30 &&
+          holding.weight_pct > threshold &&
           holding.asset_type !== "usd_cash" &&
           (holding.asset_type as string) !== "ars_cash"
         ) {
@@ -20,7 +24,7 @@ export const inversionesRules: InsightRule[] = [
             category: "warning",
             priority: "high",
             title: "Concentración de Activos",
-            message: `El activo ${holding.ticker || holding.label} representa el ${holding.weight_pct.toFixed(1)}% del portafolio total. Incrementar la diversificación contribuye a mitigar el riesgo de la cartera ante fluctuaciones de emisores específicos.`,
+            message: `El activo ${holding.ticker || holding.label} representa el ${holding.weight_pct.toFixed(1)}% de tu portafolio, superando el límite sugerido del ${threshold}% para tu perfil ${ctx.investorProfile || "moderado"}. Considerá diversificar para mitigar el riesgo.`,
             href: "/portfolio",
             dismissible: true,
             createdAt: new Date().toISOString(),
@@ -659,6 +663,138 @@ export const inversionesRules: InsightRule[] = [
           priority: "low",
           title: "¿Conocés las Obligaciones Negociables?",
           message: "Las ONs son instrumentos de renta fija corporativa que pueden ofrecer rendimientos en dólares. Son una opción interesante para diversificar tu cartera conservadora.",
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 22. inv-profile-missing
+  {
+    id: "inv-profile-missing",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.investorProfile !== null) return null;
+      return {
+        id: `inv-prof-missing-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+        ruleId: "inv-profile-missing",
+        module: "inversiones",
+        category: "reminder",
+        priority: "medium",
+        title: "Completá tu Perfil de Inversor",
+        message: "Para recibir consejos y alertas personalizadas según tu tolerancia al riesgo, te recomendamos completar tu Perfil de Inversor en Configuración.",
+        href: "/config",
+        dismissible: true,
+        createdAt: new Date().toISOString(),
+      };
+    },
+  },
+  // 23. inv-profile-stale
+  {
+    id: "inv-profile-stale",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (!ctx.investorProfile || !ctx.investorProfileCompletedAt) return null;
+      
+      const completedDate = new Date(ctx.investorProfileCompletedAt);
+      const msDiff = ctx.today.getTime() - completedDate.getTime();
+      const daysDiff = msDiff / (1000 * 60 * 60 * 24);
+
+      if (daysDiff > 365) {
+        return {
+          id: `inv-prof-stale-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-profile-stale",
+          module: "inversiones",
+          category: "reminder",
+          priority: "low",
+          title: "Actualizá tu Perfil de Inversor",
+          message: "Pasó más de un año desde que realizaste tu test de perfil. Es un buen momento para rehacerlo en Configuración y adecuarlo a tus condiciones actuales.",
+          href: "/config",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 24. inv-high-equity-for-conservative
+  {
+    id: "inv-high-equity-for-conservative",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.investorProfile !== "conservador" || ctx.holdings.length === 0) return null;
+
+      const equityPct = ctx.holdings
+        .filter((h) => ["cedear", "stock_ar", "stock_us", "crypto", "etf"].includes(h.asset_type))
+        .reduce((sum, h) => sum + h.weight_pct, 0);
+
+      if (equityPct > 30) {
+        return {
+          id: `inv-high-eq-cons-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-high-equity-for-conservative",
+          module: "inversiones",
+          category: "warning",
+          priority: "high",
+          title: "Riesgo Elevado para Perfil Conservador",
+          message: `Tenés el ${equityPct.toFixed(1)}% de tu portafolio en activos de alta volatilidad (renta variable/cripto). Como perfil Conservador, se sugiere mantener esta exposición por debajo del 30% para evitar grandes oscilaciones.`,
+          href: "/portfolio",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 25. inv-low-equity-for-aggressive
+  {
+    id: "inv-low-equity-for-aggressive",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (ctx.investorProfile !== "agresivo" || ctx.holdings.length === 0) return null;
+
+      const equityPct = ctx.holdings
+        .filter((h) => ["cedear", "stock_ar", "stock_us", "crypto", "etf"].includes(h.asset_type))
+        .reduce((sum, h) => sum + h.weight_pct, 0);
+
+      if (equityPct < 40) {
+        return {
+          id: `inv-low-eq-aggr-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-low-equity-for-aggressive",
+          module: "inversiones",
+          category: "tip",
+          priority: "medium",
+          title: "Potenciá tu Perfil Agresivo",
+          message: `Tu perfil es Agresivo pero tenés solo un ${equityPct.toFixed(1)}% en activos de renta variable. Considerá incrementar tu exposición en acciones o CEDEARs para buscar retornos más competitivos.`,
+          href: "/inversiones",
+          dismissible: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      return null;
+    },
+  },
+  // 26. inv-no-fixed-income
+  {
+    id: "inv-no-fixed-income",
+    module: "inversiones",
+    evaluate: (ctx): SmartInsight | null => {
+      if (!ctx.investorProfile || ctx.investorProfile === "agresivo" || ctx.holdings.length === 0) return null;
+
+      const hasFixedIncome = ctx.holdings.some((h) =>
+        ["bond_ar", "time_deposit", "on"].includes(h.asset_type)
+      );
+
+      if (!hasFixedIncome) {
+        return {
+          id: `inv-no-fixed-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          ruleId: "inv-no-fixed-income",
+          module: "inversiones",
+          category: "opportunity",
+          priority: "high",
+          title: "Diversificación en Renta Fija",
+          message: `Tu perfil es ${ctx.investorProfile === "conservador" ? "Conservador" : "Moderado"} y no contás con instrumentos de Renta Fija (Bonos, ONs o Plazos Fijos). Incorporarlos te ayudará a dar previsibilidad a tus retornos.`,
           href: "/inversiones",
           dismissible: true,
           createdAt: new Date().toISOString(),

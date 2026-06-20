@@ -70,6 +70,10 @@ export interface InsightContext {
   // Cards
   creditCards: CreditCard[];
 
+  // Investor Profile
+  investorProfile: "conservador" | "moderado" | "agresivo" | null;
+  investorProfileCompletedAt: string | null;
+
   // Dates
   today: Date;
   currentMonth: Date;

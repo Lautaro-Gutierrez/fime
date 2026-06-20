@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 
 // Sub-componentes
 import { PasskeySection } from "@/components/config/perfil/passkey-section";
+import { InvestorProfileCard } from "@/components/config/perfil/investor-profile-card";
 import { AccentPicker } from "@/components/config/personalizacion/accent-picker";
 import { ThemePicker } from "@/components/config/personalizacion/theme-picker";
 import { DensityPicker } from "@/components/config/personalizacion/density-picker";
@@ -492,6 +493,9 @@ function PerfilTab() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Perfil de Inversor */}
+        <InvestorProfileCard />
 
         {/* Contraseña Change */}
         <div className="flex flex-col gap-3">

@@ -19,6 +19,7 @@ import { format, subMonths, getDaysInMonth, getDate } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
 import { firstOfMonth, lastOfMonth, monthKey, toISODate } from "@/lib/format";
 import { useUserId } from "@/components/providers/user-provider";
+import { usePreferences } from "./use-preferences";
 import { DEFAULT_DISTRIBUTION } from "@/lib/income-categories";
 
 const ALL_RULES = [
@@ -55,6 +56,7 @@ export function useSmartInsights(module?: InsightModule) {
   const goalsQ = useGoals();
   const cardsQ = useCreditCards();
   const portfolioQ = usePortfolio("ALL");
+  const preferencesQ = usePreferences();
 
   // Fetch prev month data on-demand client-side to avoid blocking SSR
   const [expensesPrevMonth, setExpensesPrevMonth] = useState<any[]>([]);
@@ -103,7 +105,8 @@ export function useSmartInsights(module?: InsightModule) {
     investmentsQ.isLoading ||
     goalsQ.isLoading ||
     cardsQ.isLoading ||
-    portfolioQ.isLoading;
+    portfolioQ.isLoading ||
+    preferencesQ.isLoading;
 
   // Composite Distribution calculated from actual incomes of the month that have a custom distribution
   const compositeDistribution = useMemo(() => {
@@ -230,6 +233,8 @@ export function useSmartInsights(module?: InsightModule) {
       goals: goalsQ.data || [],
       goalProgresses,
       creditCards: cardsQ.data || [],
+      investorProfile: preferencesQ.data?.investor_profile || null,
+      investorProfileCompletedAt: preferencesQ.data?.investor_profile_completed_at || null,
       today,
       currentMonth,
       daysInMonth,
@@ -248,6 +253,7 @@ export function useSmartInsights(module?: InsightModule) {
     goalsQ.data,
     goalProgresses,
     cardsQ.data,
+    preferencesQ.data,
     today,
     currentMonth,
     daysInMonth,

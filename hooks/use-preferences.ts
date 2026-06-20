@@ -16,6 +16,8 @@ export type UserPreferences = {
   onboarding_completed: boolean;
   completed_tours: string[];
   custom_tags: string[];
+  investor_profile: "conservador" | "moderado" | "agresivo" | null;
+  investor_profile_completed_at: string | null;
   updated_at: string;
 };
 
@@ -29,6 +31,8 @@ export type PreferencesUpdate = {
   onboarding_completed?: boolean;
   completed_tours?: string[];
   custom_tags?: string[];
+  investor_profile?: "conservador" | "moderado" | "agresivo" | null;
+  investor_profile_completed_at?: string | null;
 };
 
 function getLocalCustomTags(): string[] {

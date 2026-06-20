@@ -14,6 +14,8 @@ type PrefsContextValue = {
   onboardingCompleted: boolean;
   completedTours: string[];
   customTags: string[];
+  investorProfile: "conservador" | "moderado" | "agresivo" | null;
+  investorProfileCompletedAt: string | null;
   isLoading: boolean;
 };
 
@@ -27,6 +29,8 @@ const defaults: PrefsContextValue = {
   onboardingCompleted: true, // Default to true so it doesn't flash during load
   completedTours: [],
   customTags: ["Facultad", "Mascotas", "Vacaciones"],
+  investorProfile: null,
+  investorProfileCompletedAt: null,
   isLoading: true,
 };
 
@@ -49,6 +53,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     onboardingCompleted: prefs?.onboarding_completed ?? false, // Defaults to false for new users without preference row
     completedTours: prefs?.completed_tours ?? [],
     customTags: prefs?.custom_tags ?? ["Facultad", "Mascotas", "Vacaciones"],
+    investorProfile: prefs?.investor_profile ?? null,
+    investorProfileCompletedAt: prefs?.investor_profile_completed_at ?? null,
     isLoading,
   };
 

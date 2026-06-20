@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, Sparkles, Briefcase } from "lucide-react";
+import { ArrowLeft, Plus, Sparkles, Briefcase, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
 import { usePortfolios, type Portfolio } from "@/hooks/use-portfolios";
 import { PORTFOLIO_COLORS, PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "./portfolio-selector";
+import { usePrefsContext } from "@/components/providers/preferences-provider";
 
 // ARS-denominated asset types (need fx_rate conversion to USD).
 const ARS_DENOMINATED: AssetType[] = ["cedear", "stock_ar", "bond_ar", "on"];
@@ -405,6 +406,10 @@ function TransactionForm({
   const Icon = asset.icon;
   const canSwitchCurrency = asset.requiresPrice;
   const { data: portfolios = [] } = usePortfolios();
+  const { investorProfile } = usePrefsContext();
+
+  const isVolatileAsset = ["crypto", "stock_us", "cedear", "stock_ar"].includes(asset.id);
+  const showWarning = investorProfile === "conservador" && isVolatileAsset;
 
   // If there's no portfolio_id set, default to the first one available, preferably the default one
   useEffect(() => {
@@ -770,6 +775,18 @@ function TransactionForm({
             className="h-11 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:border-white/20"
           />
         </div>
+
+        {showWarning && (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 flex items-start gap-2.5 mt-2 animate-fadeIn">
+            <AlertCircle className="size-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-bold text-amber-300">Riesgo superior a tu perfil</span>
+              <span className="text-[10px] text-amber-400/80 leading-relaxed">
+                Este instrumento tiene una volatilidad superior a tu perfil de riesgo actual (Conservador).
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

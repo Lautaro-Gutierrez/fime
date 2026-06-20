@@ -448,6 +448,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      investor_profile_tests: {
+        Row: {
+          id: string;
+          user_id: string;
+          answers: Record<string, number>;
+          total_score: number;
+          result: "conservador" | "moderado" | "agresivo";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          answers: Record<string, number>;
+          total_score: number;
+          result: "conservador" | "moderado" | "agresivo";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          answers?: Record<string, number>;
+          total_score?: number;
+          result?: "conservador" | "moderado" | "agresivo";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       user_preferences: {
         Row: {
           user_id: string;
@@ -460,6 +487,8 @@ export type Database = {
           onboarding_completed: boolean;
           completed_tours: string[];
           custom_tags: string[];
+          investor_profile: "conservador" | "moderado" | "agresivo" | null;
+          investor_profile_completed_at: string | null;
           updated_at: string;
         };
         Insert: {
@@ -473,6 +502,8 @@ export type Database = {
           onboarding_completed?: boolean;
           completed_tours?: string[];
           custom_tags?: string[];
+          investor_profile?: "conservador" | "moderado" | "agresivo" | null;
+          investor_profile_completed_at?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -486,6 +517,8 @@ export type Database = {
           onboarding_completed?: boolean;
           completed_tours?: string[];
           custom_tags?: string[];
+          investor_profile?: "conservador" | "moderado" | "agresivo" | null;
+          investor_profile_completed_at?: string | null;
           updated_at?: string;
         };
         Relationships: [];
