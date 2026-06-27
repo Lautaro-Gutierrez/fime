@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Theme, Density, AccentColor } from "@/types/database";
+import { toast } from "sonner";
 
 export type UserPreferences = {
   user_id: string;
@@ -38,7 +39,13 @@ export type PreferencesUpdate = {
 function getLocalCustomTags(): string[] {
   if (typeof window === "undefined") return ["Facultad", "Mascotas", "Vacaciones"];
   const local = localStorage.getItem("fime_local_custom_tags");
-  return local ? JSON.parse(local) : ["Facultad", "Mascotas", "Vacaciones"];
+  if (!local) return ["Facultad", "Mascotas", "Vacaciones"];
+  try {
+    return JSON.parse(local) || ["Facultad", "Mascotas", "Vacaciones"];
+  } catch (err) {
+    console.error("Failed to parse local custom tags", err);
+    return ["Facultad", "Mascotas", "Vacaciones"];
+  }
 }
 
 function saveLocalCustomTags(tags: string[]) {
@@ -194,6 +201,9 @@ export function useUpdatePreferences() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PREFS_KEY });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al guardar las preferencias");
     },
   });
 }

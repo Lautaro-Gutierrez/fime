@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useCallback, useEffect, useId, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useInvestments } from "@/hooks/use-investments";
@@ -250,7 +250,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
         },
         { onConflict: "portfolio_id,date" },
       );
-    })();
+    })().catch((err) => console.error("Failed to upsert snapshot:", err));
   }, [
     supabase,
     portfolioId,
@@ -265,20 +265,24 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
 
   // Reset: borra todo el historial de snapshots del usuario. Útil para
   // limpiar datos polucionados por bugs previos (ej. parseNumber ×100).
-  async function resetHistory() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    
-    let q = supabase.from("portfolio_snapshots").delete().eq("user_id", user.id);
-    if (portfolioId !== "ALL") {
-      q = q.eq("portfolio_id", portfolioId);
+  const resetHistory = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      let q = supabase.from("portfolio_snapshots").delete().eq("user_id", user.id);
+      if (portfolioId !== "ALL") {
+        q = q.eq("portfolio_id", portfolioId);
+      }
+      await q;
+      
+      await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
+    } catch (err) {
+      console.error("Failed to reset history:", err);
     }
-    await q;
-    
-    await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
-  }
+  }, [supabase, portfolioId, queryClient]);
 
   return {
     holdings: valued,

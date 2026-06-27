@@ -11,6 +11,7 @@ import {
   toISODate,
 } from "@/lib/format";
 import { useUserId } from "@/components/providers/user-provider";
+import { toast } from "sonner";
 
 export type Income = {
   id: string;
@@ -135,6 +136,9 @@ export function useCreateIncome() {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear el ingreso");
+    },
   });
 }
 
@@ -164,6 +168,9 @@ export function useUpdateIncome() {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar el ingreso");
+    },
   });
 }
 
@@ -182,6 +189,9 @@ export function useDeleteIncome() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar el ingreso");
     },
   });
 }

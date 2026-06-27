@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
 import { useUserId } from "@/components/providers/user-provider";
+import { toast } from "sonner";
 
 export type Portfolio = Database["public"]["Tables"]["portfolios"]["Row"];
 export type PortfolioInsert = Database["public"]["Tables"]["portfolios"]["Insert"];
@@ -75,6 +76,9 @@ export function useCreatePortfolio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear el portafolio");
+    },
   });
 }
 
@@ -97,6 +101,9 @@ export function useUpdatePortfolio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar el portafolio");
+    },
   });
 }
 
@@ -116,6 +123,9 @@ export function useDeletePortfolio() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar el portafolio");
     },
   });
 }

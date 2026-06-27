@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useExpenses } from "./use-expenses";
-import { useIncomes } from "./use-incomes";
+import { useExpenses, type Expense } from "./use-expenses";
+import { useIncomes, type Income } from "./use-incomes";
 import { useInvestments } from "./use-investments";
 import { useGoals } from "./use-goals";
 import { useCreditCards } from "./use-credit-cards";
@@ -59,8 +59,8 @@ export function useSmartInsights(module?: InsightModule) {
   const preferencesQ = usePreferences();
 
   // Fetch prev month data on-demand client-side to avoid blocking SSR
-  const [expensesPrevMonth, setExpensesPrevMonth] = useState<any[]>([]);
-  const [incomesPrevMonth, setIncomesPrevMonth] = useState<any[]>([]);
+  const [expensesPrevMonth, setExpensesPrevMonth] = useState<Expense[]>([]);
+  const [incomesPrevMonth, setIncomesPrevMonth] = useState<Income[]>([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -95,7 +95,7 @@ export function useSmartInsights(module?: InsightModule) {
       });
       setIncomesPrevMonth(incData);
     };
-    fetchPrevData();
+    fetchPrevData().catch((err) => console.error("Failed to fetch prev month data:", err));
   }, [userId, prevMonth, queryClient, supabase]);
 
   // Loading state

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { GoalStatus, GoalType, QuestType } from "@/types/database";
 import { useUserId } from "@/components/providers/user-provider";
+import { toast } from "sonner";
 
 export type Goal = {
   id: string;
@@ -121,6 +122,9 @@ export function useCreateGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear la meta");
+    },
   });
 }
 
@@ -143,6 +147,9 @@ export function useUpdateGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar la meta");
+    },
   });
 }
 
@@ -160,6 +167,9 @@ export function useDeleteGoal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar la meta");
     },
   });
 }

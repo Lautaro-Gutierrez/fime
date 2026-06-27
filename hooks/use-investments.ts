@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AssetType, TxType } from "@/types/database";
 import { useUserId } from "@/components/providers/user-provider";
+import { toast } from "sonner";
 
 export type Investment = {
   id: string;
@@ -107,6 +108,9 @@ export function useCreateInvestment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear la inversión");
+    },
   });
 }
 
@@ -135,6 +139,9 @@ export function useUpdateInvestment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar la inversión");
+    },
   });
 }
 
@@ -154,6 +161,9 @@ export function useDeleteInvestment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar la inversión");
     },
   });
 }

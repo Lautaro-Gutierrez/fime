@@ -11,6 +11,7 @@ import {
   toISODate,
 } from "@/lib/format";
 import { useUserId } from "@/components/providers/user-provider";
+import { toast } from "sonner";
 
 export type Expense = {
   id: string;
@@ -149,6 +150,9 @@ export function useCreateExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear el gasto");
+    },
   });
 }
 
@@ -211,6 +215,9 @@ export function useUpdateExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar el gasto");
+    },
   });
 }
 
@@ -228,6 +235,9 @@ export function useDeleteExpense() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar el gasto");
     },
   });
 }

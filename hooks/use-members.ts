@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 export type Member = {
   id: string;
@@ -20,7 +21,13 @@ const MEMBERS_KEY = ["members"] as const;
 function getLocalMembers(): Member[] {
   if (typeof window === "undefined") return [];
   const local = localStorage.getItem("fime_local_members");
-  return local ? JSON.parse(local) : [];
+  if (!local) return [];
+  try {
+    return JSON.parse(local) || [];
+  } catch (err) {
+    console.error("Failed to parse local members", err);
+    return [];
+  }
 }
 
 function saveLocalMembers(members: Member[]) {
@@ -126,6 +133,9 @@ export function useCreateMember() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEMBERS_KEY });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear el miembro");
+    },
   });
 }
 
@@ -161,6 +171,9 @@ export function useDeleteMember() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEMBERS_KEY });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al eliminar el miembro");
     },
   });
 }

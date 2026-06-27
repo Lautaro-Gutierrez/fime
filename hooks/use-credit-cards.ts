@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 export type CreditCard = {
   id: string;
@@ -95,6 +96,9 @@ export function useCreateCreditCard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
     },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al crear la tarjeta");
+    },
   });
 }
 
@@ -115,6 +119,9 @@ export function useUpdateCreditCard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al actualizar la tarjeta");
     },
   });
 }
@@ -138,6 +145,9 @@ export function useArchiveCreditCard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Error al archivar la tarjeta");
     },
   });
 }
