@@ -8,7 +8,8 @@ import { MonthSelector } from "@/components/gastos/month-selector";
 import { useExpenses, sumExpensesByType, type Expense } from "@/hooks/use-expenses";
 import {
   firstOfMonth,
-  formatUSD
+  formatUSD,
+  toISODate
 } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -155,8 +156,10 @@ export default function GastosClient() {
         const day = format(dateObj, "dd");
         const monthYear = format(dateObj, "MMM dd", { locale: es });
         const name = exp.note || exp.category.replace(/_/g, " ");
-        const status = exp.type === "fixed" ? "Pendiente" : "Pagado";
-        const statusClass = exp.type === "fixed" ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
+        const todayISO = toISODate(new Date());
+        const isFuture = exp.date > todayISO;
+        const status = exp.type === "fixed" || isFuture ? "Pendiente" : "Pagado";
+        const statusClass = exp.type === "fixed" || isFuture ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
         
         return {
           id: exp.id,
@@ -330,8 +333,8 @@ export default function GastosClient() {
           name,
           date: dateStr,
           amount: exp.amount,
-          status: exp.type === "fixed" ? "Pendiente" : "Pagado",
-          statusClass: exp.type === "fixed" ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400",
+          status: exp.type === "fixed" || exp.date > toISODate(new Date()) ? "Pendiente" : "Pagado",
+          statusClass: exp.type === "fixed" || exp.date > toISODate(new Date()) ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400",
           bgClass,
           textClass,
           iconSvg,

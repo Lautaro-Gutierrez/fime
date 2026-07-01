@@ -546,6 +546,38 @@ export function QuickAdd({
                     );
                   })}
                 </div>
+
+                {category === "tarjeta_credito" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/[0.04] px-3 py-2 text-xs"
+                  >
+                    <span className="text-slate-400 font-medium">Tarjeta seleccionada:</span>
+                    <button
+                      type="button"
+                      onClick={() => setPickingCard(true)}
+                      className="flex items-center gap-1.5 font-bold text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
+                    >
+                      {(() => {
+                        const selCard = cardId ? cards.find((c) => c.id === cardId) : null;
+                        if (selCard) {
+                          const color = colorFromHex(selCard.color);
+                          return (
+                            <>
+                              <span
+                                className="size-2 rounded-full"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                              {selCard.name} {selCard.last_four ? `(•••• ${selCard.last_four})` : ""}
+                            </>
+                          );
+                        }
+                        return "Ninguna (Sin tarjeta)";
+                      })()}
+                    </button>
+                  </motion.div>
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -577,14 +609,23 @@ export function QuickAdd({
                       setCardId(null);
                       setPickingCard(false);
                     }}
-                    className="flex items-center gap-3 rounded-xl border border-dashed border-white/[0.1] bg-[#1A1D24] px-4 py-3 text-left text-slate-400 hover:border-white/20 hover:text-white"
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all",
+                      cardId === null
+                        ? "border-fuchsia-500/50 bg-[#251f2d] text-white"
+                        : "border-dashed border-white/[0.1] bg-[#1A1D24] text-slate-400 hover:border-white/20 hover:text-white"
+                    )}
                   >
                     <CreditCardIcon className="size-4" />
                     <span className="text-sm font-semibold tracking-tight">Sin tarjeta de crédito</span>
+                    {cardId === null && (
+                      <span className="ml-auto text-[11px] font-bold text-fuchsia-400">Seleccionada</span>
+                    )}
                   </motion.button>
 
                   {cards.map((card, idx) => {
                     const cardColor = colorFromHex(card.color);
+                    const isSelected = cardId === card.id;
                     return (
                       <motion.button
                         key={card.id}
@@ -595,7 +636,10 @@ export function QuickAdd({
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleCardSelect(card.id)}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl border border-white/[0.08] bg-[#1A1D24] px-4 py-3 text-left transition-all hover:border-white/10",
+                          "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all",
+                          isSelected
+                            ? "border-fuchsia-500/50 bg-[#251f2d] hover:border-fuchsia-500/70"
+                            : "border-white/[0.08] bg-[#1A1D24] hover:border-white/10"
                         )}
                       >
                         <div
@@ -612,7 +656,11 @@ export function QuickAdd({
                             </span>
                           )}
                         </div>
-                        <CreditCardIcon className={cn("size-4", cardColor.textClass)} />
+                        {isSelected ? (
+                          <span className="text-[11px] font-bold text-fuchsia-400">Seleccionada</span>
+                        ) : (
+                          <CreditCardIcon className={cn("size-4", cardColor.textClass)} />
+                        )}
                       </motion.button>
                     );
                   })}
