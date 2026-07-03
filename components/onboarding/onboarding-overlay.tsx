@@ -155,7 +155,7 @@ export function OnboardingOverlay() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute rounded-xl pointer-events-none z-40 transition-all duration-300"
+          className="fixed rounded-xl pointer-events-none z-40 transition-all duration-300"
           style={{
             top: coords.top - 8,
             left: coords.left - 8,

@@ -36,7 +36,7 @@ const TOUR_SEQUENCE = ["dashboard", "gastos", "inversiones", "ingresos", "metas"
 const TOUR_ROUTES: Record<string, string> = {
   dashboard: "/",
   gastos: "/gastos",
-  inversiones: "/inversiones",
+  inversiones: "/inversiones/all",
   ingresos: "/ingresos",
   metas: "/metas",
   configuracion: "/config",
