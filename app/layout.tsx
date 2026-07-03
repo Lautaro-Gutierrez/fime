@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   applicationName: "FiMe",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico?v=2",
-    apple: "/apple-icon.png?v=2",
+    icon: '/icon.png?v=4',
+    apple: '/apple-touch-icon.png?v=4',
   },
   appleWebApp: {
     capable: true,
