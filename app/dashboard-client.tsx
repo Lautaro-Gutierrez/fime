@@ -322,7 +322,7 @@ export default function DashboardClient() {
           </div>
 
           {/* ═══════ 3. KPI ROW (grid-cols-4) ═══════ */}
-          <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7 animate-fade-in delay-2">
+          <div id="dashboard-hero-kpis" className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7 animate-fade-in delay-2">
             {/* Flujo Libre */}
             <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="flex items-center justify-between mb-3">
@@ -405,7 +405,7 @@ export default function DashboardClient() {
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7 animate-fade-in delay-3">
 
             {/* ── Col 1: Metas Principales ── */}
-            <div className="rounded-2xl p-6 border card-hover flex flex-col justify-between min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)", height: "100%" }}>
+            <div id="dashboard-goals-strip" className="rounded-2xl p-6 border card-hover flex flex-col justify-between min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)", height: "100%" }}>
               <div>
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="text-sm font-semibold text-white">Metas Principales</h3>
@@ -493,7 +493,7 @@ export default function DashboardClient() {
             </div>
 
             {/* ── Col 3: Rendimiento (Portfolio vs S&P 500) ── */}
-            <div className="rounded-2xl p-6 border card-hover min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <div id="dashboard-portfolio-snapshot" className="rounded-2xl p-6 border card-hover min-h-[300px]" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="flex flex-col gap-3 mb-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-semibold text-white">Rendimiento</h3>

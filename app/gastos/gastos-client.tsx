@@ -641,7 +641,7 @@ export default function GastosClient() {
         {/* Distribution + Movimientos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in delay-2">
           {/* Distribución de Egresos */}
-          <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+          <div id="gastos-donut" className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <h3 className="text-sm font-semibold text-white mb-4">Distribución de Egresos</h3>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <svg viewBox="0 0 160 160" className="w-36 h-36 flex-shrink-0">

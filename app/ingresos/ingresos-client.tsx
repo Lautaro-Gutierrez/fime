@@ -498,7 +498,7 @@ export default function IngresosClient() {
         {/* Row 2: Distribución Teórica + Movimientos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in delay-2">
           {/* Distribución Teórica Card */}
-          <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col justify-between min-h-[300px]">
+          <div id="ingresos-distribution" className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col justify-between min-h-[300px]">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Distribución Teórica</h3>
               <button
