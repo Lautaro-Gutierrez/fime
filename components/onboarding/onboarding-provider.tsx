@@ -19,6 +19,7 @@ type OnboardingContextValue = {
   complete: () => void;
   restart: () => void;
   restartAll: () => void;
+  startTour: (tourId: string, stepIndex?: number) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -170,6 +171,14 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const startTour = (tourId: string, stepIndex = 0) => {
+    const nextCompleted = completedTours.filter((id) => id !== tourId);
+    updatePrefs({ completed_tours: nextCompleted });
+    setCurrentTourId(tourId);
+    setCurrentStepIndex(stepIndex);
+    setIsActive(true);
+  };
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -184,6 +193,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         complete,
         restart,
         restartAll,
+        startTour,
       }}
     >
       {children}

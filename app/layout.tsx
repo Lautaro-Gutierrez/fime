@@ -6,6 +6,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { PreferencesProvider } from "@/components/providers/preferences-provider";
 import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 import { OnboardingOverlay } from "@/components/onboarding/onboarding-overlay";
+import { OnboardingHUD } from "@/components/onboarding/onboarding-hud";
 import { UserProvider } from "@/components/providers/user-provider";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
@@ -18,6 +19,10 @@ export const metadata: Metadata = {
   description: "App personal de finanzas: gastos, inversiones, portfolio y metas.",
   applicationName: "FiMe",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico?v=2",
+    apple: "/apple-icon.png?v=2",
+  },
   appleWebApp: {
     capable: true,
     title: "FiMe",
@@ -66,6 +71,7 @@ export default async function RootLayout({
                 <OnboardingProvider>
                   {children}
                   <OnboardingOverlay />
+                  <OnboardingHUD />
                 </OnboardingProvider>
               </PreferencesProvider>
             </QueryProvider>
