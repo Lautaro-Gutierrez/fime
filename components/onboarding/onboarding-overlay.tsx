@@ -75,6 +75,11 @@ export function OnboardingOverlay() {
           setTooltipPlacement(placement);
         }, 150);
       } else {
+        if (currentStep.type === "spotlight" && process.env.NODE_ENV === "development") {
+          console.warn(
+            `[Onboarding Diagnostic] El elemento para el selector "${currentStep.targetSelector}" del paso "${currentStep.id}" no fue encontrado en el DOM.`
+          );
+        }
         // Fallback a modal si no encontramos el elemento target en el DOM
         setCoords(null);
         setTooltipPlacement("center");
