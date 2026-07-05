@@ -41,6 +41,11 @@ function getSubscriptionStyles(name: string): { letter: string; bgStyle: string 
 
 export default function GastosClient() {
   const [month, setMonth] = useState(() => firstOfMonth(new Date()));
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  const handleDayClick = (day: number) => {
+    setSelectedDay(prev => prev === day ? null : day);
+  };
 
   // Controlled modal state
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -148,39 +153,75 @@ export default function GastosClient() {
     });
   }, [expenses]);
 
-  /* ───── Bills for Calendar ───── */
-  const calendarBills = useMemo(() => {
+  /* ───── Bills and Calendar Data ───── */
+  const allPayments = useMemo(() => {
     if (expenses.length > 0) {
-      return expenses.slice(0, 4).map(exp => {
-        const dateObj = parseISO(exp.date);
-        const day = format(dateObj, "dd");
-        const monthYear = format(dateObj, "MMM dd", { locale: es });
-        const name = exp.note || exp.category.replace(/_/g, " ");
-        const todayISO = toISODate(new Date());
-        const isFuture = exp.date > todayISO;
-        const status = exp.type === "fixed" || isFuture ? "Pendiente" : "Pagado";
-        const statusClass = exp.type === "fixed" || isFuture ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
-        
-        return {
-          id: exp.id,
-          day,
-          name,
-          monthYear,
-          amount: exp.amount,
-          status,
-          statusClass,
-          raw: exp.id.startsWith("demo-") ? null : exp
-        };
-      });
+      return [...expenses]
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map(exp => {
+          const dateObj = parseISO(exp.date);
+          const day = dateObj.getDate();
+          const dayStr = format(dateObj, "dd");
+          const monthYear = format(dateObj, "MMM dd", { locale: es });
+          const name = exp.note || exp.category.replace(/_/g, " ");
+          const todayISO = toISODate(new Date());
+          const isFuture = exp.date > todayISO;
+          const isPending = exp.type === "fixed" || isFuture;
+          const status = isPending ? "Pendiente" : "Pagado";
+          const statusClass = isPending ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
+          const isUrgent = exp.category === "tarjeta_credito" || exp.category === "alquiler" || exp.category === "imprevistos";
+          
+          return {
+            id: exp.id,
+            day,
+            dayStr,
+            name,
+            monthYear,
+            amount: exp.amount,
+            status,
+            statusClass,
+            isPending,
+            isUrgent,
+            raw: exp
+          };
+        });
     }
 
+    const currentMonthLabel = format(month, "MMM", { locale: es });
     return [
-      { id: "demo-b1", day: "20", name: "Electricity Bill", monthYear: "May 20", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", raw: null },
-      { id: "demo-b2", day: "22", name: "Internet Service", monthYear: "May 22", amount: 65000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", raw: null },
-      { id: "demo-b3", day: "25", name: "Water Bill", monthYear: "May 25", amount: 45000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", raw: null },
-      { id: "demo-b4", day: "01", name: "Car Insurance", monthYear: "June 01", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", raw: null }
-    ];
-  }, [expenses]);
+      { id: "demo-b1", day: 20, dayStr: "20", name: "Servicio Electricidad", monthYear: `${currentMonthLabel} 20`, amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", isPending: true, isUrgent: false, raw: null },
+      { id: "demo-b2", day: 22, dayStr: "22", name: "Servicio Internet", monthYear: `${currentMonthLabel} 22`, amount: 65000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", isPending: false, isUrgent: false, raw: null },
+      { id: "demo-b3", day: 25, dayStr: "25", name: "Expensas/Agua", monthYear: `${currentMonthLabel} 25`, amount: 45000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", isPending: false, isUrgent: false, raw: null },
+      { id: "demo-b4", day: 1, dayStr: "01", name: "Seguro Auto", monthYear: `${currentMonthLabel} 01`, amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", isPending: true, isUrgent: true, raw: null }
+    ].sort((a, b) => a.day - b.day);
+  }, [expenses, month]);
+
+  const calendarDays = useMemo(() => {
+    const year = month.getFullYear();
+    const monthIndex = month.getMonth();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const firstDay = new Date(year, monthIndex, 1).getDay();
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    
+    const days: Array<{ dayNum: number | null; key: string }> = [];
+    
+    for (let i = 0; i < startOffset; i++) {
+      days.push({ dayNum: null, key: `empty-${i}` });
+    }
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push({ dayNum: d, key: `day-${d}` });
+    }
+    
+    return days;
+  }, [month]);
+
+  const displayBills = useMemo(() => {
+    if (selectedDay === null) {
+      return allPayments;
+    }
+    return allPayments.filter(p => p.day === selectedDay);
+  }, [allPayments, selectedDay]);
 
   /* ───── Expense Distribution (Donut) ───── */
   const distributionData = useMemo(() => {
@@ -444,7 +485,7 @@ export default function GastosClient() {
               <span className="text-3xl font-extrabold text-white tnum">{formatUSD(total, false)}</span>
             </div>
             <div className="flex items-center gap-3">
-              <MonthSelector month={month} onChange={setMonth} />
+              <MonthSelector month={month} onChange={(m) => { setMonth(m); setSelectedDay(null); }} />
               {quickAddBtn}
             </div>
           </div>
@@ -510,21 +551,84 @@ export default function GastosClient() {
               </h3>
               {/* Mini Cal */}
               <div className="grid grid-cols-7 gap-1.5 text-xs text-center mb-6 bg-white/[0.01] rounded-xl p-3 border border-white/[0.02]">
-                <span className="text-slate-500 font-semibold mb-2">Lu</span><span className="text-slate-500 font-semibold mb-2">Ma</span><span className="text-slate-500 font-semibold mb-2">Mi</span><span className="text-slate-500 font-semibold mb-2">Ju</span><span className="text-slate-500 font-semibold mb-2">Vi</span><span className="text-slate-500 font-semibold mb-2">Sá</span><span className="text-slate-500 font-semibold mb-2">Do</span>
-                <span className="text-slate-500 py-2">1</span><span className="text-slate-500 py-2">2</span><span className="text-slate-500 py-2">3</span><span className="text-slate-500 py-2">4</span><span className="text-slate-500 py-2">5</span><span className="text-slate-500 py-2">6</span><span className="text-slate-500 py-2">7</span>
-                <span className="text-slate-500 py-2">8</span><span className="text-slate-500 py-2">9</span><span className="text-slate-500 py-2">10</span><span className="text-slate-500 py-2">11</span><span className="text-slate-500 py-2">12</span><span className="text-slate-500 py-2">13</span><span className="text-slate-500 py-2">14</span>
-                <span className="text-rose-400 font-bold py-2 bg-rose-500/10 rounded-lg shadow-sm">15</span><span className="text-slate-500 py-2">16</span><span className="text-slate-500 py-2">17</span><span className="text-slate-500 py-2">18</span><span className="text-slate-500 py-2">19</span><span className="text-emerald-400 font-bold py-2 bg-emerald-500/10 rounded-lg shadow-sm">20</span><span className="text-slate-500 py-2">21</span>
-                <span className="text-emerald-400 font-bold py-2 bg-emerald-500/10 rounded-lg shadow-sm">22</span><span className="text-slate-500 py-2">23</span><span className="text-slate-500 py-2">24</span><span className="text-emerald-400 font-bold py-2 bg-emerald-500/10 rounded-lg shadow-sm">25</span><span className="text-slate-500 py-2">26</span><span className="text-slate-500 py-2">27</span><span className="text-slate-500 py-2">28</span>
-                <span className="text-slate-500 py-2">29</span><span className="text-slate-500 py-2">30</span><span className="py-2"></span><span className="py-2"></span><span className="py-2"></span><span className="py-2"></span><span className="py-2"></span>
+                <span className="text-slate-500 font-semibold mb-2">Lu</span>
+                <span className="text-slate-500 font-semibold mb-2">Ma</span>
+                <span className="text-slate-500 font-semibold mb-2">Mi</span>
+                <span className="text-slate-500 font-semibold mb-2">Ju</span>
+                <span className="text-slate-500 font-semibold mb-2">Vi</span>
+                <span className="text-slate-500 font-semibold mb-2">Sá</span>
+                <span className="text-slate-500 font-semibold mb-2">Do</span>
+
+                {calendarDays.map((item) => {
+                  if (item.dayNum === null) {
+                    return <span key={item.key} className="py-2"></span>;
+                  }
+
+                  const day = item.dayNum;
+                  const isSelected = selectedDay === day;
+                  
+                  const pendingPaymentsForDay = allPayments.filter(p => p.day === day && p.isPending);
+                  const hasPending = pendingPaymentsForDay.length > 0;
+                  const hasUrgent = pendingPaymentsForDay.some(p => p.isUrgent);
+
+                  let dayClassName = "py-2 rounded-lg cursor-pointer transition-all duration-200 select-none ";
+
+                  if (isSelected) {
+                    dayClassName += "ring-2 ring-cyan-400 bg-white/[0.1] font-bold ";
+                    if (hasPending) {
+                      dayClassName += hasUrgent ? "text-rose-400" : "text-emerald-400";
+                    } else {
+                      dayClassName += "text-white";
+                    }
+                  } else if (hasPending) {
+                    dayClassName += hasUrgent 
+                      ? "text-rose-400 font-bold bg-rose-500/10 shadow-sm hover:bg-rose-500/20"
+                      : "text-emerald-400 font-bold bg-emerald-500/10 shadow-sm hover:bg-emerald-500/20";
+                  } else {
+                    const hasAnyPayment = allPayments.some(p => p.day === day);
+                    if (hasAnyPayment) {
+                      dayClassName += "text-slate-300 hover:bg-white/[0.05]";
+                    } else {
+                      dayClassName += "text-slate-500 hover:bg-white/[0.03]";
+                    }
+                  }
+
+                  return (
+                    <span
+                      key={item.key}
+                      onClick={() => handleDayClick(day)}
+                      className={dayClassName}
+                    >
+                      {day}
+                    </span>
+                  );
+                })}
               </div>
             </div>
             
             {/* Bills - Dynamic mapped from expenses */}
-            <div className="flex flex-col justify-between flex-1 gap-3">
+            <div className="flex flex-col justify-start flex-1 gap-3 overflow-y-auto max-h-[300px] pr-1">
               {isLoading ? (
                 <div className="text-center text-slate-500 text-sm mt-4">Cargando...</div>
+              ) : displayBills.length === 0 ? (
+                selectedDay !== null ? (
+                  <div className="flex flex-col items-center justify-center flex-1 py-8 text-center px-4">
+                    <svg className="w-10 h-10 text-slate-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+                    </svg>
+                    <p className="text-xs text-slate-400 font-medium">No tenés vencimientos programados para el {selectedDay} de este mes</p>
+                    <button 
+                      onClick={() => setSelectedDay(null)}
+                      className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 font-semibold transition-colors underline underline-offset-4"
+                    >
+                      Ver todos los vencimientos
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-500 text-sm mt-4">No hay vencimientos registrados</div>
+                )
               ) : (
-                calendarBills.map(bill => {
+                displayBills.map(bill => {
                   const isClickeable = !!bill.raw;
                   return (
                     <div 
@@ -537,7 +641,7 @@ export default function GastosClient() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-white/[0.03] flex items-center justify-center border border-white/[0.05]">
-                          <p className="text-xs font-bold text-slate-300">{bill.day}</p>
+                          <p className="text-xs font-bold text-slate-300">{bill.dayStr}</p>
                         </div>
                         <div>
                           <p className="text-sm text-slate-200 font-medium capitalize truncate max-w-[120px]">{bill.name}</p>
