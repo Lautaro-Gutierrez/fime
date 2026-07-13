@@ -35,8 +35,11 @@ export async function GET(req: Request) {
       .select("*");
 
     if (subsError || !subs || subs.length === 0) {
+      console.log("CRON Reminders: No subscriptions found or error:", subsError);
       return NextResponse.json({ message: "No subscriptions found" });
     }
+
+    console.log(`CRON Reminders: Found ${subs.length} active subscriptions in DB.`);
 
     // Agrupar suscripciones por usuario
     const subsByUser = subs.reduce((acc, sub) => {
@@ -60,9 +63,12 @@ export async function GET(req: Request) {
       dates.push({ iso, label, diff: i });
     }
 
+    console.log("CRON Reminders: Checking dates:", dates.map(d => d.iso));
+
     let sentCount = 0;
 
     for (const [userId, userSubs] of Object.entries(subsByUser)) {
+      console.log(`CRON Reminders: Processing user ${userId} with ${userSubs.length} subscriptions`);
       const payloadsToSend: { title: string; body: string; url: string }[] = [];
 
       // 1. Verificar vencimientos de Tarjetas (en los próximos 3 días)
@@ -73,6 +79,7 @@ export async function GET(req: Request) {
         .is("archived_at", null);
 
       if (cards) {
+        console.log(`CRON Reminders: User ${userId} has ${cards.length} active credit cards`);
         for (const card of cards) {
           const nextDue = nextDueDate(card.closing_day, card.due_day, today);
           const nextDueISO = toISODate(nextDue);
@@ -88,6 +95,7 @@ export async function GET(req: Request) {
               bodyText = `¡Atención! Tu tarjeta ${card.name} vence ${dateMatch.label}.`;
             }
 
+            console.log(`CRON Reminders: Card due match found: ${card.name} on ${nextDueISO}`);
             payloadsToSend.push({
               title: "Vencimiento de Tarjeta",
               body: bodyText,
@@ -106,6 +114,7 @@ export async function GET(req: Request) {
         .lte("date", dates[3].iso);
 
       if (expenses) {
+        console.log(`CRON Reminders: User ${userId} has ${expenses.length} expenses in the 4-day window`);
         for (const exp of expenses) {
           const dateMatch = dates.find((d) => d.iso === exp.date);
           if (dateMatch) {
@@ -122,6 +131,7 @@ export async function GET(req: Request) {
               bodyText = `Vence ${dateMatch.label}: ${exp.note ? exp.note : categoryLabel} por $${exp.amount}.`;
             }
 
+            console.log(`CRON Reminders: Expense match found: ${categoryLabel} ($${exp.amount}) on ${exp.date}`);
             payloadsToSend.push({
               title: "Vencimiento Próximo",
               body: bodyText,
@@ -130,6 +140,8 @@ export async function GET(req: Request) {
           }
         }
       }
+
+      console.log(`CRON Reminders: Sending ${payloadsToSend.length} payloads to user ${userId}`);
 
       // Enviar las notificaciones acumuladas a todas las suscripciones del usuario
       for (const payload of payloadsToSend) {
@@ -145,18 +157,20 @@ export async function GET(req: Request) {
           try {
             await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
             sentCount++;
+            console.log(`CRON Reminders: Notification sent successfully to sub ${sub.id}`);
           } catch (err: any) {
             if (err.statusCode === 404 || err.statusCode === 410) {
-              // Suscripción inválida/expirada, borrar de la BD
+              console.log(`CRON Reminders: Subscription expired or invalid, deleting from DB: ${sub.id}`);
               await supabase.from("push_subscriptions").delete().eq("id", sub.id);
             } else {
-              console.error(`Failed to send notification to user ${userId}:`, err);
+              console.error(`CRON Reminders: Failed to send notification to user ${userId}:`, err);
             }
           }
         }
       }
     }
 
+    console.log(`CRON Reminders: Done. Sent total of ${sentCount} notifications`);
     return NextResponse.json({ success: true, notificationsSent: sentCount });
   } catch (error: any) {
     console.error("Cron reminders error:", error);
