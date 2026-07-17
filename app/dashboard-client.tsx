@@ -13,10 +13,46 @@ import { useUpdatePreferences } from "@/hooks/use-preferences";
 import { formatUSD } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid, Tooltip } from "recharts";
+import { Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid, Tooltip } from "recharts";
 import Link from "next/link";
 import { useSmartInsights } from "@/hooks/use-smart-insights";
 import { SmartInsightsCarousel } from "@/components/dashboard/smart-insights-carousel";
+
+interface TooltipPayloadEntry {
+  color?: string;
+  name?: string;
+  value?: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#1F2229] border border-white/[0.06] rounded-xl p-3 shadow-xl">
+        <p className="text-xs text-slate-400 mb-2 font-medium capitalize">{label}</p>
+        <div className="flex flex-col gap-1.5">
+          {payload.map((entry, index) => (
+            <div key={index} className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
+                <span className="text-xs text-slate-300 font-semibold">{entry.name === "portfolio" ? "Portfolio" : "S&P 500"}</span>
+              </div>
+              <span className="text-sm font-bold text-white tnum ml-auto">
+                {Number(entry.value).toFixed(2)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function DashboardClient() {
   const { stealthMode: isStealthMode } = usePrefsContext();
@@ -219,30 +255,6 @@ export default function DashboardClient() {
     totalExpensesUsd === 0 && 
     (portfolio.totals.total_usd === 0 || portfolio.isLoading) && 
     (goalsQ.data?.length ?? 0) === 0;
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[#1F2229] border border-white/[0.06] rounded-xl p-3 shadow-xl">
-          <p className="text-xs text-slate-400 mb-2 font-medium capitalize">{label}</p>
-          <div className="flex flex-col gap-1.5">
-            {payload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
-                  <span className="text-xs text-slate-300 font-semibold">{entry.name === "portfolio" ? "Portfolio" : "S&P 500"}</span>
-                </div>
-                <span className="text-sm font-bold text-white tnum ml-auto">
-                  {Number(entry.value).toFixed(2)}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <Shell>
@@ -542,7 +554,7 @@ export default function DashboardClient() {
                         axisLine={false} 
                         tickLine={false} 
                         tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
-                        tickFormatter={(value) => `${value}%`}
+                        tickFormatter={(value) => `${Number(Number(value).toFixed(2))}%`}
                         domain={['dataMin - 1', 'dataMax + 1']}
                       />
                       <Tooltip content={<CustomTooltip />} />

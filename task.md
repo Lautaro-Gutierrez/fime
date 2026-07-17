@@ -1,1 +1,1 @@
-- `[/]` Verificación: Correr la build del proyecto con `pnpm run build`
+- `[x]` Verificación: Correr la build del proyecto con `pnpm run build`
