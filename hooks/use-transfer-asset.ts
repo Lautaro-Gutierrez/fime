@@ -14,7 +14,7 @@ export type TransferAssetInput = {
 };
 
 export function useTransferAsset() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

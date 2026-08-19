@@ -4,7 +4,11 @@ import { getFxRates } from "@/lib/prices/dolarapi";
 export async function GET() {
   try {
     const rates = await getFxRates();
-    return NextResponse.json(rates);
+    return NextResponse.json(rates, {
+      headers: {
+        "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     return NextResponse.json(

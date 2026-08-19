@@ -57,7 +57,7 @@ function saveLocalCustomTags(tags: string[]) {
 const PREFS_KEY = ["user_preferences"] as const;
 
 export function usePreferences() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const channelId = useId();
 
@@ -81,6 +81,7 @@ export function usePreferences() {
       }
       return prefs;
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export function usePreferences() {
 }
 
 export function useUpdatePreferences() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

@@ -38,7 +38,7 @@ const CREDIT_CARDS_KEY = ["credit_cards"] as const;
 
 /** Lista solo tarjetas activas (no archivadas). */
 export function useCreditCards() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const channelId = useId();
 
@@ -53,6 +53,7 @@ export function useCreditCards() {
       if (error) throw error;
       return data as unknown as CreditCard[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export function useCreditCards() {
 }
 
 export function useCreateCreditCard() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -103,7 +104,7 @@ export function useCreateCreditCard() {
 }
 
 export function useUpdateCreditCard() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -131,7 +132,7 @@ export function useUpdateCreditCard() {
  * pero mantiene los gastos linkeados intactos (card_id sigue apuntando).
  */
 export function useArchiveCreditCard() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

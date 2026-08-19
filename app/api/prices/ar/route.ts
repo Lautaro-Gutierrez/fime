@@ -22,7 +22,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const quotes = await getArQuotes(type, symbols);
-    return NextResponse.json(quotes);
+    return NextResponse.json(quotes, {
+      headers: {
+        "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     return NextResponse.json(

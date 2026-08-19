@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
   // Oculta el indicador flotante de Next.js en dev (solo aplica a `next dev`,
   // en producción nunca se muestra).
   devIndicators: false,
+
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
+  },
 };
 
 export default withSerwist(nextConfig);

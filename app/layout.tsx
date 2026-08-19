@@ -9,6 +9,7 @@ import { OnboardingOverlay } from "@/components/onboarding/onboarding-overlay";
 import { OnboardingHUD } from "@/components/onboarding/onboarding-hud";
 import { UserProvider } from "@/components/providers/user-provider";
 import { createClient } from "@/lib/supabase/server";
+import { PortfolioProvider } from "@/components/providers/portfolio-provider";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -68,11 +69,13 @@ export default async function RootLayout({
           <UserProvider userId={user?.id}>
             <QueryProvider>
               <PreferencesProvider>
-                <OnboardingProvider>
-                  {children}
-                  <OnboardingOverlay />
-                  <OnboardingHUD />
-                </OnboardingProvider>
+                <PortfolioProvider>
+                  <OnboardingProvider>
+                    {children}
+                    <OnboardingOverlay />
+                    <OnboardingHUD />
+                  </OnboardingProvider>
+                </PortfolioProvider>
               </PreferencesProvider>
             </QueryProvider>
           </UserProvider>

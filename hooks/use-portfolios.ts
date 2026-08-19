@@ -16,7 +16,7 @@ function portfoliosKey(userId: string) {
 }
 
 export function usePortfolios() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
   const channelId = useId();
@@ -32,6 +32,7 @@ export function usePortfolios() {
       if (error) throw error;
       return data as Portfolio[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export function usePortfolios() {
 }
 
 export function useCreatePortfolio() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -83,7 +84,7 @@ export function useCreatePortfolio() {
 }
 
 export function useUpdatePortfolio() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -108,7 +109,7 @@ export function useUpdatePortfolio() {
 }
 
 export function useDeletePortfolio() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 

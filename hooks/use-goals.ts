@@ -60,7 +60,7 @@ function goalsKey(userId: string) {
 }
 
 export function useGoals() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
   // Sufijo único por mount (fix M3: evita colisión cuando varios componentes
@@ -78,6 +78,7 @@ export function useGoals() {
       if (error) throw error;
       return data as Goal[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export function useGoals() {
 }
 
 export function useCreateGoal() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -129,7 +130,7 @@ export function useCreateGoal() {
 }
 
 export function useUpdateGoal() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -154,7 +155,7 @@ export function useUpdateGoal() {
 }
 
 export function useDeleteGoal() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 

@@ -15,7 +15,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const series = await getSp500Series(from);
-    return NextResponse.json(series);
+    return NextResponse.json(series, {
+      headers: {
+        "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     return NextResponse.json(

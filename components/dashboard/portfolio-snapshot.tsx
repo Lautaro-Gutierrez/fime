@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePortfolio } from "@/hooks/use-portfolio";
+import { usePortfolioContext } from "@/components/providers/portfolio-provider";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { formatUSD } from "@/lib/format";
 import { Cell, Pie, PieChart, LineChart, Line, ResponsiveContainer } from "recharts";
@@ -15,7 +15,7 @@ const PALETTE = [
 
 export function PortfolioSnapshot() {
   const { stealthMode: isStealthMode } = usePrefsContext();
-  const portfolio = usePortfolio("ALL");
+  const portfolio = usePortfolioContext();
 
   const donutData = useMemo(() => {
     return portfolio.holdings

@@ -37,7 +37,7 @@ function saveLocalMembers(members: Member[]) {
 }
 
 export function useMembers() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const channelId = useId();
 
@@ -63,6 +63,7 @@ export function useMembers() {
         return getLocalMembers();
       }
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export function useMembers() {
 }
 
 export function useCreateMember() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -140,7 +141,7 @@ export function useCreateMember() {
 }
 
 export function useDeleteMember() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

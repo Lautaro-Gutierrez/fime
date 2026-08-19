@@ -35,7 +35,7 @@ export type PortfolioSnapshot = {
 const SNAPSHOTS_KEY = ["portfolio_snapshots"] as const;
 
 function useSnapshots(portfolioId: string | "ALL") {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const channelId = useId();
 
@@ -119,6 +119,7 @@ function useSnapshots(portfolioId: string | "ALL") {
       
       return data as PortfolioSnapshot[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -144,7 +145,7 @@ function useSnapshots(portfolioId: string | "ALL") {
  * Además actualiza el snapshot del día y compone la serie TWR vs SP500.
  */
 export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const investmentsQ = useInvestments();
   const initialQ = useInitialPositions();

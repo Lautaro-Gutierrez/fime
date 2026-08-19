@@ -48,7 +48,7 @@ function investmentsKey(userId: string) {
 }
 
 export function useInvestments() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const userId = useUserId();
   const queryClient = useQueryClient();
   const channelId = useId();
@@ -64,6 +64,7 @@ export function useInvestments() {
       if (error) throw error;
       return data as Investment[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export function useInvestments() {
 }
 
 export function useCreateInvestment() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -115,7 +116,7 @@ export function useCreateInvestment() {
 }
 
 export function useUpdateInvestment() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -146,7 +147,7 @@ export function useUpdateInvestment() {
 }
 
 export function useDeleteInvestment() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 

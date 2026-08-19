@@ -40,7 +40,7 @@ const MAX_PER_MODULE: Record<InsightModule, number> = {
 export function useSmartInsights(module?: InsightModule) {
   const queryClient = useQueryClient();
   const userId = useUserId();
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
 
   // Time context
   const today = useMemo(() => new Date(), []);

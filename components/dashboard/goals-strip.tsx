@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useGoals } from "@/hooks/use-goals";
-import { usePortfolio } from "@/hooks/use-portfolio";
+import { usePortfolioContext } from "@/components/providers/portfolio-provider";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
@@ -15,7 +15,7 @@ import { computeGoalProgress } from "@/lib/goals/progress";
 export function GoalsStrip() {
   const { stealthMode: isStealthMode } = usePrefsContext();
   const goalsQ = useGoals();
-  const portfolio = usePortfolio();
+  const portfolio = usePortfolioContext();
   
   const currentMonth = useMemo(() => new Date(), []);
   const incomesQ = useIncomes(currentMonth);

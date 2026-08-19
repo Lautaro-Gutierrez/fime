@@ -37,7 +37,7 @@ export type InitialPositionUpdate = Partial<InitialPositionInsert>;
 const KEY = ["initial_positions"] as const;
 
 export function useInitialPositions() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   // useId garantiza un canal único por mount del hook (evita colisión si hay
   // múltiples instancias activas en simultáneo, ej. usePortfolio + dialog).
@@ -53,6 +53,7 @@ export function useInitialPositions() {
       if (error) throw error;
       return data as InitialPosition[];
     },
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -75,7 +76,7 @@ export function useInitialPositions() {
 }
 
 export function useCreateInitialPosition() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -102,7 +103,7 @@ export function useCreateInitialPosition() {
 }
 
 export function useUpdateInitialPosition() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -132,7 +133,7 @@ export function useUpdateInitialPosition() {
 }
 
 export function useDeleteInitialPosition() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

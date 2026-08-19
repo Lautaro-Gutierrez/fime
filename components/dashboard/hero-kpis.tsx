@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { usePortfolio } from "@/hooks/use-portfolio";
+import { usePortfolioContext } from "@/components/providers/portfolio-provider";
 import { useIncomes } from "@/hooks/use-incomes";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
@@ -14,7 +14,7 @@ export function HeroKpis() {
   const { stealthMode: isStealthMode } = usePrefsContext();
   const { mutate: updatePrefs } = useUpdatePreferences();
   const toggleStealthMode = () => updatePrefs({ stealth_mode: !isStealthMode });
-  const portfolio = usePortfolio();
+  const portfolio = usePortfolioContext();
   
   // Usamos el mes actual para ingresos y gastos
   const currentMonth = useMemo(() => new Date(), []);

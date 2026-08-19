@@ -47,7 +47,7 @@ function incomesKey(userId: string, month: Date) {
 }
 
 export function useIncomes(month: Date) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const userId = useUserId();
   const queryClient = useQueryClient();
   const key = incomesKey(userId, month);
@@ -68,6 +68,7 @@ export function useIncomes(month: Date) {
       if (error) throw error;
       return data as Income[];
     },
+    staleTime: 60_000,
   });
 
   // Realtime: cualquier cambio invalida la query del mes activo.
@@ -94,7 +95,7 @@ export function useIncomes(month: Date) {
 // Busca el último ingreso de una categoría dada (global, no solo del mes).
 // Se usa para pre-rellenar el monto cuando el user clickea un template one-click.
 export function useLastIncomeByCategory(category: IncomeCategory) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const userId = useUserId();
 
   return useQuery<Income | null>({
@@ -116,7 +117,7 @@ export function useLastIncomeByCategory(category: IncomeCategory) {
 }
 
 export function useCreateIncome() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -143,7 +144,7 @@ export function useCreateIncome() {
 }
 
 export function useUpdateIncome() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -175,7 +176,7 @@ export function useUpdateIncome() {
 }
 
 export function useDeleteIncome() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 

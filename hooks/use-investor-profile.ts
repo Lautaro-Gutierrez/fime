@@ -18,7 +18,7 @@ export interface InvestorProfileTestRecord {
 const PROFILE_TESTS_KEY = ["investor_profile_tests"] as const;
 
 export function useInvestorProfileHistory() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
 
   return useQuery<InvestorProfileTestRecord[]>({
     queryKey: PROFILE_TESTS_KEY,
@@ -35,11 +35,12 @@ export function useInvestorProfileHistory() {
       if (error) throw error;
       return data || [];
     },
+    staleTime: 60_000,
   });
 }
 
 export function useSaveInvestorProfile() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

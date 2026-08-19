@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useGoals } from "@/hooks/use-goals";
 import { useExpenses } from "@/hooks/use-expenses";
-import { usePortfolio } from "@/hooks/use-portfolio";
+import { usePortfolioContext } from "@/components/providers/portfolio-provider";
 import { useDashboardAlerts } from "@/lib/dashboard/alerts";
 import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export function AlertsPanel() {
   const currentMonth = useMemo(() => new Date(), []);
   const goalsQ = useGoals();
   const expensesQ = useExpenses(currentMonth);
-  const portfolio = usePortfolio();
+  const portfolio = usePortfolioContext();
   const { stealthMode: isStealthMode } = usePrefsContext();
 
   const alerts = useDashboardAlerts({

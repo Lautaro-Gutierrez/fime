@@ -49,7 +49,7 @@ function expensesKey(userId: string, month: Date) {
 }
 
 export function useExpenses(month: Date) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const userId = useUserId();
   const queryClient = useQueryClient();
   // ID único por instancia del hook — evita colisiones de canales Realtime
@@ -72,6 +72,7 @@ export function useExpenses(month: Date) {
       if (error) throw error;
       return data as Expense[];
     },
+    staleTime: 60_000,
   });
 
   // Realtime: cualquier cambio en la tabla invalida la query del mes activo.
@@ -96,7 +97,7 @@ export function useExpenses(month: Date) {
 }
 
 export function useCreateExpense() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -157,7 +158,7 @@ export function useCreateExpense() {
 }
 
 export function useUpdateExpense() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
@@ -222,7 +223,7 @@ export function useUpdateExpense() {
 }
 
 export function useDeleteExpense() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const userId = useUserId();
 
