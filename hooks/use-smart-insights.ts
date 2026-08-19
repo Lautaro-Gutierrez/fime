@@ -260,12 +260,37 @@ export function useSmartInsights(module?: InsightModule) {
     dayOfMonth,
   ]);
 
+  const rulesToEvaluate = useMemo(() => {
+    if (!module) return ALL_RULES;
+    switch (module) {
+      case "dashboard":
+        return dashboardRules;
+      case "gastos":
+        return gastosRules;
+      case "inversiones":
+        return inversionesRules;
+      case "ingresos":
+        return ingresosRules;
+      default:
+        return ALL_RULES;
+    }
+  }, [module]);
+
+  const [debouncedCtx, setDebouncedCtx] = useState<InsightContext>(rawCtx);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCtx(rawCtx);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [rawCtx]);
+
   const allInsights = useMemo(() => {
     if (isLoading) return null;
-    const evaluated = evaluateInsights(rawCtx, ALL_RULES, dismissed, MAX_PER_MODULE);
+    const evaluated = evaluateInsights(debouncedCtx, rulesToEvaluate, dismissed, MAX_PER_MODULE);
 
     // Filtro explícito para eliminar cualquier tip o alerta de metas/objetivos
-    const filterMetas = (insights: SmartInsight[]) =>
+    const filterMetas = (insights: SmartInsight[] = []) =>
       insights.filter(
         (insight) =>
           insight.module !== "metas" &&
@@ -280,7 +305,7 @@ export function useSmartInsights(module?: InsightModule) {
       ingresos: filterMetas(evaluated.ingresos),
       metas: [], // Eliminar por completo
     };
-  }, [isLoading, rawCtx, dismissed]);
+  }, [isLoading, debouncedCtx, rulesToEvaluate, dismissed]);
 
   return {
     insights: module && allInsights ? allInsights[module] : [],

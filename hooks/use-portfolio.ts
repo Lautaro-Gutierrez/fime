@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useUserId } from "@/components/providers/user-provider";
 import { useInvestments } from "@/hooks/use-investments";
 import { useInitialPositions } from "@/hooks/use-initial-positions";
 import { useQuotes, useFxRates, useSp500Series } from "@/hooks/use-prices";
@@ -146,11 +147,13 @@ function useSnapshots(portfolioId: string | "ALL") {
  */
 export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
   const supabase = createClient();
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const investmentsQ = useInvestments();
   const initialQ = useInitialPositions();
   const fxQ = useFxRates();
   const snapshotsQ = useSnapshots(portfolioId);
+  const lastUpsertRef = useRef<{ date: string; total_usd: number; cashflow_usd: number; portfolioId: string } | null>(null);
 
   const investments = useMemo(() => {
     const all = investmentsQ.data ?? [];
@@ -217,46 +220,67 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
     return mergeReturnSeries(twr, spReturns);
   }, [snapshots, sp500Q.data]);
 
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const todayCashflow = useMemo(() => {
+    return investments
+      .filter((tx) => tx.date === today)
+      .reduce((s, tx) => s + txCashflowUsd(tx), 0);
+  }, [investments, today]);
+
   // Upsert del snapshot de hoy (forward-looking, sin backfill).
-  //
-  // Guardas: (1) todas las queries base deben haber cargado, (2) si hay
-  // posiciones, los quotes también (sino el total sería 0/inválido y
-  // poluciona la serie), (3) no guardamos totales <= 0.
   useEffect(() => {
     if (!investmentsQ.isSuccess || !initialQ.isSuccess || !fxQ.isSuccess) return;
     const hasPositions = investments.length > 0 || initialPositions.length > 0;
     if (!hasPositions) return;
     if (!quotesQ.isSuccess) return;
     if (!(totals.total_usd > 0)) return;
+    if (portfolioId === "ALL") return; // No upsert en la vista consolidada
+    if (!userId) return;
 
-    const today = new Date().toISOString().slice(0, 10);
-    const todayCashflow = investments
-      .filter((tx) => tx.date === today)
-      .reduce((s, tx) => s + txCashflowUsd(tx), 0);
+    const last = lastUpsertRef.current;
+    const isSameDate = last?.date === today;
+    const isSamePort = last?.portfolioId === portfolioId;
+    const isSameCashflow = last?.cashflow_usd === todayCashflow;
+    const isSameTotal = last ? Math.abs(last.total_usd - totals.total_usd) < 0.01 : false;
 
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      if (portfolioId === "ALL") return; // No upsert en la vista consolidada
-      await supabase
-        .from("portfolio_snapshots").upsert(
-        {
-          portfolio_id: portfolioId,
-          user_id: user.id,
+    // Evitar loop si el snapshot ya fue registrado con valores equivalentes
+    if (last && isSameDate && isSamePort && isSameCashflow && isSameTotal) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        lastUpsertRef.current = {
           date: today,
           total_usd: totals.total_usd,
           cashflow_usd: todayCashflow,
-        },
-        { onConflict: "portfolio_id,date" },
-      );
-    })().catch((err) => console.error("Failed to upsert snapshot:", err));
+          portfolioId,
+        };
+
+        await supabase.from("portfolio_snapshots").upsert(
+          {
+            portfolio_id: portfolioId,
+            user_id: userId,
+            date: today,
+            total_usd: totals.total_usd,
+            cashflow_usd: todayCashflow,
+          },
+          { onConflict: "portfolio_id,date" },
+        );
+      } catch (err) {
+        console.error("Failed to upsert snapshot:", err);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [
     supabase,
     portfolioId,
+    userId,
     totals.total_usd,
-    investments,
+    today,
+    todayCashflow,
+    investments.length,
     initialPositions.length,
     investmentsQ.isSuccess,
     initialQ.isSuccess,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, memo } from "react";
+import { useMemo, useState, useCallback, useRef, memo } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Trash2, PencilLine, Sparkles, CreditCard as CreditCardIcon, CalendarDays, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -386,6 +386,8 @@ const ExpenseRow = memo(function ExpenseRow({
   const bgOpacity = useTransform(x, [-120, 0], [1, 0]);
   const iconScale = useTransform(x, [-120, -40], [1, 0.6]);
 
+  const draggedRef = useRef(false);
+
   function performDelete() {
     if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(50);
@@ -441,14 +443,29 @@ const ExpenseRow = memo(function ExpenseRow({
         dragConstraints={{ left: -120, right: 0 }}
         dragElastic={{ left: 0.2, right: 0 }}
         style={{ x }}
+        onDragStart={() => {
+          draggedRef.current = true;
+        }}
         onDragEnd={(_, info) => {
           if (info.offset.x < -80) {
             performDelete();
           } else {
             x.set(0);
           }
+          if (Math.abs(info.offset.x) >= 5) {
+            draggedRef.current = true;
+            setTimeout(() => {
+              draggedRef.current = false;
+            }, 100);
+          } else {
+            draggedRef.current = false;
+          }
         }}
-        onClick={() => onEdit(expense)}
+        onClick={() => {
+          if (!draggedRef.current && Math.abs(x.get()) < 5) {
+            onEdit(expense);
+          }
+        }}
         whileHover={{ y: -1 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
