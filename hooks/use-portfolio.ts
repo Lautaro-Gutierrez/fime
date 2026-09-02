@@ -202,30 +202,51 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
 
   const totals = useMemo(() => portfolioTotals(valued), [valued]);
 
-  // Snapshots + TWR + SP500.
-  const snapshots = snapshotsQ.data ?? [];
-  const baseDate = snapshots[0]?.date ?? null;
-  const sp500Q = useSp500Series(baseDate);
-
-  const returnSeries: ReturnPoint[] = useMemo(() => {
-    if (snapshots.length === 0) return [];
-    const snapPoints: SnapshotPoint[] = snapshots.map((s) => ({
-      date: s.date,
-      total_usd: s.total_usd,
-      cashflow_usd: s.cashflow_usd,
-    }));
-    const twr = computeTwr(snapPoints);
-    const sp = sp500Q.data?.points ?? [];
-    const spReturns = sp500Returns(sp, snapshots[0]?.date ?? "");
-    return mergeReturnSeries(twr, spReturns);
-  }, [snapshots, sp500Q.data]);
-
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const todayCashflow = useMemo(() => {
     return investments
       .filter((tx) => tx.date === today)
       .reduce((s, tx) => s + txCashflowUsd(tx), 0);
   }, [investments, today]);
+
+  // Snapshots + TWR + SP500.
+  const snapshots = snapshotsQ.data ?? [];
+  const baseDate = snapshots[0]?.date ?? null;
+  const sp500Q = useSp500Series(baseDate);
+
+  const returnSeries: ReturnPoint[] = useMemo(() => {
+    if (snapshots.length === 0 && totals.total_usd <= 0) return [];
+    
+    // Sincronizamos en vivo el snapshot de hoy con totals.total_usd para que
+    // el rendimiento refleje de inmediato la cotización actual sin demoras.
+    const snapPoints: SnapshotPoint[] = snapshots.map((s) => {
+      if (s.date === today && totals.total_usd > 0) {
+        return {
+          date: s.date,
+          total_usd: totals.total_usd,
+          cashflow_usd: todayCashflow,
+        };
+      }
+      return {
+        date: s.date,
+        total_usd: s.total_usd,
+        cashflow_usd: s.cashflow_usd,
+      };
+    });
+
+    if (totals.total_usd > 0 && !snapshots.some((s) => s.date === today)) {
+      snapPoints.push({
+        date: today,
+        total_usd: totals.total_usd,
+        cashflow_usd: todayCashflow,
+      });
+    }
+
+    const twr = computeTwr(snapPoints);
+    const sp = sp500Q.data?.points ?? [];
+    const spReturns = sp500Returns(sp, snapPoints[0]?.date ?? "");
+    return mergeReturnSeries(twr, spReturns);
+  }, [snapshots, sp500Q.data, totals.total_usd, todayCashflow, today]);
 
   // Upsert del snapshot de hoy (forward-looking, sin backfill).
   useEffect(() => {
@@ -267,6 +288,8 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
           },
           { onConflict: "portfolio_id,date" },
         );
+
+        await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
       } catch (err) {
         console.error("Failed to upsert snapshot:", err);
       }
@@ -275,6 +298,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
     return () => clearTimeout(timer);
   }, [
     supabase,
+    queryClient,
     portfolioId,
     userId,
     totals.total_usd,
