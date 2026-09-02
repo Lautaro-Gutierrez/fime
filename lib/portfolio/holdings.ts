@@ -201,18 +201,26 @@ export function valueHoldings(
     if (h.asset_type === "crypto" || h.asset_type === "stock_us") {
       priceUsd = quote?.price ?? null;
     } else if (h.asset_type === "cedear") {
-      if (quote?.price && fxCcl > 0) {
-        priceUsd = quote.price / fxCcl;
+      if (quote?.price) {
+        if (quote.currency === "USD") {
+          const ratio = (h.metadata?.ratio ? parseFloat(String(h.metadata.ratio)) : null) || getCedearRatio(ticker) || 1;
+          priceUsd = quote.price / ratio;
+        } else {
+          const fx = fxCcl > 0 ? fxCcl : (fxMep > 0 ? fxMep : 1590);
+          priceUsd = quote.price / fx;
+        }
       }
     } else if (h.asset_type === "on") {
       // ONs: cotizan en ARS por cada 100 VN, se convierten con MEP
-      if (quote?.price && fxMep > 0) {
-        priceUsd = quote.price / fxMep;  // precio por 100 VN en USD
+      if (quote?.price) {
+        const fx = fxMep > 0 ? fxMep : (fxCcl > 0 ? fxCcl : 1530);
+        priceUsd = quote.price / fx;  // precio por 100 VN en USD
       }
     } else if (h.asset_type === "stock_ar") {
       // Acciones AR: cotizan en ARS por unidad
-      if (quote?.price && fxMep > 0) {
-        priceUsd = quote.price / fxMep;
+      if (quote?.price) {
+        const fx = fxMep > 0 ? fxMep : (fxCcl > 0 ? fxCcl : 1530);
+        priceUsd = quote.price / fx;
       }
     } else if (h.asset_type === "usd_cash") {
       priceUsd = 1;

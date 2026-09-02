@@ -1,5 +1,8 @@
 import type { Quote, QuoteMap } from "./types";
 import type { AssetType } from "@/types/database";
+import { getCedearRatio, CEDEAR_RATIOS } from "../portfolio/cedear-ratios";
+import { getFxRates } from "./dolarapi";
+import { getStockUsQuote } from "./finnhub";
 
 // data912.com — API pública argentina. Sin key, sin auth.
 // Endpoints:
@@ -35,16 +38,20 @@ const ENDPOINT_BY_ASSET: Record<
 };
 
 async function fetchEndpoint(endpoint: string): Promise<Data912Entry[]> {
-  const url = `${DATA912_BASE}/${endpoint}`;
-  const res = await fetch(url, {
-    next: { revalidate: 180 },
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) {
-    throw new Error(`data912 error (${endpoint}): ${res.status}`);
+  try {
+    const url = `${DATA912_BASE}/${endpoint}`;
+    const res = await fetch(url, {
+      next: { revalidate: 180 },
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) {
+      return [];
+    }
+    const data = (await res.json()) as Data912Entry[];
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
   }
-  const data = (await res.json()) as Data912Entry[];
-  return Array.isArray(data) ? data : [];
 }
 
 function normalize(entry: Data912Entry): number | null {
@@ -62,7 +69,7 @@ function changePct(entry: Data912Entry): number | undefined {
   return undefined;
 }
 
-// Obtiene quotes de un asset_type AR dado (cedear | stock_ar | bond_ar).
+// Obtiene quotes de un asset_type AR dado (cedear | stock_ar | bond_ar | on).
 // Si `tickers` está vacío, devuelve todos los disponibles.
 export async function getArQuotes(
   assetType: "cedear" | "stock_ar" | "bond_ar" | "on",
@@ -91,6 +98,81 @@ export async function getArQuotes(
     const chg = changePct(entry);
     if (chg !== undefined) quote.change_pct = chg;
     out[symbol] = quote;
+  }
+
+  // Fallback especial para CEDEARs:
+  // Si un CEDEAR no cotizó en BYMA hoy o data912 no lo incluye en arg_cedears,
+  // buscamos el subyacente en USA (data912 usa_stocks / usa_adrs / Finnhub)
+  // y lo convertimos a ARS usando el CCL y su ratio de conversión.
+  if (assetType === "cedear") {
+    const missing = wanted.size > 0
+      ? Array.from(wanted).filter((t) => !out[t])
+      : Object.keys(CEDEAR_RATIOS).filter((t) => !out[t]);
+
+    if (missing.length > 0) {
+      try {
+        const [fx, usaStocks, usaAdrs] = await Promise.all([
+          getFxRates().catch(() => ({ ccl: 1590, mep: 1530, blue: 1540, oficial: 1500, fetched_at: now })),
+          fetchEndpoint("usa_stocks").catch(() => []),
+          fetchEndpoint("usa_adrs").catch(() => []),
+        ]);
+
+        const ccl = fx.ccl > 0 ? fx.ccl : (fx.mep > 0 ? fx.mep : 1590);
+        const usaCombined = [...usaStocks, ...usaAdrs];
+
+        for (const entry of usaCombined) {
+          if (!entry.symbol) continue;
+          const sym = entry.symbol.toUpperCase();
+          if (missing.includes(sym) && !out[sym]) {
+            const usPrice = normalize(entry);
+            if (usPrice !== null && usPrice > 0) {
+              const ratio = getCedearRatio(sym) || 1;
+              const cedearPriceArs = (usPrice / ratio) * ccl;
+              out[sym] = {
+                symbol: sym,
+                price: cedearPriceArs,
+                currency: "ARS",
+                source: "data912/usa",
+                fetched_at: now,
+              };
+              const chg = changePct(entry);
+              if (chg !== undefined) out[sym].change_pct = chg;
+            }
+          }
+        }
+
+        // Si todavía faltan (ej. ETFs como SPY o activos que solo están en Finnhub),
+        // consultamos Finnhub con la key configurada.
+        const stillMissing = missing.filter((s) => !out[s]);
+        if (stillMissing.length > 0) {
+          await Promise.allSettled(
+            stillMissing.map(async (sym) => {
+              try {
+                const fh = await getStockUsQuote(sym);
+                if (fh && fh.price > 0) {
+                  const ratio = getCedearRatio(sym) || 1;
+                  const cedearPriceArs = (fh.price / ratio) * ccl;
+                  out[sym] = {
+                    symbol: sym,
+                    price: cedearPriceArs,
+                    currency: "ARS",
+                    source: "finnhub",
+                    fetched_at: now,
+                  };
+                  if (fh.change_pct !== undefined) {
+                    out[sym].change_pct = fh.change_pct;
+                  }
+                }
+              } catch {
+                // Ignore per-symbol finnhub failures
+              }
+            }),
+          );
+        }
+      } catch (err) {
+        console.warn("Failed to fetch CEDEAR fallback quotes:", err);
+      }
+    }
   }
 
   return out;

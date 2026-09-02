@@ -21,6 +21,10 @@ export const CEDEAR_RATIOS: Record<string, number> = {
   NVDA: 24, // NVDA tuvo split en 2024, el ratio de BYMA actualizó a 24
   AMD: 10,
   INTC: 5,
+  TSM: 9,
+  AVGO: 40,
+  QCOM: 11,
+  LRCX: 56, // Lam Research
   NFLX: 48,
   ADBE: 22,
   CRM: 18,
@@ -30,10 +34,12 @@ export const CEDEAR_RATIOS: Record<string, number> = {
   // Comercio electrónico y Fintech
   MELI: 120,
   PYPL: 24,
+  NU: 2, // Nu Holdings
   V: 18,
   MA: 33,
   BABA: 9,
   JD: 2,
+  PLTR: 1, // Palantir
 
   // Consumo masivo y retail
   KO: 5,
