@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { GoalStatus, GoalType, QuestType } from "@/types/database";
@@ -96,7 +96,7 @@ export function useGoals() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, channelId]);
+  }, [supabase, queryClient, channelId, userId]);
 
   return query;
 }
@@ -123,8 +123,8 @@ export function useCreateGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear la meta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear la meta");
     },
   });
 }
@@ -148,8 +148,8 @@ export function useUpdateGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar la meta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar la meta");
     },
   });
 }
@@ -169,8 +169,8 @@ export function useDeleteGoal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar la meta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar la meta");
     },
   });
 }

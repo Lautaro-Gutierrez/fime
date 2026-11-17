@@ -1,4 +1,5 @@
 import type { InsightRule, SmartInsight } from "../types";
+import { fromISODate, monthKey } from "@/lib/format";
 
 export const metasRules: InsightRule[] = [
   // 1. meta-behind-pace
@@ -12,15 +13,15 @@ export const metasRules: InsightRule[] = [
         const pct = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
 
         if (goal.deadline) {
-          const deadlineDate = new Date(goal.deadline);
-          const startDate = new Date(goal.started_at);
+          const deadlineDate = fromISODate(goal.deadline);
+          const startDate = fromISODate(goal.started_at);
           const totalDuration = deadlineDate.getTime() - startDate.getTime();
           const elapsed = now.getTime() - startDate.getTime();
           const timePct = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
 
           if (timePct > pct + 20) {
             return {
-              id: `meta-behind-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `meta-behind-${goal.id}-${monthKey(ctx.currentMonth)}`,
               ruleId: "meta-behind-pace",
               module: "metas",
               category: "warning",
@@ -85,7 +86,7 @@ export const metasRules: InsightRule[] = [
 
           if (diffDays > 30) {
             return {
-              id: `meta-stale-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `meta-stale-${goal.id}-${monthKey(ctx.currentMonth)}`,
               ruleId: "meta-stale",
               module: "metas",
               category: "reminder",
@@ -113,7 +114,7 @@ export const metasRules: InsightRule[] = [
         const hasNoAssets = !goal.linked_asset_keys || goal.linked_asset_keys.length === 0;
         if (hasNoAssets && ctx.holdings.length > 0) {
           return {
-            id: `meta-link-asset-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `meta-link-asset-${goal.id}-${monthKey(ctx.currentMonth)}`,
             ruleId: "meta-asset-link-suggestion",
             module: "metas",
             category: "opportunity",
@@ -150,7 +151,7 @@ export const metasRules: InsightRule[] = [
 
             if (newPct >= 80) {
               return {
-                id: `meta-achievable-surplus-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+                id: `meta-achievable-surplus-${goal.id}-${monthKey(ctx.currentMonth)}`,
                 ruleId: "meta-achievable-with-surplus",
                 module: "metas",
                 category: "opportunity",
@@ -179,12 +180,12 @@ export const metasRules: InsightRule[] = [
         const pct = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
 
         if (goal.deadline && pct < 80) {
-          const deadlineDate = new Date(goal.deadline);
+          const deadlineDate = fromISODate(goal.deadline);
           const diffDays = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
           if (diffDays > 0 && diffDays <= 30) {
             return {
-              id: `meta-deadline-near-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `meta-deadline-near-${goal.id}-${monthKey(ctx.currentMonth)}`,
               ruleId: "meta-deadline-near",
               module: "metas",
               category: "reminder",

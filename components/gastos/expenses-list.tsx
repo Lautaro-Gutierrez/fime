@@ -414,7 +414,7 @@ const ExpenseRow = memo(function ExpenseRow({
         });
       },
       onError: (err) => {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : "Error al borrar el gasto");
       },
     });
   }

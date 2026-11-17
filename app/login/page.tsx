@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Wallet, Loader2, Fingerprint } from "lucide-react";
@@ -20,19 +20,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
-  const [webAuthnSupported, setWebAuthnSupported] = useState(false);
-
-  useEffect(() => {
-    if (window.PublicKeyCredential) {
-      setWebAuthnSupported(true);
-    }
-  }, []);
+  const webAuthnSupported = useSyncExternalStore(
+    () => () => {},
+    () => Boolean(window.PublicKeyCredential),
+    () => false,
+  );
 
   async function handlePasskeyLogin() {
     setPasskeyLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await (supabase.auth as any).signInWithPasskey();
+      const authWithPasskey = supabase.auth as unknown as {
+        signInWithPasskey: () => Promise<{ error: Error | null }>;
+      };
+      const { error } = await authWithPasskey.signInWithPasskey();
       if (error) throw error;
       toast.success("Bienvenido");
       router.push("/");

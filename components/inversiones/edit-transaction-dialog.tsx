@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import {
@@ -81,6 +81,28 @@ function parseNumber(input: string): number | null {
 }
 
 export function EditTransactionDialog({ open, investment, onClose }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0">
+        {open && (
+          <EditTransactionForm
+            key={`${investment.id}-${investment.updated_at}`}
+            investment={investment}
+            onClose={onClose}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditTransactionForm({
+  investment,
+  onClose,
+}: {
+  investment: Investment;
+  onClose: () => void;
+}) {
   const asset = ASSETS_BY_ID[investment.asset_type];
   const Icon = asset.icon;
 
@@ -109,30 +131,6 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
   const update = useUpdateInvestment();
   const del = useDeleteInvestment();
   const { data: portfolios = [] } = usePortfolios();
-
-  useEffect(() => {
-    setTicker(investment.ticker ?? "");
-    setQuantity(String(investment.quantity));
-    setPriceUsd(
-      investment.price_usd !== null ? String(investment.price_usd) : "",
-    );
-    setFxRate(
-      investment.fx_rate !== null ? String(investment.fx_rate) : "",
-    );
-    setFees(String(investment.fees_usd));
-    setBroker(investment.broker ?? "");
-    setDate(investment.date);
-    setNote(investment.note ?? "");
-    setMetadata(
-      Object.fromEntries(
-        Object.entries(investment.metadata ?? {}).map(([k, v]) => [
-          k,
-          String(v ?? ""),
-        ]),
-      ),
-    );
-    setPortfolioId(investment.portfolio_id ?? "");
-  }, [investment]);
 
   async function save() {
     const qty = parseNumber(quantity);
@@ -196,10 +194,8 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
-        <div className="flex max-h-[85vh] flex-col">
-          {/* Header con glow del asset */}
+    <div className="flex max-h-[85vh] flex-col">
+      {/* Header con glow del asset */}
           <div
             className={cn(
               "relative flex items-center gap-3 overflow-hidden border-b border-white/5 bg-gradient-to-r p-4",
@@ -442,7 +438,5 @@ export function EditTransactionDialog({ open, investment, onClose }: Props) {
             </Button>
           </DialogFooter>
         </div>
-      </DialogContent>
-    </Dialog>
   );
 }

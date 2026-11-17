@@ -81,7 +81,7 @@ export function effectiveQty(assetType: AssetType, quantity: number): number {
 }
 
 // Costo USD de una tx (tanto buy/deposit como sell/withdraw usan la misma fórmula para "valor USD").
-function usdValueOfTx(tx: Investment): number {
+export function usdValueOfTx(tx: Investment): number {
   if (tx.asset_type === "usd_cash") return tx.quantity;
   if (tx.asset_type === "time_deposit") {
     const currency = String(tx.metadata?.currency ?? "ARS").toUpperCase();

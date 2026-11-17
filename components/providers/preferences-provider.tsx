@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
-import { usePreferences, type UserPreferences } from "@/hooks/use-preferences";
+import { usePreferences } from "@/hooks/use-preferences";
 import type { Theme, Density, AccentColor } from "@/types/database";
 
 type PrefsContextValue = {

@@ -1,4 +1,5 @@
 import type { InsightRule, SmartInsight } from "../types";
+import { monthKey } from "@/lib/format";
 
 export const ingresosRules: InsightRule[] = [
   // 1. ing-distribution-drift
@@ -28,7 +29,7 @@ export const ingresosRules: InsightRule[] = [
 
       if (diffFixed > 15 || diffVariable > 15) {
         return {
-          id: `ing-drift-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-drift-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-distribution-drift",
           module: "ingresos",
           category: "warning",
@@ -54,7 +55,7 @@ export const ingresosRules: InsightRule[] = [
       const allNull = ctx.incomes.every((i) => i.distribution === null);
       if (allNull) {
         return {
-          id: `ing-no-dist-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-no-dist-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-no-distribution-set",
           module: "ingresos",
           category: "reminder",
@@ -80,7 +81,7 @@ export const ingresosRules: InsightRule[] = [
 
       if (dist.invest_pct < 10) {
         return {
-          id: `ing-low-invest-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-low-invest-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-invest-ratio-low",
           module: "ingresos",
           category: "tip",
@@ -107,7 +108,7 @@ export const ingresosRules: InsightRule[] = [
 
       if (totalIncome > 0 && surplus > totalIncome * 0.1 && ctx.dayOfMonth >= 10) {
         return {
-          id: `ing-free-flow-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-free-flow-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-free-flow",
           module: "ingresos",
           category: "opportunity",
@@ -134,7 +135,7 @@ export const ingresosRules: InsightRule[] = [
       const pct = Math.round((totalExpense / totalIncome) * 100);
       if (pct > 0) {
         return {
-          id: `ing-expense-ratio-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-expense-ratio-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-expense-ratio",
           module: "ingresos",
           category: "tip",
@@ -160,7 +161,7 @@ export const ingresosRules: InsightRule[] = [
       const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
       if (savingsRate > 20 && ctx.dayOfMonth >= 15) {
         return {
-          id: `ing-savings-target-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-savings-target-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-savings-target",
           module: "ingresos",
           category: "achievement",
@@ -181,7 +182,7 @@ export const ingresosRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.incomes.length >= 2) {
         return {
-          id: `ing-diversified-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-diversified-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-diversified-sources",
           module: "ingresos",
           category: "achievement",
@@ -202,7 +203,7 @@ export const ingresosRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.incomes.length === 0 && ctx.dayOfMonth > 5) {
         return {
-          id: `ing-no-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-no-income-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-no-income-yet",
           module: "ingresos",
           category: "reminder",
@@ -225,7 +226,7 @@ export const ingresosRules: InsightRule[] = [
       const hasUsd = ctx.incomes.some((i) => i.currency === "USD");
       if (hasUsd) {
         return {
-          id: `ing-usd-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-usd-income-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-usd-income",
           module: "ingresos",
           category: "achievement",
@@ -250,7 +251,7 @@ export const ingresosRules: InsightRule[] = [
       );
       if (hasPassive) {
         return {
-          id: `ing-passive-income-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-passive-income-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-passive-income",
           module: "ingresos",
           category: "achievement",
@@ -273,7 +274,7 @@ export const ingresosRules: InsightRule[] = [
       const hasBonus = ctx.incomes.some((i) => i.category === "bono");
       if (hasBonus) {
         return {
-          id: `ing-bonus-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-bonus-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-bonus-month",
           module: "ingresos",
           category: "achievement",
@@ -297,7 +298,7 @@ export const ingresosRules: InsightRule[] = [
       const hasSueldo = ctx.incomes.some((i) => i.category === "sueldo");
       if (hasFreelance && hasSueldo) {
         return {
-          id: `ing-freelance-combo-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-freelance-combo-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-freelance-income",
           module: "ingresos",
           category: "achievement",
@@ -320,7 +321,7 @@ export const ingresosRules: InsightRule[] = [
       const dist = ctx.compositeDistribution;
       if (dist && dist.save_pct >= 20) {
         return {
-          id: `ing-high-save-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-high-save-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-high-save-allocation",
           module: "ingresos",
           category: "achievement",
@@ -344,7 +345,7 @@ export const ingresosRules: InsightRule[] = [
       const cats = new Set(ctx.incomes.map((i) => i.category));
       if (cats.size === 1) {
         return {
-          id: `ing-single-source-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-single-source-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-single-source-risk",
           module: "ingresos",
           category: "tip",
@@ -368,7 +369,7 @@ export const ingresosRules: InsightRule[] = [
       const allDistributed = ctx.incomes.every((i) => i.distribution !== null);
       if (allDistributed) {
         return {
-          id: `ing-fully-dist-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `ing-fully-dist-${monthKey(ctx.currentMonth)}`,
           ruleId: "ing-income-fully-distributed",
           module: "ingresos",
           category: "achievement",

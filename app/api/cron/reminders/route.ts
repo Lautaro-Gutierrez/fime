@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import webpush from "web-push";
-import { clampDayToMonth, nextDueDate } from "@/lib/credit-cards";
+import { nextDueDate } from "@/lib/credit-cards";
 import { toISODate } from "@/lib/format";
 import { CATEGORIES_BY_ID } from "@/lib/categories";
 import type { ExpenseCategory } from "@/types/database";
@@ -119,7 +119,7 @@ export async function GET(req: Request) {
           const dateMatch = dates.find((d) => d.iso === exp.date);
           if (dateMatch) {
             // Normalizar el nombre en caso de typos viejos en BD y obtener la etiqueta limpia
-            const normalizedName = exp.category === ("tarjeta_credit" as any) ? "tarjeta_credito" : exp.category;
+            const normalizedName = String(exp.category) === "tarjeta_credit" ? "tarjeta_credito" : exp.category;
             const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || exp.note || normalizedName;
 
             let bodyText = "";
@@ -158,8 +158,12 @@ export async function GET(req: Request) {
             await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
             sentCount++;
             console.log(`CRON Reminders: Notification sent successfully to sub ${sub.id}`);
-          } catch (err: any) {
-            if (err.statusCode === 404 || err.statusCode === 410) {
+          } catch (err: unknown) {
+            const statusCode =
+              typeof err === "object" && err !== null && "statusCode" in err
+                ? (err as { statusCode?: number }).statusCode
+                : undefined;
+            if (statusCode === 404 || statusCode === 410) {
               console.log(`CRON Reminders: Subscription expired or invalid, deleting from DB: ${sub.id}`);
               await supabase.from("push_subscriptions").delete().eq("id", sub.id);
             } else {
@@ -172,8 +176,9 @@ export async function GET(req: Request) {
 
     console.log(`CRON Reminders: Done. Sent total of ${sentCount} notifications`);
     return NextResponse.json({ success: true, notificationsSent: sentCount });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Cron reminders error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

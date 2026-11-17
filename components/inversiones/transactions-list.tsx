@@ -11,13 +11,15 @@ import {
 } from "@/hooks/use-investments";
 import { ASSETS_BY_ID, TX_TYPE_LABELS } from "@/lib/assets";
 import { formatQuantity, formatUSD } from "@/lib/format";
+import { usdValueOfTx } from "@/lib/portfolio/holdings";
+import { PrivateAmount } from "@/components/ui/private-amount";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 const EditTransactionDialog = dynamic(() => import("@/components/inversiones/edit-transaction-dialog").then((mod) => mod.EditTransactionDialog), { ssr: false });
 import { AssetLogo } from "@/components/ui/asset-logo";
 
 import { usePortfolios } from "@/hooks/use-portfolios";
-import { PORTFOLIO_COLORS, PORTFOLIO_TEXT_COLORS } from "@/components/inversiones/portfolio-selector";
+import { PORTFOLIO_COLORS } from "@/components/inversiones/portfolio-selector";
 
 type Props = {
   investments: Investment[];
@@ -155,8 +157,7 @@ const TransactionRow = memo(function TransactionRow({
   const iconScale = useTransform(x, [-120, -40], [1, 0.6]);
 
   const isOutflow = inv.tx_type === "sell" || inv.tx_type === "withdraw";
-  const totalUsd =
-    inv.price_usd !== null ? inv.quantity * inv.price_usd : inv.quantity;
+  const totalUsd = usdValueOfTx(inv);
 
   const displayTicker = inv.ticker ?? asset.short;
   const day = inv.date.slice(8, 10);
@@ -177,6 +178,7 @@ const TransactionRow = memo(function TransactionRow({
             label: "Deshacer",
             onClick: () => {
               recreateMutation.mutate({
+                portfolio_id: snapshot.portfolio_id,
                 asset_type: snapshot.asset_type,
                 ticker: snapshot.ticker,
                 tx_type: snapshot.tx_type,
@@ -193,7 +195,7 @@ const TransactionRow = memo(function TransactionRow({
           },
         });
       },
-      onError: (err) => toast.error(err.message),
+      onError: (err) => toast.error(err instanceof Error ? err.message : "Error al borrar la operación"),
     });
   }
 
@@ -329,8 +331,10 @@ const TransactionRow = memo(function TransactionRow({
               isOutflow ? "text-red-300" : "text-foreground",
             )}
           >
-            {isOutflow ? "−" : "+"}
-            {formatUSD(totalUsd)}
+            <PrivateAmount>
+              {isOutflow ? "−" : "+"}
+              {formatUSD(totalUsd)}
+            </PrivateAmount>
           </span>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
             USD total

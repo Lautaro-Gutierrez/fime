@@ -65,39 +65,61 @@ export async function getStockUsQuotes(tickers: string[]): Promise<QuoteMap> {
   return out;
 }
 
-type FinnhubCandle = {
-  c: number[]; // close
-  t: number[]; // timestamp (unix seconds)
-  s: "ok" | "no_data";
+type YahooChartResponse = {
+  chart?: {
+    result?: Array<{
+      timestamp?: number[];
+      indicators?: {
+        quote?: Array<{
+          close?: Array<number | null>;
+        }>;
+      };
+    }>;
+    error?: { description?: string } | null;
+  };
 };
 
-// SP500 via ETF SPY (proxy 1:1, soportado en tier free).
-// Devuelve cierres diarios desde `fromDate` hasta hoy.
+// S&P 500 histórico (^GSPC) vía Yahoo Finance chart API (gratuita y sin plan pago).
+// Finnhub /stock/candle devuelve 403 en el tier gratuito.
 export async function getSp500Series(fromDate: string): Promise<Sp500Series> {
-  const key = getApiKey();
-  const from = Math.floor(new Date(fromDate).getTime() / 1000);
-  const to = Math.floor(Date.now() / 1000);
-  const url = `${FINNHUB_BASE}/stock/candle?symbol=SPY&resolution=D&from=${from}&to=${to}&token=${key}`;
+  const parsedFrom = Date.parse(`${fromDate}T00:00:00Z`);
+  const period1 = Number.isFinite(parsedFrom)
+    ? Math.floor(parsedFrom / 1000)
+    : Math.floor((Date.now() - 365 * 86400 * 1000) / 1000);
+  const period2 = Math.floor(Date.now() / 1000) + 86400;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&period1=${period1}&period2=${period2}`;
 
   const res = await fetch(url, {
     next: { revalidate: 3600 },
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
+    },
   });
 
   if (!res.ok) {
-    throw new Error(`finnhub candle error: ${res.status} ${res.statusText}`);
+    throw new Error(`yahoo chart error: ${res.status} ${res.statusText}`);
   }
 
-  const data = (await res.json()) as FinnhubCandle;
-  const points: Sp500Point[] = [];
-  if (data.s === "ok" && Array.isArray(data.c) && Array.isArray(data.t)) {
-    for (let i = 0; i < data.c.length; i++) {
-      const ts = data.t[i];
-      const close = data.c[i];
-      if (typeof ts !== "number" || typeof close !== "number") continue;
-      const date = new Date(ts * 1000).toISOString().slice(0, 10);
-      points.push({ date, close });
+  const data = (await res.json()) as YahooChartResponse;
+  const result = data.chart?.result?.[0];
+  const timestamps = result?.timestamp ?? [];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+
+  const byDate = new Map<string, number>();
+  for (let i = 0; i < timestamps.length; i++) {
+    const ts = timestamps[i];
+    const close = closes[i];
+    if (typeof ts !== "number" || typeof close !== "number" || !Number.isFinite(close)) {
+      continue;
     }
+    const date = new Date(ts * 1000).toISOString().slice(0, 10);
+    byDate.set(date, close);
   }
+
+  const points: Sp500Point[] = Array.from(byDate.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, close]) => ({ date, close }));
+
   return { points, fetched_at: new Date().toISOString() };
 }

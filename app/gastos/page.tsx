@@ -39,6 +39,7 @@ export default async function GastosPage() {
         const { data } = await supabase
           .from("credit_cards")
           .select("*")
+          .is("archived_at", null)
           .order("name", { ascending: true });
         return data || [];
       }

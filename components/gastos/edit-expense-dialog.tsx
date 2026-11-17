@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { Pencil, CreditCard as CreditCardIcon, Trash2 } from "lucide-react";
@@ -18,10 +18,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, CATEGORIES_BY_ID } from "@/lib/categories";
-import { isFutureMonth, lastOfMonth, toISODate } from "@/lib/format";
+import { fromISODate, isFutureMonth, lastOfMonth, toISODate } from "@/lib/format";
 import { type Expense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useCreditCards } from "@/hooks/use-credit-cards";
 import { colorFromHex } from "@/lib/credit-cards";
@@ -74,6 +73,28 @@ function parseAmount(input: string): number | null {
 }
 
 export function EditExpenseDialog({ open, expense, onClose }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md border-white/5 bg-white/[0.03] backdrop-blur-xl p-0">
+        {open && (
+          <EditExpenseForm
+            key={`${expense.id}-${expense.updated_at}`}
+            expense={expense}
+            onClose={onClose}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditExpenseForm({
+  expense,
+  onClose,
+}: {
+  expense: Expense;
+  onClose: () => void;
+}) {
   const [amount, setAmount] = useState(String(expense.amount));
   const [category, setCategory] = useState<ExpenseCategory>(expense.category);
   const [type, setType] = useState<ExpenseType>(expense.type);
@@ -84,15 +105,6 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
   const update = useUpdateExpense();
   const del = useDeleteExpense();
   const { data: cards = [] } = useCreditCards();
-
-  useEffect(() => {
-    setAmount(String(expense.amount));
-    setCategory(expense.category);
-    setType(expense.type);
-    setDate(expense.date);
-    setNote(expense.note ?? "");
-    setCardId(expense.card_id);
-  }, [expense]);
 
   // Auto-clear card_id when switching away from tarjeta_credito
   function handleCategoryChange(newCat: ExpenseCategory) {
@@ -112,7 +124,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
       toast.error("Monto inválido.");
       return;
     }
-    if (isFutureMonth(new Date(date))) {
+    if (isFutureMonth(fromISODate(date))) {
       toast.error("Solo se pueden cargar gastos hasta fin del mes en curso.");
       return;
     }
@@ -148,9 +160,7 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md border-white/5 bg-white/[0.03] backdrop-blur-xl p-0 backdrop-blur-xl">
-        <div className="flex flex-col">
+    <div className="flex flex-col">
           {/* Header con glow de categoría */}
           <div
             className={cn(
@@ -411,7 +421,5 @@ export function EditExpenseDialog({ open, expense, onClose }: Props) {
             </div>
           </DialogFooter>
         </div>
-      </DialogContent>
-    </Dialog>
   );
 }

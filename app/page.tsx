@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
 import DashboardClient from "./dashboard-client";

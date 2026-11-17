@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { ExpenseCategory, ExpenseType } from "@/types/database";
@@ -91,9 +91,15 @@ export function useExpenses(month: Date) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, channelId]);
+  }, [supabase, queryClient, channelId, userId]);
 
   return query;
+}
+
+function omitExpenseExtras<T extends ExpenseInsert | ExpenseUpdate>(obj: T) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k]) => k !== "tags" && k !== "assigned_to"),
+  ) as Omit<T, "tags" | "assigned_to">;
 }
 
 export function useCreateExpense() {
@@ -105,22 +111,20 @@ export function useCreateExpense() {
     mutationFn: async (input: ExpenseInsert) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
-      
-      const payload: any = { ...input, user_id: user.id };
-      
+
+      const payload: ExpenseInsert & { user_id: string } = { ...input, user_id: user.id };
+
       try {
         const { data, error } = await supabase
           .from("expenses")
           .insert(payload)
           .select()
           .single();
-          
+
         if (error) {
-          if (error.message.includes('column') || error.code === '42703' || error.message.includes('schema cache')) {
+          if (error.message.includes("column") || error.code === "42703" || error.message.includes("schema cache")) {
             console.warn("Database schema does not support 'tags' or 'assigned_to'. Retrying insert without them.");
-            const fallbackPayload = { ...input, user_id: user.id } as any;
-            delete fallbackPayload.tags;
-            delete fallbackPayload.assigned_to;
+            const fallbackPayload = { ...omitExpenseExtras(input), user_id: user.id };
             const { data: fbData, error: fbError } = await supabase
               .from("expenses")
               .insert(fallbackPayload)
@@ -132,11 +136,10 @@ export function useCreateExpense() {
           throw error;
         }
         return data as Expense;
-      } catch (err: any) {
-        if (err.message && (err.message.includes('column') || err.message.includes('schema cache'))) {
-          const fallbackPayload = { ...input, user_id: user.id } as any;
-          delete fallbackPayload.tags;
-          delete fallbackPayload.assigned_to;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("column") || msg.includes("schema cache")) {
+          const fallbackPayload = { ...omitExpenseExtras(input), user_id: user.id };
           const { data: fbData, error: fbError } = await supabase
             .from("expenses")
             .insert(fallbackPayload)
@@ -151,8 +154,8 @@ export function useCreateExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear el gasto");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear el gasto");
     },
   });
 }
@@ -177,13 +180,11 @@ export function useUpdateExpense() {
           .eq("id", id)
           .select()
           .single();
-          
+
         if (error) {
-          if (error.message.includes('column') || error.code === '42703' || error.message.includes('schema cache')) {
+          if (error.message.includes("column") || error.code === "42703" || error.message.includes("schema cache")) {
             console.warn("Database schema does not support 'tags' or 'assigned_to'. Retrying update without them.");
-            const fallbackPatch = { ...patch } as any;
-            delete fallbackPatch.tags;
-            delete fallbackPatch.assigned_to;
+            const fallbackPatch = omitExpenseExtras(patch);
             const { data: fbData, error: fbError } = await supabase
               .from("expenses")
               .update(fallbackPatch)
@@ -196,11 +197,10 @@ export function useUpdateExpense() {
           throw error;
         }
         return data as Expense;
-      } catch (err: any) {
-        if (err.message && (err.message.includes('column') || err.message.includes('schema cache'))) {
-          const fallbackPatch = { ...patch } as any;
-          delete fallbackPatch.tags;
-          delete fallbackPatch.assigned_to;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("column") || msg.includes("schema cache")) {
+          const fallbackPatch = omitExpenseExtras(patch);
           const { data: fbData, error: fbError } = await supabase
             .from("expenses")
             .update(fallbackPatch)
@@ -216,8 +216,8 @@ export function useUpdateExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar el gasto");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar el gasto");
     },
   });
 }
@@ -237,8 +237,8 @@ export function useDeleteExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar el gasto");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar el gasto");
     },
   });
 }

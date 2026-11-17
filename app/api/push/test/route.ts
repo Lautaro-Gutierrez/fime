@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import webpush from "web-push";
-import { clampDayToMonth, nextDueDate } from "@/lib/credit-cards";
+import { nextDueDate } from "@/lib/credit-cards";
 import { toISODate } from "@/lib/format";
 import { CATEGORIES_BY_ID } from "@/lib/categories";
 import type { ExpenseCategory } from "@/types/database";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
     const vapidPrivate = process.env.VAPID_PRIVATE_KEY || "";
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
         const dateMatch = dates.find((d) => d.iso === exp.date);
         if (dateMatch) {
           // Normalizar el nombre en caso de typos viejos en BD y obtener la etiqueta limpia
-          const normalizedName = exp.category === ("tarjeta_credit" as any) ? "tarjeta_credito" : exp.category;
+          const normalizedName = String(exp.category) === "tarjeta_credit" ? "tarjeta_credito" : exp.category;
           const categoryLabel = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.label || exp.note || normalizedName;
 
           let bodyText = "";
@@ -143,8 +143,12 @@ export async function POST(req: Request) {
         try {
           await webpush.sendNotification(pushSubscription, payloadString);
           return true;
-        } catch (err: any) {
-          if (err.statusCode === 404 || err.statusCode === 410) {
+        } catch (err: unknown) {
+          const statusCode =
+            typeof err === "object" && err !== null && "statusCode" in err
+              ? (err as { statusCode?: number }).statusCode
+              : undefined;
+          if (statusCode === 404 || statusCode === 410) {
             console.log("Subscription expired, removing from DB:", sub.id);
             await supabase.from("push_subscriptions").delete().eq("id", sub.id);
           } else {

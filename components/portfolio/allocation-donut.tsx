@@ -30,7 +30,22 @@ const PALETTE = [
   "#CBD5E1", // slate-300
 ];
 
-const renderActiveShape = (props: any) => {
+type DonutShapeProps = {
+  cx: number;
+  cy: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  fill: string;
+  index: number;
+  payload: {
+    weight: number;
+    label: string;
+  };
+};
+
+const renderActiveShape = (props: DonutShapeProps) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
 
   return (
@@ -84,7 +99,7 @@ export function AllocationDonut({ holdings }: Props) {
       }));
   }, [holdings]);
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_: unknown, index: number) => {
     setActiveIndex(index);
   };
 
@@ -132,7 +147,8 @@ export function AllocationDonut({ holdings }: Props) {
               onMouseEnter={onPieEnter}
               onMouseLeave={onPieLeave}
               stroke="transparent"
-              shape={(props: any) => {
+              shape={(shapeProps) => {
+                const props = shapeProps as unknown as DonutShapeProps;
                 if (props.index === activeIndex) {
                   return renderActiveShape(props);
                 }
@@ -149,7 +165,7 @@ export function AllocationDonut({ holdings }: Props) {
                 );
               }}
             >
-              {data.map((entry, index) => (
+              {data.map((entry) => (
                 <Cell 
                   key={`cell-${entry.id}`} 
                   fill={entry.color}

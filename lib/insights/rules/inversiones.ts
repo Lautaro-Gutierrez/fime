@@ -1,4 +1,6 @@
 import type { InsightRule, SmartInsight } from "../types";
+import { subMonths } from "date-fns";
+import { fromISODate, monthKey } from "@/lib/format";
 
 export const inversionesRules: InsightRule[] = [
   // 1. inv-concentration
@@ -18,14 +20,14 @@ export const inversionesRules: InsightRule[] = [
           (holding.asset_type as string) !== "ars_cash"
         ) {
           return {
-            id: `inv-concentration-${holding.key}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `inv-concentration-${holding.key}-${monthKey(ctx.currentMonth)}`,
             ruleId: "inv-concentration",
             module: "inversiones",
             category: "warning",
             priority: "high",
             title: "Concentración de Activos",
             message: `El activo ${holding.ticker || holding.label} representa el ${holding.weight_pct.toFixed(1)}% de tu portafolio, superando el límite sugerido del ${threshold}% para tu perfil ${ctx.investorProfile || "moderado"}. Considerá diversificar para mitigar el riesgo.`,
-            href: "/portfolio",
+            href: "/inversiones/all",
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
@@ -41,10 +43,12 @@ export const inversionesRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.holdings.length === 0) return null;
       
-      const hasBonds = ctx.holdings.some((h) => h.asset_type === "bond_ar");
+      const hasBonds = ctx.holdings.some((h) =>
+        ["bond_ar", "on", "time_deposit"].includes(h.asset_type),
+      );
       if (!hasBonds) {
         return {
-          id: `inv-no-bonds-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-no-bonds-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-no-bonds",
           module: "inversiones",
           category: "achievement",
@@ -91,14 +95,14 @@ export const inversionesRules: InsightRule[] = [
           const typeLabel = typeNames[type] || type;
 
           return {
-            id: `inv-single-type-${type}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `inv-single-type-${type}-${monthKey(ctx.currentMonth)}`,
             ruleId: "inv-single-type",
             module: "inversiones",
             category: "tip",
             priority: "medium",
             title: "Estructura del Portafolio",
             message: `El tipo de activo "${typeLabel}" representa el ${Math.round(pct)}% del portafolio. Distribuir el capital en diferentes tipos de instrumentos reduce la exposición ante caídas del mercado.`,
-            href: "/portfolio",
+            href: "/inversiones/all",
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
@@ -115,7 +119,7 @@ export const inversionesRules: InsightRule[] = [
       for (const holding of ctx.holdings) {
         if (holding.unrealized_pnl_pct !== null && holding.unrealized_pnl_pct < -20) {
           return {
-            id: `inv-loss-${holding.key}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `inv-loss-${holding.key}-${monthKey(ctx.currentMonth)}`,
             ruleId: "inv-unrealized-loss",
             module: "inversiones",
             category: "warning",
@@ -147,7 +151,7 @@ export const inversionesRules: InsightRule[] = [
       const cashPct = (usdCashHolding.current_value_usd / totalValue) * 100;
       if (cashPct > 40) {
         return {
-          id: `inv-cash-heavy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-cash-heavy-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-cash-heavy",
           module: "inversiones",
           category: "opportunity",
@@ -180,12 +184,12 @@ export const inversionesRules: InsightRule[] = [
       for (const [ticker, txs] of Object.entries(buysByTicker)) {
         if (txs.length >= 2) {
           const sorted = [...txs].sort((a, b) => b.date.localeCompare(a.date));
-          const lastBuyDate = new Date(sorted[0].date);
+          const lastBuyDate = fromISODate(sorted[0].date);
           const diffDays = Math.ceil((ctx.today.getTime() - lastBuyDate.getTime()) / (1000 * 60 * 60 * 24));
 
           if (diffDays > 30) {
             return {
-              id: `inv-dca-gap-${ticker}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `inv-dca-gap-${ticker}-${monthKey(ctx.currentMonth)}`,
               ruleId: "inv-dca-gap",
               module: "inversiones",
               category: "reminder",
@@ -219,10 +223,10 @@ export const inversionesRules: InsightRule[] = [
 
       let maxConsecutiveMonths = 0;
 
-      for (const [ticker, txs] of Object.entries(buysByTicker)) {
+      for (const txs of Object.values(buysByTicker)) {
         if (txs.length >= 2) {
           const sorted = [...txs].sort((a, b) => b.date.localeCompare(a.date));
-          const lastBuyDate = new Date(sorted[0].date);
+          const lastBuyDate = fromISODate(sorted[0].date);
           const diffDays = Math.ceil((ctx.today.getTime() - lastBuyDate.getTime()) / (1000 * 60 * 60 * 24));
 
           if (diffDays <= 30) {
@@ -234,23 +238,23 @@ export const inversionesRules: InsightRule[] = [
             }
 
             let consecutive = 0;
-            let checkDate = new Date(ctx.today);
-            
+            let offset = 0;
+
             for (let i = 0; i < 12; i++) {
-              const yearMonth = checkDate.toISOString().slice(0, 7);
-              if (monthsWithBuys.has(yearMonth)) {
+              const ym = monthKey(subMonths(ctx.today, offset));
+              if (monthsWithBuys.has(ym)) {
                 consecutive++;
-                checkDate.setMonth(checkDate.getMonth() - 1);
-              } else {
-                if (i === 0) {
-                  checkDate.setMonth(checkDate.getMonth() - 1);
-                  const prevYearMonth = checkDate.toISOString().slice(0, 7);
-                  if (monthsWithBuys.has(prevYearMonth)) {
-                    consecutive++;
-                    checkDate.setMonth(checkDate.getMonth() - 1);
-                    continue;
-                  }
+                offset++;
+              } else if (i === 0) {
+                // Todavía no compró este mes: verificar si mantiene racha desde el mes pasado
+                offset++;
+                if (monthsWithBuys.has(monthKey(subMonths(ctx.today, offset)))) {
+                  consecutive++;
+                  offset++;
+                  continue;
                 }
+                break;
+              } else {
                 break;
               }
             }
@@ -262,33 +266,15 @@ export const inversionesRules: InsightRule[] = [
         }
       }
 
-      if (maxConsecutiveMonths >= 1) {
-        const displayMonths = maxConsecutiveMonths >= 2 ? maxConsecutiveMonths : 6;
+      if (maxConsecutiveMonths >= 2) {
         return {
-          id: `inv-dca-success-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-dca-success-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-dca-success",
           module: "inversiones",
           category: "opportunity",
           priority: "medium",
           title: "Consistencia en Inversiones",
-          message: `Se registra un hábito consolidado de aportes periódicos en el tiempo, sumando ${displayMonths} meses de aportaciones. La regularidad es un factor clave para la consolidación de su patrimonio de largo plazo.`,
-          href: "/inversiones",
-          icon: "CheckCircle2",
-          dismissible: true,
-          createdAt: new Date().toISOString(),
-        };
-      }
-
-      const hasAnyBuy = ctx.investments.some((i) => i.tx_type === "buy");
-      if (hasAnyBuy) {
-        return {
-          id: `inv-dca-success-fallback-${ctx.currentMonth.toISOString().slice(0, 7)}`,
-          ruleId: "inv-dca-success",
-          module: "inversiones",
-          category: "opportunity",
-          priority: "medium",
-          title: "Consistencia en Inversiones",
-          message: "Se registra un hábito consolidado de aportes periódicos en el tiempo. La regularidad es un factor clave para la consolidación de su patrimonio de largo plazo.",
+          message: `Se registra un hábito consolidado de aportes periódicos en el tiempo, sumando ${maxConsecutiveMonths} meses consecutivos de aportaciones. La regularidad es un factor clave para la consolidación de su patrimonio de largo plazo.`,
           href: "/inversiones",
           icon: "CheckCircle2",
           dismissible: true,
@@ -311,14 +297,14 @@ export const inversionesRules: InsightRule[] = [
         const diff = latest.portfolio_pct - latest.sp500_pct;
         if (diff >= 1) {
           return {
-            id: `inv-perf-beat-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `inv-perf-beat-${monthKey(ctx.currentMonth)}`,
             ruleId: "inv-performance-beats-sp500",
             module: "inversiones",
             category: "achievement",
             priority: "medium",
             title: "Rendimiento de Cartera",
             message: `El rendimiento mensual de las inversiones supera el desempeño de los principales índices internacionales en un ${diff.toFixed(1)}%. Esta evolución refleja el resultado favorable de la estrategia actual de selección de activos.`,
-            href: "/portfolio",
+            href: "/inversiones/all",
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
@@ -372,14 +358,14 @@ export const inversionesRules: InsightRule[] = [
 
       if (meetsTypeDiversification && meetsHoldingDiversification) {
         return {
-          id: `inv-balanced-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-balanced-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-balanced-portfolio",
           module: "inversiones",
           category: "achievement",
           priority: "medium",
           title: "Portafolio Balanceado",
           message: "La distribución de activos en cartera presenta una adecuada diversificación por emisor y clase de instrumento. Esta estructura contribuye a equilibrar de forma eficiente el riesgo y el rendimiento.",
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -404,14 +390,14 @@ export const inversionesRules: InsightRule[] = [
       const cryptoPct = (cryptoVal / totalValue) * 100;
       if (cryptoPct > 25) {
         return {
-          id: `inv-crypto-heavy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-crypto-heavy-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-crypto-heavy",
           module: "inversiones",
           category: "warning",
           priority: "medium",
           title: "Exposición a Criptoactivos",
           message: `Las inversiones en criptoactivos representan una proporción significativa de la cartera (${Math.round(cryptoPct)}%). Se recomienda evaluar periódicamente si esta exposición se corresponde con su perfil de tolerancia al riesgo.`,
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -428,14 +414,14 @@ export const inversionesRules: InsightRule[] = [
         if (holding.unrealized_pnl_pct !== null && holding.unrealized_pnl_pct > 20) {
           const ticker = holding.ticker || holding.label;
           return {
-            id: `inv-gain-pos-${ticker}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `inv-gain-pos-${ticker}-${monthKey(ctx.currentMonth)}`,
             ruleId: "inv-gain-position",
             module: "inversiones",
             category: "achievement",
             priority: "medium",
             title: "Una inversión viene rindiendo muy bien",
             message: `El activo ${ticker} acumula una ganancia del ${Math.round(holding.unrealized_pnl_pct)}%. Invertir con visión de largo plazo da sus frutos. Podés evaluar si mantener o tomar ganancias parciales.`,
-            href: "/portfolio",
+            href: "/inversiones/all",
             dismissible: true,
             createdAt: new Date().toISOString(),
           };
@@ -460,14 +446,14 @@ export const inversionesRules: InsightRule[] = [
 
       if (allPositive) {
         return {
-          id: `inv-all-green-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-all-green-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-all-green",
           module: "inversiones",
           category: "achievement",
           priority: "medium",
           title: "Todas tus inversiones están en verde",
           message: "Cada posición de tu cartera acumula ganancias en este momento. Es un resultado poco común — seguí con la estrategia actual.",
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -482,14 +468,14 @@ export const inversionesRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.portfolioTotals.total_usd >= 10000) {
         return {
-          id: `inv-milestone-10k-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-milestone-10k-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-portfolio-milestone-10k",
           module: "inversiones",
           category: "achievement",
           priority: "high",
           title: "Superaste los USD 10.000 en inversiones",
           message: "Tu cartera de inversiones supera los USD 10.000. Este es un hito importante en la construcción de tu patrimonio financiero.",
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -505,14 +491,14 @@ export const inversionesRules: InsightRule[] = [
       const total = ctx.portfolioTotals.total_usd;
       if (total >= 1000 && total < 10000) {
         return {
-          id: `inv-milestone-1k-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-milestone-1k-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-portfolio-milestone-1k",
           module: "inversiones",
           category: "achievement",
           priority: "medium",
           title: "Superaste los USD 1.000 en inversiones",
           message: "Tu cartera ya supera los USD 1.000. Cada aporte cuenta: los primeros USD 1.000 suelen ser los más difíciles de acumular.",
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -529,14 +515,14 @@ export const inversionesRules: InsightRule[] = [
       const latest = ctx.returnSeries[ctx.returnSeries.length - 1];
       if (latest.portfolio_pct !== null && latest.portfolio_pct > 5) {
         return {
-          id: `inv-pos-ret-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-pos-ret-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-positive-return",
           module: "inversiones",
           category: "achievement",
           priority: "medium",
           title: "Tu cartera viene rindiendo bien",
           message: `El rendimiento acumulado de tu cartera es de +${latest.portfolio_pct.toFixed(1)}%. Mantenerse invertido y con consistencia es la base del crecimiento patrimonial.`,
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -552,14 +538,14 @@ export const inversionesRules: InsightRule[] = [
       const realized = ctx.portfolioTotals.realized_pnl_usd;
       if (realized > 0) {
         return {
-          id: `inv-realized-gains-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-realized-gains-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-realized-gains",
           module: "inversiones",
           category: "achievement",
           priority: "medium",
           title: "Tuviste ganancias en ventas",
           message: `Acumulás USD ${Math.round(realized).toLocaleString("es-AR")} en ganancias realizadas por ventas de activos. Esas ganancias ya son tuyas.`,
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -578,7 +564,7 @@ export const inversionesRules: InsightRule[] = [
       const hasUsdCash = ctx.holdings.some((h) => h.asset_type === "usd_cash");
       if (!hasUsdCash) {
         return {
-          id: `inv-low-usd-res-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-low-usd-res-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-low-usd-reserve",
           module: "inversiones",
           category: "tip",
@@ -600,14 +586,14 @@ export const inversionesRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       const hasRecentSell = ctx.investments.some((inv) => {
         if (inv.tx_type !== "sell") return false;
-        const txDate = new Date(inv.date);
+        const txDate = fromISODate(inv.date);
         const diffDays = (ctx.today.getTime() - txDate.getTime()) / (1000 * 60 * 60 * 24);
         return diffDays >= 0 && diffDays <= 30;
       });
 
       if (hasRecentSell) {
         return {
-          id: `inv-sell-recent-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-sell-recent-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-sell-recent",
           module: "inversiones",
           category: "tip",
@@ -630,7 +616,7 @@ export const inversionesRules: InsightRule[] = [
       const hasTimeDeposit = ctx.holdings.some((h) => h.asset_type === "time_deposit");
       if (hasTimeDeposit) {
         return {
-          id: `inv-td-present-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-td-present-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-time-deposit-present",
           module: "inversiones",
           category: "reminder",
@@ -656,7 +642,7 @@ export const inversionesRules: InsightRule[] = [
       const hasOn = ctx.holdings.some((h) => h.asset_type === "on");
       if (!hasOn) {
         return {
-          id: `inv-on-opp-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-on-opp-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-on-opportunity",
           module: "inversiones",
           category: "opportunity",
@@ -678,7 +664,7 @@ export const inversionesRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.investorProfile !== null) return null;
       return {
-        id: `inv-prof-missing-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+        id: `inv-prof-missing-${monthKey(ctx.currentMonth)}`,
         ruleId: "inv-profile-missing",
         module: "inversiones",
         category: "reminder",
@@ -704,7 +690,7 @@ export const inversionesRules: InsightRule[] = [
 
       if (daysDiff > 365) {
         return {
-          id: `inv-prof-stale-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-prof-stale-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-profile-stale",
           module: "inversiones",
           category: "reminder",
@@ -732,14 +718,14 @@ export const inversionesRules: InsightRule[] = [
 
       if (equityPct > 30) {
         return {
-          id: `inv-high-eq-cons-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-high-eq-cons-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-high-equity-for-conservative",
           module: "inversiones",
           category: "warning",
           priority: "high",
           title: "Riesgo Elevado para Perfil Conservador",
           message: `Tenés el ${equityPct.toFixed(1)}% de tu portafolio en activos de alta volatilidad (renta variable/cripto). Como perfil Conservador, se sugiere mantener esta exposición por debajo del 30% para evitar grandes oscilaciones.`,
-          href: "/portfolio",
+          href: "/inversiones/all",
           dismissible: true,
           createdAt: new Date().toISOString(),
         };
@@ -760,7 +746,7 @@ export const inversionesRules: InsightRule[] = [
 
       if (equityPct < 40) {
         return {
-          id: `inv-low-eq-aggr-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-low-eq-aggr-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-low-equity-for-aggressive",
           module: "inversiones",
           category: "tip",
@@ -788,7 +774,7 @@ export const inversionesRules: InsightRule[] = [
 
       if (!hasFixedIncome) {
         return {
-          id: `inv-no-fixed-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `inv-no-fixed-${monthKey(ctx.currentMonth)}`,
           ruleId: "inv-no-fixed-income",
           module: "inversiones",
           category: "opportunity",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { IncomeCategory, IncomeDistribution } from "@/types/database";
@@ -87,7 +87,7 @@ export function useIncomes(month: Date) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, channelId]);
+  }, [supabase, queryClient, channelId, userId]);
 
   return query;
 }
@@ -136,9 +136,10 @@ export function useCreateIncome() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-total", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear el ingreso");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear el ingreso");
     },
   });
 }
@@ -168,9 +169,10 @@ export function useUpdateIncome() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-total", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar el ingreso");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar el ingreso");
     },
   });
 }
@@ -190,9 +192,10 @@ export function useDeleteIncome() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incomes", userId] });
       queryClient.invalidateQueries({ queryKey: ["incomes-last", userId] });
+      queryClient.invalidateQueries({ queryKey: ["incomes-total", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar el ingreso");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar el ingreso");
     },
   });
 }

@@ -7,6 +7,7 @@ import { useUserId } from "@/components/providers/user-provider";
 import { useInvestments } from "@/hooks/use-investments";
 import { useInitialPositions } from "@/hooks/use-initial-positions";
 import { useQuotes, useFxRates, useSp500Series } from "@/hooks/use-prices";
+import { toISODate } from "@/lib/format";
 import {
   computeHoldings,
   valueHoldings,
@@ -84,17 +85,17 @@ function useSnapshots(portfolioId: string | "ALL") {
               const isFirstAppearance = lastKnownValue[portId] === undefined;
               lastKnownValue[portId] = snap.total_usd;
               total_usd += snap.total_usd;
-              cashflow_usd += snap.cashflow_usd;
               
               if (snap.sp500_close !== null) {
                 sp500_close = snap.sp500_close;
               }
 
               if (isFirstAppearance) {
-                // Al introducir un nuevo portafolio a la serie consolidada, tratamos su saldo inicial
-                // como un flujo de entrada de efectivo (cashflow_usd). Esto evita registrar una
-                // ganancia ficticia en el cálculo de TWR del portafolio consolidado.
+                // Al introducir un nuevo portafolio a la serie consolidada, su valor inicial total
+                // (que ya incluye cualquier flujo de este mismo día) representa el capital incorporado.
                 cashflow_usd += snap.total_usd;
+              } else {
+                cashflow_usd += snap.cashflow_usd;
               }
             } else {
               // Si no hay snapshot este día, arrastramos el último valor conocido de este portafolio
@@ -190,7 +191,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
   }, [holdings]);
 
   const quotesQ = useQuotes(quoteGroups);
-  const quotes = quotesQ.data ?? {};
+  const quotes = useMemo(() => quotesQ.data ?? {}, [quotesQ.data]);
   const fxMep = fxQ.data?.mep ?? 0;
   const fxCcl = fxQ.data?.ccl ?? 0;
 
@@ -202,7 +203,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
 
   const totals = useMemo(() => portfolioTotals(valued), [valued]);
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => toISODate(new Date()), []);
   const todayCashflow = useMemo(() => {
     return investments
       .filter((tx) => tx.date === today)
@@ -210,7 +211,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
   }, [investments, today]);
 
   // Snapshots + TWR + SP500.
-  const snapshots = snapshotsQ.data ?? [];
+  const snapshots = useMemo(() => snapshotsQ.data ?? [], [snapshotsQ.data]);
   const baseDate = snapshots[0]?.date ?? null;
   const sp500Q = useSp500Series(baseDate);
 
@@ -326,7 +327,7 @@ export function usePortfolio(portfolioId: string | "ALL" = "ALL") {
         q = q.eq("portfolio_id", portfolioId);
       }
       await q;
-      
+      lastUpsertRef.current = null;
       await queryClient.invalidateQueries({ queryKey: SNAPSHOTS_KEY });
     } catch (err) {
       console.error("Failed to reset history:", err);

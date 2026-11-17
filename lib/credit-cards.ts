@@ -141,12 +141,7 @@ export function nextClosingDate(closingDay: number, from = new Date()) {
   return new Date(fromY, fromM + 1, clampDayToMonth(fromY, fromM + 1, closingDay));
 }
 
-/**
- * Próximo vencimiento. Vence después del cierre.
- * Si due_day < closing_day, el vencimiento es del mes siguiente al cierre.
- */
-export function nextDueDate(closingDay: number, dueDay: number, from = new Date()) {
-  const close = nextClosingDate(closingDay, from);
+function dueDateForClosing(close: Date, closingDay: number, dueDay: number) {
   const closeY = close.getFullYear();
   const closeM = close.getMonth();
   const offset = dueDay < closingDay ? 1 : 0;
@@ -155,6 +150,23 @@ export function nextDueDate(closingDay: number, dueDay: number, from = new Date(
     closeM + offset,
     clampDayToMonth(closeY, closeM + offset, dueDay),
   );
+}
+
+/**
+ * Próximo vencimiento calendario a partir de `from`.
+ * Si `due_day` del mes actual todavía no pasó (>= día de `from`), corresponde a este mes;
+ * si ya pasó, corresponde al mes siguiente.
+ */
+export function nextDueDate(_closingDay: number, dueDay: number, from = new Date()) {
+  const fromY = from.getFullYear();
+  const fromM = from.getMonth();
+  const fromD = from.getDate();
+
+  const thisMonthDue = clampDayToMonth(fromY, fromM, dueDay);
+  if (thisMonthDue >= fromD) {
+    return new Date(fromY, fromM, thisMonthDue);
+  }
+  return new Date(fromY, fromM + 1, clampDayToMonth(fromY, fromM + 1, dueDay));
 }
 
 /**
@@ -172,7 +184,7 @@ export function billingMonthForExpense(
   const [y, m, d] = expenseDateISO.split("-").map(Number);
   const exp = new Date(y, m - 1, d);
   const close = nextClosingDate(closingDay, exp);
-  const due = nextDueDate(closingDay, dueDay, exp);
+  const due = dueDateForClosing(close, closingDay, dueDay);
   // Defensive — si due cayera antes que close por algún edge, devolvemos close.
   return due >= close
     ? new Date(due.getFullYear(), due.getMonth(), 1)

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
-import { useUpdatePreferences } from "@/hooks/use-preferences";
+import { useUpdatePreferences, type PreferencesUpdate } from "@/hooks/use-preferences";
 import { getTourSteps, type OnboardingStep } from "./tours";
 import { TOUR_REGISTRY } from "./tour-registry";
 import { usePathname, useRouter } from "next/navigation";
@@ -74,18 +74,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const tourId = TOUR_REGISTRY[pathname];
 
-    if (!tourId) {
-      setIsActive(false);
-      setCurrentTourId(null);
-      return;
-    }
-
-    const isCompleted = completedTours.includes(tourId);
-
-    if (isCompleted) {
-      setIsActive(false);
-      setCurrentTourId(null);
-      return;
+    if (!tourId || completedTours.includes(tourId)) {
+      const resetTimer = setTimeout(() => {
+        setIsActive(false);
+        setCurrentTourId(null);
+      }, 0);
+      return () => clearTimeout(resetTimer);
     }
 
     // Activar el tour tras un delay de 600ms para asegurar renderizado correcto y fin de animaciones
@@ -130,7 +124,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       ? completedTours
       : [...completedTours, currentTourId];
 
-    const patch: any = { completed_tours: nextCompleted };
+    const patch: PreferencesUpdate = { completed_tours: nextCompleted };
     if (currentTourId === "dashboard") {
       patch.onboarding_completed = true;
     }

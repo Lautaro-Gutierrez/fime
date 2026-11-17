@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -97,8 +97,8 @@ export function useCreateCreditCard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear la tarjeta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear la tarjeta");
     },
   });
 }
@@ -121,8 +121,8 @@ export function useUpdateCreditCard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar la tarjeta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar la tarjeta");
     },
   });
 }
@@ -147,8 +147,8 @@ export function useArchiveCreditCard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al archivar la tarjeta");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al archivar la tarjeta");
     },
   });
 }

@@ -14,7 +14,7 @@ export function createClient() {
             passkey: true,
           },
         },
-      } as any,
+      } as Parameters<typeof createBrowserClient<Database>>[2],
     );
   }
   return client;

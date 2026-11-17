@@ -1,9 +1,8 @@
 import { addDays, differenceInCalendarDays, format } from "date-fns";
 import type { Goal } from "@/hooks/use-goals";
 import type { SourceTypeId } from "@/lib/goals";
+import { fromISODate } from "@/lib/format";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
-
-const DAY_MS = 86_400_000;
 
 // Datos opcionales para auto-tracking. La página los junta y los pasa a `computeGoalProgress`.
 // Cada source_type usa solo el subset que necesita; faltantes → progreso 0.
@@ -109,11 +108,11 @@ function computePace(
   current: number,
   ctx: ProgressContext,
 ): GoalPace | undefined {
-  const start = new Date(goal.started_at);
+  const start = fromISODate(goal.started_at);
   const now = new Date();
   const daysPassed = Math.max(
     1,
-    Math.floor((now.getTime() - start.getTime()) / DAY_MS),
+    differenceInCalendarDays(now, start) + 1,
   );
 
   if (goal.source_type === "portfolio_total") {
@@ -179,7 +178,7 @@ export function computeGoalProgress(
       let onTrack: boolean | null = null;
       if (goal.deadline) {
         const deadlineDays = differenceInCalendarDays(
-          new Date(goal.deadline),
+          fromISODate(goal.deadline),
           new Date(),
         );
         onTrack = daysToTarget <= deadlineDays;

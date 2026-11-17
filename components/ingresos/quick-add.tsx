@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -102,8 +102,9 @@ export function QuickAddIncome() {
   const lastSueldo = useLastIncomeByCategory("sueldo");
   const lastBono = useLastIncomeByCategory("bono");
 
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
       setAmount("");
       setCurrency("ARS");
       setCategory(null);
@@ -112,7 +113,7 @@ export function QuickAddIncome() {
       setNote("");
       setActiveTemplate(null);
     }
-  }, [open]);
+  };
 
   function applyTemplate(templateId: string) {
     const t = INCOME_TEMPLATES.find((x) => x.id === templateId);
@@ -146,7 +147,7 @@ export function QuickAddIncome() {
     if (v === null) return 0;
     if (currency === "ARS") return v;
     return v * (fx?.mep ?? 0);
-  }, [amount, currency, fx?.mep]);
+  }, [amount, currency, fx]);
 
   const amountUsd = useMemo(() => {
     const v = parseNumber(amount);
@@ -154,7 +155,7 @@ export function QuickAddIncome() {
     if (currency === "USD") return v;
     if (!fx?.mep) return 0;
     return v / fx.mep;
-  }, [amount, currency, fx?.mep]);
+  }, [amount, currency, fx]);
 
   function validateBeforeSubmit(): { amount: number; fx_rate: number | null } | null {
     const v = parseNumber(amount);
@@ -198,7 +199,7 @@ export function QuickAddIncome() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           <button

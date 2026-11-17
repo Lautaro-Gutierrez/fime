@@ -20,8 +20,10 @@ export function ProfileForm() {
   const updatePrefs = useUpdatePreferences();
 
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [nameDirty, setNameDirty] = useState(false);
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const displayName = nameDraft ?? prefs?.display_name ?? "";
+  const nameDirty =
+    nameDraft !== null && nameDraft.trim() !== (prefs?.display_name ?? "").trim();
 
   // Password change
   const [showPwChange, setShowPwChange] = useState(false);
@@ -39,17 +41,10 @@ export function ProfileForm() {
     });
   }, [supabase]);
 
-  // Sync display name from preferences
-  useEffect(() => {
-    if (prefs?.display_name != null && !nameDirty) {
-      setDisplayName(prefs.display_name);
-    }
-  }, [prefs, nameDirty]);
-
   async function saveName() {
     try {
       await updatePrefs.mutateAsync({ display_name: displayName.trim() || null });
-      setNameDirty(false);
+      setNameDraft(null);
       toast.success("Nombre actualizado");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al guardar");
@@ -112,10 +107,7 @@ export function ProfileForm() {
               <div className="flex gap-2">
                 <Input
                   value={displayName}
-                  onChange={(e) => {
-                    setDisplayName(e.target.value);
-                    setNameDirty(true);
-                  }}
+                  onChange={(e) => setNameDraft(e.target.value)}
                   placeholder="Tu nombre"
                   maxLength={50}
                   className="h-11 flex-1 rounded-xl border-white/5 bg-white/[0.03] backdrop-blur-xl focus-visible:border-theme-500/30"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { KeyRound, Fingerprint, Loader2, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -13,63 +13,82 @@ interface Passkey {
   id: string;
   name: string;
   created_at?: string;
-  // Otros campos pueden venir en la respuesta, ajustamos a lo básico
 }
+
+type AuthWithPasskey = {
+  passkey: {
+    list: () => Promise<{ data: Passkey[] | null; error: Error | null }>;
+    delete: (args: { passkeyId: string }) => Promise<{ error: Error | null }>;
+  };
+  registerPasskey: () => Promise<{ data: unknown; error: Error | null }>;
+};
 
 export function PasskeySection() {
   const supabase = useMemo(() => createClient(), []);
-  
+  const passkeyAuth = supabase.auth as unknown as AuthWithPasskey;
+  const webAuthnSupported = useSyncExternalStore(
+    () => () => {},
+    () => Boolean(window.PublicKeyCredential),
+    () => false,
+  );
+
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(webAuthnSupported);
   const [registering, setRegistering] = useState(false);
-  const [webAuthnSupported, setWebAuthnSupported] = useState(true);
 
-  // Check support and load passkeys
-  useEffect(() => {
-    // Check if WebAuthn is supported
-    if (!window.PublicKeyCredential) {
-      setWebAuthnSupported(false);
-      setLoading(false);
-      return;
-    }
-
-    loadPasskeys();
-  }, [supabase]);
-
-  async function loadPasskeys() {
+  async function refreshPasskeys() {
     setLoading(true);
     try {
-      // get session required to avoid calling when not logged in
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data, error } = await (supabase.auth as any).passkey.list();
+      const { data, error } = await passkeyAuth.passkey.list();
       if (error) throw error;
-      
-      // Asegurarse de que data no es null
+
       if (data) {
-        setPasskeys(data as unknown as Passkey[]);
+        setPasskeys(data);
       }
     } catch (err) {
       console.error("Error cargando passkeys:", err);
-      // No mostramos toast de error acá para no asustar si falla al inicio
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    if (!webAuthnSupported) return;
+    let active = true;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data, error } = await (supabase.auth as unknown as AuthWithPasskey).passkey.list();
+        if (error) throw error;
+        if (active && data) {
+          setPasskeys(data);
+        }
+      } catch (err) {
+        console.error("Error cargando passkeys:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [supabase, webAuthnSupported]);
+
   async function handleRegister() {
     setRegistering(true);
     try {
-      // Inicia el proceso de registro nativo
-      const { data, error } = await (supabase.auth as any).registerPasskey();
-      
+      const { error } = await passkeyAuth.registerPasskey();
       if (error) {
         throw error;
       }
-      
+
       toast.success("Passkey registrado con éxito");
-      loadPasskeys(); // Recargar la lista
+      await refreshPasskeys();
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -92,12 +111,12 @@ export function PasskeySection() {
 
   async function handleDelete(id: string) {
     try {
-       const { error } = await (supabase.auth as any).passkey.delete({ passkeyId: id });
-       if (error) throw error;
-       toast.success("Passkey eliminado");
-       loadPasskeys();
-    } catch (err) {
-       toast.error("Error al eliminar passkey");
+      const { error } = await passkeyAuth.passkey.delete({ passkeyId: id });
+      if (error) throw error;
+      toast.success("Passkey eliminado");
+      await refreshPasskeys();
+    } catch {
+      toast.error("Error al eliminar passkey");
     }
   }
 

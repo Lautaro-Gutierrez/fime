@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
@@ -50,7 +50,7 @@ export function usePortfolios() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, channelId]);
+  }, [supabase, queryClient, channelId, userId]);
 
   return query;
 }
@@ -77,8 +77,8 @@ export function useCreatePortfolio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear el portafolio");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear el portafolio");
     },
   });
 }
@@ -102,8 +102,8 @@ export function useUpdatePortfolio() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar el portafolio");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar el portafolio");
     },
   });
 }
@@ -120,13 +120,34 @@ export function useDeletePortfolio() {
         .delete()
         .eq("id", id);
       if (error) throw error;
+
+      // Al eliminar un portafolio, el trigger de DB reasigna sus operaciones al portafolio default.
+      // Limpiamos los snapshots viejos del default para evitar saltos irreales en su TWR.
+      const { data: defaultPort } = await supabase
+        .from("portfolios")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("is_default", true)
+        .maybeSingle();
+
+      if (defaultPort?.id) {
+        await supabase
+          .from("portfolio_snapshots")
+          .delete()
+          .eq("user_id", userId)
+          .eq("portfolio_id", defaultPort.id);
+      }
+
       return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["portfolios", userId] });
+      queryClient.invalidateQueries({ queryKey: ["investments"] });
+      queryClient.invalidateQueries({ queryKey: ["initial_positions"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio_snapshots"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar el portafolio");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar el portafolio");
     },
   });
 }

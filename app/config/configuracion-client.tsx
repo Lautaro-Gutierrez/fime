@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -32,6 +33,8 @@ import { cn } from "@/lib/utils";
 // Sub-componentes
 import { PasskeySection } from "@/components/config/perfil/passkey-section";
 import { InvestorProfileCard } from "@/components/config/perfil/investor-profile-card";
+import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
+import { AvatarPicker } from "@/components/config/perfil/avatar-picker";
 import { AccentPicker } from "@/components/config/personalizacion/accent-picker";
 import { ThemePicker } from "@/components/config/personalizacion/theme-picker";
 import { DensityPicker } from "@/components/config/personalizacion/density-picker";
@@ -125,19 +128,27 @@ export function ConfiguracionClient() {
 // ─── TAB: PERFIL ─────────────────────────────────────────────
 function PerfilTab() {
   const supabase = useMemo(() => createClient(), []);
-  const { displayName: currentName, customTags } = usePrefsContext();
+  const router = useRouter();
+  const { displayName: currentName, customTags, avatarKey } = usePrefsContext();
   const updatePrefs = useUpdatePreferences();
 
-  const [displayName, setDisplayName] = useState(currentName || "");
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const displayName = nameDraft ?? (currentName || "");
+  const nameDirty = nameDraft !== null && nameDraft.trim() !== (currentName || "").trim();
   const [email, setEmail] = useState("");
-  const [nameDirty, setNameDirty] = useState(false);
   const [savingName, setSavingName] = useState(false);
 
   // Ciclo Financiero
-  const [startDay, setStartDay] = useState("1");
-  
+  const [startDay, setStartDay] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("fime_cycle_start_day") || "1";
+    }
+    return "1";
+  });
+
   // Etiquetas
-  const [tags, setTags] = useState<string[]>([]);
+  const [tagsOverride, setTagsOverride] = useState<string[] | null>(null);
+  const tags = tagsOverride ?? customTags ?? [];
   const [newTag, setNewTag] = useState("");
 
   // Cuentas Compartidas
@@ -153,25 +164,12 @@ function PerfilTab() {
     });
   }, [supabase]);
 
-  useEffect(() => {
-    if (currentName !== undefined) {
-      setDisplayName(currentName || "");
-      setNameDirty(false);
-    }
-  }, [currentName]);
-
-  useEffect(() => {
-    if (customTags) {
-      setTags(customTags);
-    }
-  }, [customTags]);
-
   async function handleSaveName() {
     if (!displayName.trim()) return;
     setSavingName(true);
     try {
       await updatePrefs.mutateAsync({ display_name: displayName.trim() });
-      setNameDirty(false);
+      setNameDraft(null);
       toast.success("Nombre actualizado");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al guardar");
@@ -209,7 +207,8 @@ function PerfilTab() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      window.location.href = "/login";
+      router.push("/login");
+      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al cerrar sesión");
       setLogoutLoading(false);
@@ -219,6 +218,9 @@ function PerfilTab() {
   const handleStartDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setStartDay(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fime_cycle_start_day", val);
+    }
     toast.success(`Día de inicio del ciclo configurado en el día ${val}`);
   };
 
@@ -230,23 +232,27 @@ function PerfilTab() {
       return;
     }
     const newTags = [...tags, trimmed];
-    setTags(newTags);
+    setTagsOverride(newTags);
     setNewTag("");
     try {
       await updatePrefs.mutateAsync({ custom_tags: newTags });
+      setTagsOverride(null);
       toast.success(`Etiqueta #${trimmed} agregada`);
-    } catch (err) {
+    } catch {
+      setTagsOverride(null);
       toast.error("Error al guardar etiquetas");
     }
   };
 
   const handleRemoveTag = async (tag: string) => {
     const newTags = tags.filter((t) => t !== tag);
-    setTags(newTags);
+    setTagsOverride(newTags);
     try {
       await updatePrefs.mutateAsync({ custom_tags: newTags });
+      setTagsOverride(null);
       toast.success(`Etiqueta #${tag} eliminada`);
-    } catch (err) {
+    } catch {
+      setTagsOverride(null);
       toast.error("Error al guardar etiquetas");
     }
   };
@@ -260,7 +266,7 @@ function PerfilTab() {
       setNewMemberName("");
       setShowMemberModal(false);
       toast.success(`Miembro ${name} agregado`);
-    } catch (err) {
+    } catch {
       toast.error("Error al guardar miembro");
     }
   };
@@ -282,6 +288,22 @@ function PerfilTab() {
       </div>
 
       <div className="flex flex-col gap-4">
+        {/* Avatar */}
+        <div className="rounded-xl border border-white/[0.06] bg-[#1A1D24]/40 p-4 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <AvatarDisplay avatarKey={avatarKey} displayName={displayName} size={64} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate">
+                {displayName || "Mi cuenta"}
+              </p>
+              <p className="text-xs text-slate-500">
+                Elegí el ícono que te representa en la barra lateral.
+              </p>
+            </div>
+          </div>
+          <AvatarPicker currentKey={avatarKey} />
+        </div>
+
         {/* Nombre */}
         <div className="flex flex-col gap-1.5">
           <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -290,10 +312,7 @@ function PerfilTab() {
           <div className="flex gap-2">
             <Input
               value={displayName}
-              onChange={(e) => {
-                setDisplayName(e.target.value);
-                setNameDirty(e.target.value !== (currentName || ""));
-              }}
+              onChange={(e) => setNameDraft(e.target.value)}
               placeholder="Tu nombre"
               maxLength={50}
               className="h-11 flex-1 rounded-xl border border-white/[0.06] bg-[#1A1D24] text-white focus-visible:border-fuchsia-500/50"
@@ -582,7 +601,7 @@ function AparienciaTab() {
     try {
       await updatePrefs.mutateAsync({ stealth_mode: !stealthMode });
       toast.success(stealthMode ? "Montos visibles" : "Montos ocultos (Privacidad)");
-    } catch (err) {
+    } catch {
       toast.error("Error al actualizar");
     }
   }
@@ -731,7 +750,7 @@ function DangerTab() {
 
   async function handleWipeData() {
     const confirmation = window.confirm(
-      "¿Estás seguro de que querés borrar TODOS tus datos financieros (ingresos, gastos, metas, tarjetas)? Esta operación es destructiva y no se puede deshacer."
+      "¿Estás seguro de que querés borrar TODOS tus datos financieros (ingresos, gastos, inversiones, snapshots, metas, tarjetas, miembros y perfil inversor)? Esta operación es destructiva y no se puede deshacer."
     );
     if (!confirmation) return;
 
@@ -740,16 +759,36 @@ function DangerTab() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
-      // Borramos de todas las tablas asociadas al usuario
+      // 1. Borramos todas las tablas dependientes del usuario
       const deletes = [
         supabase.from("expenses").delete().eq("user_id", user.id),
         supabase.from("incomes").delete().eq("user_id", user.id),
         supabase.from("goals").delete().eq("user_id", user.id),
         supabase.from("credit_cards").delete().eq("user_id", user.id),
+        supabase.from("investments").delete().eq("user_id", user.id),
+        supabase.from("initial_positions").delete().eq("user_id", user.id),
+        supabase.from("portfolio_snapshots").delete().eq("user_id", user.id),
+        supabase.from("members").delete().eq("user_id", user.id),
+        supabase.from("investor_profile_tests").delete().eq("user_id", user.id),
       ];
 
       const results = await Promise.all(deletes);
       const errors = results.filter((r) => r.error).map((r) => r.error?.message);
+
+      // 2. Eliminamos portafolios secundarios (el default queda vacío)
+      const { error: portErr } = await supabase
+        .from("portfolios")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("is_default", false);
+      if (portErr) errors.push(portErr.message);
+
+      // 3. Limpiar también investor_profile en user_preferences
+      const { error: prefErr } = await supabase
+        .from("user_preferences")
+        .update({ investor_profile: null, investor_profile_completed_at: null })
+        .eq("user_id", user.id);
+      if (prefErr) errors.push(prefErr.message);
 
       if (errors.length > 0) {
         throw new Error("Error borrando algunas tablas: " + errors.join(", "));
@@ -779,7 +818,7 @@ function DangerTab() {
             Reiniciar todos los datos
           </span>
           <p className="text-xs text-rose-400/80">
-            Esto eliminará permanentemente todas tus transacciones de ingresos, gastos, tarjetas de crédito cargadas y objetivos de metas. Tu perfil y preferencias se mantendrán.
+            Esto eliminará permanentemente todas tus transacciones de ingresos, gastos, inversiones, snapshots, tarjetas, metas y miembros. Tu perfil y apariencia se mantendrán.
           </p>
         </div>
 

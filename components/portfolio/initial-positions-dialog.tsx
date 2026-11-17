@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Pencil, Plus, Trash2, Package, Briefcase } from "lucide-react";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ import {
 } from "@/hooks/use-initial-positions";
 import { cn } from "@/lib/utils";
 import { getCedearRatio } from "@/lib/portfolio/cedear-ratios";
-import { usePortfolios } from "@/hooks/use-portfolios";
+import { usePortfolios, type Portfolio } from "@/hooks/use-portfolios";
 import { PORTFOLIO_ICONS, PORTFOLIO_TEXT_COLORS } from "@/components/inversiones/portfolio-selector";
 
 // Gradient por asset (reusa convención M2).
@@ -114,13 +114,14 @@ export function InitialPositionsDialog() {
     refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    if (!open) {
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
       setStep("list");
       setAsset(null);
       setEditing(null);
     }
-  }, [open]);
+  }
 
   function handleSelectAsset(a: AssetConfig) {
     setAsset(a);
@@ -144,7 +145,7 @@ export function InitialPositionsDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           <Button
@@ -389,7 +390,7 @@ function InitialPositionForm({
   onCancel: () => void;
   submitting: boolean;
   fxRates?: FxRates;
-  portfolios: any[];
+  portfolios: Portfolio[];
   defaultPortfolioId?: string;
 }) {
   const isArsDenominated = ["cedear", "stock_ar", "bond_ar", "on"].includes(asset.id);
@@ -428,16 +429,6 @@ function InitialPositionForm({
     initial?.portfolio_id ?? defaultPortfolioId ?? (portfolios.find(p => p.is_default)?.id || portfolios[0]?.id || "")
   );
 
-  useEffect(() => {
-    if (asset.id === "cedear" && ticker) {
-      const ratio = getCedearRatio(ticker);
-      if (ratio && metadata["ratio"] !== ratio.toString()) {
-        setMetadata((prev) => ({ ...prev, ratio: ratio.toString() }));
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticker]);
-
   const canSubmit = useMemo(() => {
     const qty = parseNumber(quantity);
     const cost = parseNumber(avgCost);
@@ -448,7 +439,7 @@ function InitialPositionForm({
       if (field.required && !metadata[field.key]) return false;
     }
     return true;
-  }, [asset, ticker, quantity, avgCost, metadata]);
+  }, [asset, ticker, quantity, avgCost, metadata, portfolioId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -513,7 +504,16 @@ function InitialPositionForm({
           <Input
             id="ticker"
             value={ticker}
-            onChange={(e) => setTicker(e.target.value)}
+            onChange={(e) => {
+              const nextVal = e.target.value;
+              setTicker(nextVal);
+              if (asset.id === "cedear" && nextVal) {
+                const ratio = getCedearRatio(nextVal);
+                if (ratio && metadata["ratio"] !== ratio.toString()) {
+                  setMetadata((prev) => ({ ...prev, ratio: ratio.toString() }));
+                }
+              }
+            }}
             placeholder={asset.id === "crypto" ? "BTC, ETH, SOL" : "AAPL, GGAL"}
             className={inputCls}
             autoFocus

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RotateCcw, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -133,16 +133,19 @@ export function DistributionStep({
       : base;
   });
 
-  // Si los gastos reales o el monto cambian externamente, resincronizamos los
-  // buckets locked. Invest/save del estado se recalculan al remanente.
-  useEffect(() => {
-    if (!hasRealExpenses) return;
-    setDist((prev) => computeLockedDist(amountArs, realExpenses!, prev));
-  }, [amountArs, realExpenses, hasRealExpenses]);
+  const effectiveDist = useMemo<IncomeDistribution>(() => {
+    return hasRealExpenses
+      ? computeLockedDist(amountArs, realExpenses!, dist)
+      : dist;
+  }, [amountArs, realExpenses, hasRealExpenses, dist]);
 
   const sum = useMemo(
-    () => dist.fixed_pct + dist.variable_pct + dist.invest_pct + dist.save_pct,
-    [dist],
+    () =>
+      effectiveDist.fixed_pct +
+      effectiveDist.variable_pct +
+      effectiveDist.invest_pct +
+      effectiveDist.save_pct,
+    [effectiveDist],
   );
 
   function handleChange(bucket: DistributionBucket, value: number) {
@@ -151,13 +154,25 @@ export function DistributionStep({
       if (bucket === "fixed" || bucket === "variable") return;
       setDist((prev) => {
         const v = clamp(Math.round(value));
-        const lockedSum = prev.fixed_pct + prev.variable_pct;
+        const lockedSum = effectiveDist.fixed_pct + effectiveDist.variable_pct;
         const remainder = Math.max(0, 100 - lockedSum);
         const capped = Math.min(v, remainder);
         if (bucket === "invest") {
-          return { ...prev, invest_pct: capped, save_pct: remainder - capped };
+          return {
+            ...prev,
+            fixed_pct: effectiveDist.fixed_pct,
+            variable_pct: effectiveDist.variable_pct,
+            invest_pct: capped,
+            save_pct: remainder - capped,
+          };
         }
-        return { ...prev, save_pct: capped, invest_pct: remainder - capped };
+        return {
+          ...prev,
+          fixed_pct: effectiveDist.fixed_pct,
+          variable_pct: effectiveDist.variable_pct,
+          save_pct: capped,
+          invest_pct: remainder - capped,
+        };
       });
       return;
     }
@@ -169,11 +184,13 @@ export function DistributionStep({
       setDist((prev) => {
         const remainder = Math.max(
           0,
-          100 - prev.fixed_pct - prev.variable_pct,
+          100 - effectiveDist.fixed_pct - effectiveDist.variable_pct,
         );
         const invest = Math.floor(remainder / 2);
         return {
           ...prev,
+          fixed_pct: effectiveDist.fixed_pct,
+          variable_pct: effectiveDist.variable_pct,
           invest_pct: invest,
           save_pct: remainder - invest,
         };
@@ -184,10 +201,10 @@ export function DistributionStep({
   }
 
   const pctByBucket: Record<DistributionBucket, number> = {
-    fixed: dist.fixed_pct,
-    variable: dist.variable_pct,
-    invest: dist.invest_pct,
-    save: dist.save_pct,
+    fixed: effectiveDist.fixed_pct,
+    variable: effectiveDist.variable_pct,
+    invest: effectiveDist.invest_pct,
+    save: effectiveDist.save_pct,
   };
 
   const lockedBuckets: Partial<Record<DistributionBucket, boolean>> =
@@ -297,7 +314,7 @@ export function DistributionStep({
           Atrás
         </Button>
         <Button
-          onClick={() => onConfirm(dist)}
+          onClick={() => onConfirm(effectiveDist)}
           disabled={isSaving || sum !== 100}
           className="h-11 flex-1 gap-2 rounded-xl bg-gradient-to-br from-lime-500 to-green-600 text-white shadow-lg shadow-lime-500/25 transition-all hover:from-lime-400 hover:to-green-500 hover:shadow-lime-500/40 disabled:opacity-50"
         >
@@ -329,13 +346,6 @@ function BucketRow({
   const amount = amountArs * (pct / 100);
   const [rawAmount, setRawAmount] = useState(() => String(Math.round(amount)));
   const [isAmountFocused, setIsAmountFocused] = useState(false);
-
-  // Cuando el pct cambia externamente (rebalance, reset, otro slider), resync.
-  useEffect(() => {
-    if (!isAmountFocused) {
-      setRawAmount(String(Math.round(amount)));
-    }
-  }, [amount, isAmountFocused]);
 
   const displayedAmount = isAmountFocused
     ? rawAmount

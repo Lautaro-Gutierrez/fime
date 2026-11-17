@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AssetType } from "@/types/database";
@@ -96,8 +96,8 @@ export function useCreateInitialPosition() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear la posición");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear la posición");
     },
   });
 }
@@ -126,8 +126,8 @@ export function useUpdateInitialPosition() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar la posición");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar la posición");
     },
   });
 }
@@ -148,8 +148,8 @@ export function useDeleteInitialPosition() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar la posición");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar la posición");
     },
   });
 }

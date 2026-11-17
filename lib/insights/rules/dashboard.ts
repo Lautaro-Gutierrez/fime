@@ -1,5 +1,6 @@
 import type { InsightRule, SmartInsight } from "../types";
 import { getDaysInMonth, subMonths } from "date-fns";
+import { monthKey } from "@/lib/format";
 
 export const dashboardRules: InsightRule[] = [
   // 1. dash-savings-rate-low
@@ -15,7 +16,7 @@ export const dashboardRules: InsightRule[] = [
       if (savingsRate >= 10 || savingsRate < 0) return null;
 
       return {
-        id: `dash-savings-rate-low-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+        id: `dash-savings-rate-low-${monthKey(ctx.currentMonth)}`,
         ruleId: "dash-savings-rate-low",
         module: "dashboard",
         category: "warning",
@@ -44,7 +45,7 @@ export const dashboardRules: InsightRule[] = [
       if (totalPrevExpense > 0 && totalExpense > totalPrevExpense * 1.2) {
         const excessPct = ((totalExpense / totalPrevExpense - 1) * 100).toFixed(0);
         return {
-          id: `dash-expense-spike-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-expense-spike-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-expense-spike",
           module: "dashboard",
           category: "warning",
@@ -70,7 +71,7 @@ export const dashboardRules: InsightRule[] = [
 
         if (daysToDue >= 0 && daysToDue <= 5) {
           return {
-            id: `dash-card-due-${card.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `dash-card-due-${card.id}-${monthKey(ctx.currentMonth)}`,
             ruleId: "dash-card-due-soon",
             module: "dashboard",
             category: "reminder",
@@ -95,7 +96,7 @@ export const dashboardRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.expenses.length === 0 && ctx.dayOfMonth > 3) {
         return {
-          id: `dash-no-expenses-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-no-expenses-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-no-expenses-logged",
           module: "dashboard",
           category: "reminder",
@@ -121,7 +122,7 @@ export const dashboardRules: InsightRule[] = [
 
       if (totalIncome > 0 && surplus > totalIncome * 0.3) {
         return {
-          id: `dash-surplus-invest-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-surplus-invest-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-surplus-invest",
           module: "dashboard",
           category: "opportunity",
@@ -146,7 +147,7 @@ export const dashboardRules: InsightRule[] = [
       const daysLeft = ctx.daysInMonth - ctx.dayOfMonth;
       if (daysLeft >= 0 && daysLeft <= 3) {
         return {
-          id: `dash-month-closing-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-month-closing-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-month-closing",
           module: "dashboard",
           category: "reminder",
@@ -194,7 +195,7 @@ export const dashboardRules: InsightRule[] = [
       const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
       if (savingsRate >= 25 && ctx.dayOfMonth >= 15) {
         return {
-          id: `dash-health-check-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-health-check-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-financial-health-check",
           module: "dashboard",
           category: "achievement",
@@ -222,7 +223,7 @@ export const dashboardRules: InsightRule[] = [
 
       if (subExpense > 0 && (subExpense / totalIncome) * 100 < 3 && ctx.dayOfMonth >= 15) {
         return {
-          id: `dash-sub-check-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-sub-check-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-recurring-subscriptions-check",
           module: "dashboard",
           category: "achievement",
@@ -243,7 +244,7 @@ export const dashboardRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.goals.length === 0) {
         return {
-          id: `dash-no-goals-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-no-goals-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-no-goals",
           module: "dashboard",
           category: "tip",
@@ -268,7 +269,7 @@ export const dashboardRules: InsightRule[] = [
           const progress = ctx.goalProgresses.get(goal.id);
           if (progress && progress.pct >= 85 && progress.pct < 100) {
             return {
-              id: `dash-goal-almost-${goal.id}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `dash-goal-almost-${goal.id}-${monthKey(ctx.currentMonth)}`,
               ruleId: "dash-goal-almost-complete",
               module: "dashboard",
               category: "achievement",
@@ -297,7 +298,7 @@ export const dashboardRules: InsightRule[] = [
       });
       if (dueCards.length >= 2) {
         return {
-          id: `dash-multiple-cards-due-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-multiple-cards-due-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-multiple-cards-due",
           module: "dashboard",
           category: "warning",
@@ -326,7 +327,7 @@ export const dashboardRules: InsightRule[] = [
             * (ctx.dayOfMonth / getDaysInMonth(subMonths(ctx.currentMonth, 1)));
           if (savingsRate >= 15 && totalExpense < prevProrated) {
             return {
-              id: `dash-good-combo-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `dash-good-combo-${monthKey(ctx.currentMonth)}`,
               ruleId: "dash-good-month-combo",
               module: "dashboard",
               category: "achievement",
@@ -349,7 +350,7 @@ export const dashboardRules: InsightRule[] = [
     evaluate: (ctx): SmartInsight | null => {
       if (ctx.expenses.length > 0 && ctx.incomes.length > 0 && ctx.investments.length > 0) {
         return {
-          id: `dash-all-active-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `dash-all-active-${monthKey(ctx.currentMonth)}`,
           ruleId: "dash-all-modules-active",
           module: "dashboard",
           category: "achievement",
@@ -375,7 +376,7 @@ export const dashboardRules: InsightRule[] = [
           const savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
           if (savingsRate >= 10) {
             return {
-              id: `dash-mid-month-ok-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+              id: `dash-mid-month-ok-${monthKey(ctx.currentMonth)}`,
               ruleId: "dash-mid-month-ok",
               module: "dashboard",
               category: "tip",

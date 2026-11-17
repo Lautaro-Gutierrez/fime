@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useExpenses, type Expense } from "./use-expenses";
 import { useIncomes, type Income } from "./use-incomes";
 import { useInvestments } from "./use-investments";
@@ -125,7 +125,6 @@ export function useSmartInsights(module?: InsightModule) {
     let fixed = 0;
     let variable = 0;
     let invest = 0;
-    let save = 0;
 
     for (const i of incomesWithDist) {
       const dist = i.distribution!;
@@ -133,7 +132,6 @@ export function useSmartInsights(module?: InsightModule) {
       fixed += dist.fixed_pct * weight;
       variable += dist.variable_pct * weight;
       invest += dist.invest_pct * weight;
-      save += dist.save_pct * weight;
     }
 
     const roundedFixed = Math.round(fixed);
@@ -180,37 +178,49 @@ export function useSmartInsights(module?: InsightModule) {
     return map;
   }, [goalsQ.data, expensesQ.data, incomesQ.data, portfolioQ.totals, portfolioQ.holdings, portfolioQ.snapshots]);
 
-  // Dismiss logic
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  // Dismiss logic (useSyncExternalStore avoids setState inside useEffect and syncs across panels)
   const monthStr = format(currentMonth, "yyyy-MM");
   const storageKey = `fime-dismissed-insights-${monthStr}`;
 
-  useEffect(() => {
-    // Load dismissed from localStorage
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setDismissed(new Set(JSON.parse(stored)));
+  const dismissedRaw = useSyncExternalStore(
+    useCallback((cb) => {
+      window.addEventListener("storage", cb);
+      window.addEventListener("fime-dismissed-change", cb);
+      return () => {
+        window.removeEventListener("storage", cb);
+        window.removeEventListener("fime-dismissed-change", cb);
+      };
+    }, []),
+    () => {
+      try {
+        return localStorage.getItem(storageKey) ?? "[]";
+      } catch {
+        return "[]";
       }
-    } catch (e) {
-      console.error("Failed to load dismissed insights", e);
+    },
+    () => "[]",
+  );
+
+  const dismissed = useMemo(() => {
+    try {
+      return new Set<string>(JSON.parse(dismissedRaw) as string[]);
+    } catch {
+      return new Set<string>();
     }
-  }, [storageKey]);
+  }, [dismissedRaw]);
 
   const dismiss = useCallback(
     (insightId: string) => {
-      setDismissed((prev) => {
-        const next = new Set(prev);
-        next.add(insightId);
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(Array.from(next)));
-        } catch (e) {
-          console.error("Failed to save dismissed insights", e);
-        }
-        return next;
-      });
+      const next = new Set(dismissed);
+      next.add(insightId);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(Array.from(next)));
+        window.dispatchEvent(new Event("fime-dismissed-change"));
+      } catch (e) {
+        console.error("Failed to save dismissed insights", e);
+      }
     },
-    [storageKey]
+    [dismissed, storageKey]
   );
 
   // Evaluate

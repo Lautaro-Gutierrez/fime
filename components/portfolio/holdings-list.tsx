@@ -1,8 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import { ASSETS_BY_ID } from "@/lib/assets";
+import { ASSETS_BY_ID, type AssetConfig } from "@/lib/assets";
 import { formatUSD } from "@/lib/format";
+import { PrivateAmount } from "@/components/ui/private-amount";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
 import { AssetLogo } from "@/components/ui/asset-logo";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -15,7 +16,7 @@ type Props = {
   onTransfer?: (holding: ValuedHolding) => void;
 };
 
-function TypeBadge({ type, asset }: { type: string, asset: any }) {
+function TypeBadge({ type, asset }: { type: string; asset: AssetConfig }) {
   return (
     <span className={`hidden md:inline-block shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${asset.bgClass} ${asset.textClass} bg-opacity-20`}>
       {type}
@@ -58,7 +59,9 @@ const HoldingRow = memo(function HoldingRow({ holding: h, portfolioId, onTransfe
       <div className="flex items-center gap-3 md:gap-6 text-right">
         {/* Bloque Valor */}
         <div className="w-[80px] md:w-[100px] shrink-0 flex flex-col items-end">
-          <p className="font-medium text-white tabular-nums text-sm md:text-base">{formatUSD(h.current_value_usd)}</p>
+          <p className="font-medium text-white tabular-nums text-sm md:text-base">
+            <PrivateAmount>{formatUSD(h.current_value_usd)}</PrivateAmount>
+          </p>
           <p className="text-[11px] md:text-xs text-slate-500 tabular-nums">{h.weight_pct.toFixed(1)}%</p>
         </div>
 

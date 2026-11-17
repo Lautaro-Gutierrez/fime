@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useId } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AssetType, TxType } from "@/types/database";
@@ -82,7 +82,7 @@ export function useInvestments() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, channelId]);
+  }, [supabase, queryClient, channelId, userId]);
 
   return query;
 }
@@ -109,8 +109,8 @@ export function useCreateInvestment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear la inversión");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear la inversión");
     },
   });
 }
@@ -140,8 +140,8 @@ export function useUpdateInvestment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al actualizar la inversión");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al actualizar la inversión");
     },
   });
 }
@@ -163,8 +163,8 @@ export function useDeleteInvestment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments", userId] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar la inversión");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar la inversión");
     },
   });
 }

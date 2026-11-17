@@ -47,10 +47,15 @@ export function CreatePortfolioDialog({ open, onOpenChange }: CreatePortfolioDia
       onOpenChange(false);
       reset();
       router.push(`/inversiones/${portfolio.id}`);
-    } catch (err: any) {
-      if (err.message?.includes("10 portfolios")) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? (err as { code?: string }).code
+          : undefined;
+      if (msg.includes("10 portfolios")) {
         toast.error("Alcanzaste el límite de 10 portfolios.");
-      } else if (err.code === "23505") { // unique violation
+      } else if (code === "23505") { // unique violation
         toast.error("Ya existe un portfolio con ese nombre.");
       } else {
         toast.error("Error al crear el portfolio");

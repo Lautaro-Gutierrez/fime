@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { MobileFab } from "@/components/layout/mobile-fab";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { AvatarDisplay } from "@/components/config/perfil/boxer-avatar";
 
 type NavItem = {
   href: string;
@@ -39,7 +40,7 @@ const NAV: NavItem[] = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { displayName } = usePrefsContext();
+  const { displayName, avatarKey } = usePrefsContext();
 
   async function handleLogout() {
     const supabase = createClient();
@@ -51,14 +52,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
     router.push("/login");
     router.refresh();
   }
-
-  // Initials for avatar
-  const initials = (displayName || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   return (
     <div className="flex h-screen">
@@ -105,12 +98,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="px-4 pb-5">
           <div className="border-t border-white/[0.06] pt-4">
             <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
-              >
-                {initials}
-              </div>
+              <AvatarDisplay
+                avatarKey={avatarKey}
+                displayName={displayName}
+                size={36}
+                className="rounded-full"
+              />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{displayName || "Mi cuenta"}</p>
                 <p className="text-[11px] text-slate-500">Mi cuenta</p>

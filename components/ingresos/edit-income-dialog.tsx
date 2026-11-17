@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -83,6 +83,28 @@ function parseAmount(input: string): number | null {
 }
 
 export function EditIncomeDialog({ open, income, onClose }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0 shadow-2xl">
+        {open && (
+          <EditIncomeForm
+            key={`${income.id}-${income.updated_at}`}
+            income={income}
+            onClose={onClose}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditIncomeForm({
+  income,
+  onClose,
+}: {
+  income: Income;
+  onClose: () => void;
+}) {
   const [amount, setAmount] = useState(String(income.amount));
   const [currency, setCurrency] = useState<"ARS" | "USD">(income.currency);
   const [category, setCategory] = useState<IncomeCategory>(income.category);
@@ -94,16 +116,6 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
   const update = useUpdateIncome();
   const del = useDeleteIncome();
 
-  // Reset al abrir o cambiar de ingreso.
-  useEffect(() => {
-    setAmount(String(income.amount));
-    setCurrency(income.currency);
-    setCategory(income.category);
-    setSource(income.source ?? "");
-    setDate(income.date);
-    setNote(income.note ?? "");
-  }, [income]);
-
   const cat = INCOME_CATEGORIES_BY_ID[category];
   const Icon = cat.icon;
 
@@ -113,7 +125,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
     if (v === null) return 0;
     if (currency === "ARS") return v;
     return v * (fx?.mep ?? income.fx_rate ?? 0);
-  }, [amount, currency, fx?.mep, income.fx_rate]);
+  }, [amount, currency, fx, income.fx_rate]);
 
   const amountUsdPreview = useMemo(() => {
     const v = parseAmount(amount);
@@ -122,7 +134,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
     const rate = fx?.mep ?? income.fx_rate ?? 0;
     if (rate === 0) return 0;
     return v / rate;
-  }, [amount, currency, fx?.mep, income.fx_rate]);
+  }, [amount, currency, fx, income.fx_rate]);
 
   async function save() {
     const value = parseAmount(amount);
@@ -158,7 +170,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
           source: source.trim() || null,
           date,
           note: note.trim() || null,
-          distribution: null,
+          distribution: income.distribution,
         },
       });
       toast.success("Ingreso actualizado");
@@ -181,9 +193,7 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0 shadow-2xl">
-        <div className="relative flex max-h-[85vh] flex-col">
+    <div className="relative flex max-h-[85vh] flex-col">
           <div className="relative flex flex-col gap-5 overflow-y-auto p-6">
             {/* Header */}
             <div className="relative flex items-start justify-between gap-3">
@@ -378,7 +388,5 @@ export function EditIncomeDialog({ open, income, onClose }: Props) {
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
   );
 }

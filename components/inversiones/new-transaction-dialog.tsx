@@ -176,12 +176,13 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
 
   const createTx = useCreateInvestment();
 
-  useEffect(() => {
-    if (!open) {
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
       setAsset(null);
       setForm(null);
     }
-  }, [open]);
+  }
 
   function selectAsset(a: AssetConfig) {
     setAsset(a);
@@ -278,7 +279,7 @@ export function NewTransactionDialog({ defaultPortfolioId, customTrigger }: { de
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {customTrigger ? (
         <DialogTrigger render={customTrigger as React.ReactElement} />
       ) : (

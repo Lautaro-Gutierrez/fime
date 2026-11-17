@@ -6,11 +6,13 @@ import dynamic from "next/dynamic";
 const QuickAdd = dynamic(() => import("@/components/gastos/quick-add").then((mod) => mod.QuickAdd), { ssr: false });
 import { MonthSelector } from "@/components/gastos/month-selector";
 import { useExpenses, sumExpensesByType, type Expense } from "@/hooks/use-expenses";
+import { useIncomes } from "@/hooks/use-incomes";
 import {
   firstOfMonth,
-  formatUSD,
-  toISODate
+  formatARS,
+  toISODate,
 } from "@/lib/format";
+import { PrivateAmount } from "@/components/ui/private-amount";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -50,17 +52,35 @@ export default function GastosClient() {
   // Controlled modal state
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [showAllMovements, setShowAllMovements] = useState(false);
 
   const { data: expenses = [], isLoading } = useExpenses(month);
+  const { data: incomes = [] } = useIncomes(month);
 
   const { fixed, variable, total } = useMemo(() => sumExpensesByType(expenses), [expenses]);
-  
-  // Mock budget (puedes conectarlo a Supabase más adelante)
-  const budgetFijos = 1500000;
-  const budgetVariables = 1500000;
-  
-  const pctFijos = Math.min(100, Math.round((fixed / budgetFijos) * 100));
-  const pctVariables = Math.min(100, Math.round((variable / budgetVariables) * 100));
+
+  const { budgetFijos, budgetVariables, hasIncomeBudget } = useMemo(() => {
+    const totalInc = incomes.reduce((s, inc) => s + inc.amount_ars, 0);
+    if (totalInc <= 0) {
+      return { budgetFijos: 0, budgetVariables: 0, hasIncomeBudget: false };
+    }
+    let fijos = 0;
+    let variables = 0;
+    for (const inc of incomes) {
+      const fixedPct = inc.distribution?.fixed_pct ?? 50;
+      const variablePct = inc.distribution?.variable_pct ?? 30;
+      fijos += (inc.amount_ars * fixedPct) / 100;
+      variables += (inc.amount_ars * variablePct) / 100;
+    }
+    return {
+      budgetFijos: Math.round(fijos),
+      budgetVariables: Math.round(variables),
+      hasIncomeBudget: true,
+    };
+  }, [incomes]);
+
+  const pctFijos = budgetFijos > 0 ? Math.min(100, Math.round((fixed / budgetFijos) * 100)) : 0;
+  const pctVariables = budgetVariables > 0 ? Math.min(100, Math.round((variable / budgetVariables) * 100)) : 0;
 
   const handleNewExpense = () => {
     setEditingExpense(null);
@@ -78,55 +98,25 @@ export default function GastosClient() {
   };
 
   const quickAddBtn = (
-    <button 
+    <button
+      id="gastos-quick-add"
       onClick={handleNewExpense}
       className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-rose-500/20"
     >
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 4v16m8-8H4"/></svg>
       Nuevo Gasto
     </button>
   );
 
   /* ───── Top 3 Expenses Calculation ───── */
   const displayTopExpenses = useMemo(() => {
-    const sorted = [...expenses]
+    return [...expenses]
       .sort((a, b) => b.amount - a.amount)
-      .slice(0, 3);
-      
-    if (sorted.length > 0) {
-      const fallbacks = [
-        { id: "demo-t1", note: "Alquiler Departamento", category: "alquiler", amount: 508000 },
-        { id: "demo-t2", note: "Seguro Auto Anual", category: "servicios", amount: 150000 },
-        { id: "demo-t3", note: "Supermercado Jumbo", category: "comida", amount: 85200 }
-      ];
-      while (sorted.length < 3) {
-        const item = fallbacks[sorted.length];
-        sorted.push({
-          id: item.id,
-          user_id: "",
-          amount: item.amount,
-          currency: "ARS",
-          category: item.category as any,
-          type: "fixed",
-          date: "",
-          note: item.note,
-          card_id: null,
-          created_at: "",
-          updated_at: "",
-          is_subscription: false
-        });
-      }
-      return sorted.map(exp => ({
+      .slice(0, 3)
+      .map((exp) => ({
         ...exp,
-        raw: exp.id.startsWith("demo-") ? null : exp
+        raw: exp,
       }));
-    }
-
-    return [
-      { id: "demo-t1", note: "Alquiler Departamento", category: "alquiler", amount: 508000, raw: null },
-      { id: "demo-t2", note: "Seguro Auto Anual", category: "servicios", amount: 150000, raw: null },
-      { id: "demo-t3", note: "Supermercado Jumbo", category: "comida", amount: 85200, raw: null }
-    ];
   }, [expenses]);
 
   /* ───── Subscriptions Calculation ───── */
@@ -155,46 +145,35 @@ export default function GastosClient() {
 
   /* ───── Bills and Calendar Data ───── */
   const allPayments = useMemo(() => {
-    if (expenses.length > 0) {
-      return [...expenses]
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .map(exp => {
-          const dateObj = parseISO(exp.date);
-          const day = dateObj.getDate();
-          const dayStr = format(dateObj, "dd");
-          const monthYear = format(dateObj, "MMM dd", { locale: es });
-          const name = exp.note || exp.category.replace(/_/g, " ");
-          const todayISO = toISODate(new Date());
-          const isFuture = exp.date > todayISO;
-          const isPending = exp.type === "fixed" || isFuture;
-          const status = isPending ? "Pendiente" : "Pagado";
-          const statusClass = isPending ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
-          const isUrgent = exp.category === "tarjeta_credito" || exp.category === "alquiler" || exp.category === "imprevistos";
-          
-          return {
-            id: exp.id,
-            day,
-            dayStr,
-            name,
-            monthYear,
-            amount: exp.amount,
-            status,
-            statusClass,
-            isPending,
-            isUrgent,
-            raw: exp
-          };
-        });
-    }
+    const todayISO = toISODate(new Date());
+    return [...expenses]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(exp => {
+        const dateObj = parseISO(exp.date);
+        const day = dateObj.getDate();
+        const dayStr = format(dateObj, "dd");
+        const monthYear = format(dateObj, "MMM dd", { locale: es });
+        const name = exp.note || exp.category.replace(/_/g, " ");
+        const isPending = exp.date > todayISO;
+        const status = isPending ? "Pendiente" : "Pagado";
+        const statusClass = isPending ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400";
+        const isUrgent = exp.category === "tarjeta_credito" || exp.category === "alquiler" || exp.category === "imprevistos";
 
-    const currentMonthLabel = format(month, "MMM", { locale: es });
-    return [
-      { id: "demo-b1", day: 20, dayStr: "20", name: "Servicio Electricidad", monthYear: `${currentMonthLabel} 20`, amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", isPending: true, isUrgent: false, raw: null },
-      { id: "demo-b2", day: 22, dayStr: "22", name: "Servicio Internet", monthYear: `${currentMonthLabel} 22`, amount: 65000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", isPending: false, isUrgent: false, raw: null },
-      { id: "demo-b3", day: 25, dayStr: "25", name: "Expensas/Agua", monthYear: `${currentMonthLabel} 25`, amount: 45000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", isPending: false, isUrgent: false, raw: null },
-      { id: "demo-b4", day: 1, dayStr: "01", name: "Seguro Auto", monthYear: `${currentMonthLabel} 01`, amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", isPending: true, isUrgent: true, raw: null }
-    ].sort((a, b) => a.day - b.day);
-  }, [expenses, month]);
+        return {
+          id: exp.id,
+          day,
+          dayStr,
+          name,
+          monthYear,
+          amount: exp.amount,
+          status,
+          statusClass,
+          isPending,
+          isUrgent,
+          raw: exp
+        };
+      });
+  }, [expenses]);
 
   const calendarDays = useMemo(() => {
     const year = month.getFullYear();
@@ -225,15 +204,7 @@ export default function GastosClient() {
 
   /* ───── Expense Distribution (Donut) ───── */
   const distributionData = useMemo(() => {
-    if (expenses.length === 0) {
-      return [
-        { name: "Comida", amount: 621500, pct: 32.56, strokeColor: "#10b981", bgClass: "bg-emerald-500" },
-        { name: "Alquiler", amount: 568100, pct: 29.76, strokeColor: "#6366f1", bgClass: "bg-indigo-500" },
-        { name: "Servicios", amount: 483500, pct: 25.33, strokeColor: "#0ea5e9", bgClass: "bg-sky-500" },
-        { name: "Transporte", amount: 324500, pct: 17.00, strokeColor: "#f59e0b", bgClass: "bg-amber-500" },
-        { name: "Otros", amount: 195300, pct: 10.23, strokeColor: "#ec4899", bgClass: "bg-pink-500" }
-      ];
-    }
+    if (expenses.length === 0) return [];
 
     const totalsByCategory = new Map<string, number>();
     let totalSum = 0;
@@ -283,194 +254,94 @@ export default function GastosClient() {
 
   const donutSegments = useMemo(() => {
     const totalCircumference = 2 * Math.PI * 60; // 376.99
-    let accumulatedPercent = 0;
-    
-    return distributionData.map((item) => {
+    return distributionData.reduce<
+      Array<
+        (typeof distributionData)[number] & {
+          strokeDasharray: string;
+          strokeDashoffset: string;
+          accumulated: number;
+        }
+      >
+    >((acc, item) => {
+      const prevAccumulated = acc.length > 0 ? acc[acc.length - 1].accumulated : 0;
       const segmentLength = (item.pct / 100) * totalCircumference;
-      const strokeDashoffset = -(accumulatedPercent / 100) * totalCircumference;
-      accumulatedPercent += item.pct;
-      
-      return {
+      const strokeDashoffset = -(prevAccumulated / 100) * totalCircumference;
+      acc.push({
         ...item,
         strokeDasharray: `${segmentLength.toFixed(1)} ${(totalCircumference - segmentLength).toFixed(1)}`,
         strokeDashoffset: strokeDashoffset.toFixed(1),
-      };
-    });
+        accumulated: prevAccumulated + item.pct,
+      });
+      return acc;
+    }, []);
   }, [distributionData]);
 
   /* ───── Recent Movements Calculation ───── */
   const recentMovements = useMemo(() => {
-    if (expenses.length > 0) {
-      const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
-      
-      const list: Array<{
-        id: string;
-        name: string;
-        date: string;
-        amount: number;
-        status: string;
-        statusClass: string;
-        bgClass: string;
-        textClass: string;
-        iconSvg: React.ReactNode;
-        raw: Expense | null;
-      }> = sorted.slice(0, 6).map(exp => {
-        const cat = exp.is_subscription ? "suscripciones" : exp.category;
-        let bgClass = "bg-indigo-500/10";
-        let textClass = "text-indigo-400";
-        let iconSvg = (
-          <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+    if (expenses.length === 0) return [];
+    const todayISO = toISODate(new Date());
+    const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
+
+    return sorted.map(exp => {
+      const cat = exp.is_subscription ? "suscripciones" : exp.category;
+      let bgClass = "bg-indigo-500/10";
+      let iconSvg = (
+        <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+      );
+
+      if (cat === "comida") {
+        bgClass = "bg-emerald-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
         );
-
-        if (cat === "comida") {
-          bgClass = "bg-emerald-500/10";
-          textClass = "text-emerald-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-          );
-        } else if (cat === "servicios") {
-          bgClass = "bg-sky-500/10";
-          textClass = "text-sky-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          );
-        } else if (cat === "impuestos") {
-          bgClass = "bg-amber-500/10";
-          textClass = "text-amber-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-          );
-        } else if (cat === "tarjeta_credito") {
-          bgClass = "bg-purple-500/10";
-          textClass = "text-purple-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-          );
-        } else if (cat === "educacion") {
-          bgClass = "bg-teal-500/10";
-          textClass = "text-teal-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-          );
-        } else if (cat === "imprevistos") {
-          bgClass = "bg-pink-500/10";
-          textClass = "text-pink-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          );
-        } else if (cat === "suscripciones") {
-          bgClass = "bg-rose-500/10";
-          textClass = "text-rose-400";
-          iconSvg = (
-            <svg className="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          );
-        }
-
-        const dateStr = format(parseISO(exp.date), "dd MMM", { locale: es });
-        const name = exp.note || cat.replace(/_/g, " ");
-
-        return {
-          id: exp.id,
-          name,
-          date: dateStr,
-          amount: exp.amount,
-          status: exp.type === "fixed" || exp.date > toISODate(new Date()) ? "Pendiente" : "Pagado",
-          statusClass: exp.type === "fixed" || exp.date > toISODate(new Date()) ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400",
-          bgClass,
-          textClass,
-          iconSvg,
-          raw: exp
-        };
-      });
-
-      const fallbacks = [
-        { id: "demo-m1", name: "Alquiler", date: "01 Jun", amount: 508000, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-indigo-500/10", textClass: "text-indigo-400", iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>, raw: null },
-        { id: "demo-m2", name: "Supermercado", date: "31 May", amount: 85200, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-emerald-500/10", textClass: "text-emerald-400", iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>, raw: null },
-        { id: "demo-m3", name: "Electricidad", date: "20 May", amount: 120000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-sky-500/10", textClass: "text-sky-400", iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>, raw: null },
-        { id: "demo-m4", name: "Transporte", date: "28 May", amount: 45500, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-amber-500/10", textClass: "text-amber-400", iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>, raw: null },
-        { id: "demo-m5", name: "Netflix", date: "25 May", amount: 15990, status: "Pagado", statusClass: "bg-emerald-500/15 text-emerald-400", bgClass: "bg-pink-500/10", textClass: "text-pink-400", iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>, raw: null },
-        { id: "demo-m6", name: "Seguro Auto", date: "01 Jun", amount: 150000, status: "Pendiente", statusClass: "bg-rose-500/15 text-rose-400", bgClass: "bg-violet-500/10", textClass: "text-violet-400", iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>, raw: null }
-      ];
-      while (list.length < 6) {
-        list.push(fallbacks[list.length]);
+      } else if (cat === "servicios") {
+        bgClass = "bg-sky-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        );
+      } else if (cat === "impuestos") {
+        bgClass = "bg-amber-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        );
+      } else if (cat === "tarjeta_credito") {
+        bgClass = "bg-purple-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        );
+      } else if (cat === "educacion") {
+        bgClass = "bg-teal-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+        );
+      } else if (cat === "imprevistos") {
+        bgClass = "bg-pink-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        );
+      } else if (cat === "suscripciones") {
+        bgClass = "bg-rose-500/10";
+        iconSvg = (
+          <svg className="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        );
       }
-      return list;
-    }
 
-    return [
-      {
-        id: "demo-m1",
-        name: "Alquiler",
-        date: "01 Jun",
-        amount: 508000,
-        status: "Pagado",
-        statusClass: "bg-emerald-500/15 text-emerald-400",
-        bgClass: "bg-indigo-500/10",
-        textClass: "text-indigo-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>,
-        raw: null
-      },
-      {
-        id: "demo-m2",
-        name: "Supermercado",
-        date: "31 May",
-        amount: 85200,
-        status: "Pagado",
-        statusClass: "bg-emerald-500/15 text-emerald-400",
-        bgClass: "bg-emerald-500/10",
-        textClass: "text-emerald-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>,
-        raw: null
-      },
-      {
-        id: "demo-m3",
-        name: "Electricidad",
-        date: "20 May",
-        amount: 120000,
-        status: "Pendiente",
-        statusClass: "bg-rose-500/15 text-rose-400",
-        bgClass: "bg-sky-500/10",
-        textClass: "text-sky-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
-        raw: null
-      },
-      {
-        id: "demo-m4",
-        name: "Transporte",
-        date: "28 May",
-        amount: 45500,
-        status: "Pagado",
-        statusClass: "bg-emerald-500/15 text-emerald-400",
-        bgClass: "bg-amber-500/10",
-        textClass: "text-amber-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>,
-        raw: null
-      },
-      {
-        id: "demo-m5",
-        name: "Netflix",
-        date: "25 May",
-        amount: 15990,
-        status: "Pagado",
-        statusClass: "bg-emerald-500/15 text-emerald-400",
-        bgClass: "bg-pink-500/10",
-        textClass: "text-pink-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
-        raw: null
-      },
-      {
-        id: "demo-m6",
-        name: "Seguro Auto",
-        date: "01 Jun",
-        amount: 150000,
-        status: "Pendiente",
-        statusClass: "bg-rose-500/15 text-rose-400",
-        bgClass: "bg-violet-500/10",
-        textClass: "text-violet-400",
-        iconSvg: <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>,
-        raw: null
-      }
-    ];
+      const dateStr = format(parseISO(exp.date), "dd MMM", { locale: es });
+      const name = exp.note || cat.replace(/_/g, " ");
+      const isPending = exp.date > todayISO;
+
+      return {
+        id: exp.id,
+        name,
+        date: dateStr,
+        amount: exp.amount,
+        status: isPending ? "Pendiente" : "Pagado",
+        statusClass: isPending ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400",
+        bgClass,
+        iconSvg,
+        raw: exp
+      };
+    });
   }, [expenses]);
 
   return (
@@ -482,7 +353,9 @@ export default function GastosClient() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">Egresos de {format(month, "MMMM", { locale: es })}</h1>
-              <span className="text-3xl font-extrabold text-white tnum">{formatUSD(total, false)}</span>
+              <span className="text-3xl font-extrabold text-white tnum">
+                <PrivateAmount>{formatARS(total, false)}</PrivateAmount>
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <MonthSelector month={month} onChange={(m) => { setMonth(m); setSelectedDay(null); }} />
@@ -502,10 +375,12 @@ export default function GastosClient() {
           <div className="rounded-2xl p-6 border card-hover flex flex-col justify-between" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(244,63,94,0.1)" }}><svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(244,63,94,0.1)" }}><svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
                 <span className="text-xs text-slate-500 font-medium">Gastos Fijos</span>
               </div>
-              <p className="text-2xl font-bold text-white tnum">{formatUSD(fixed, false)}</p>
+              <p className="text-2xl font-bold text-white tnum">
+                <PrivateAmount>{formatARS(fixed, false)}</PrivateAmount>
+              </p>
               <p className="text-xs text-slate-500 mt-1">Gastos al vencimiento</p>
             </div>
             <div className="mt-5">
@@ -516,7 +391,17 @@ export default function GastosClient() {
               <div className="w-full h-2 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
                 <div className="h-2 rounded-full progress-bar" style={{ width: `${pctFijos}%`, background: "linear-gradient(90deg, #f43f5e, #e11d48)" }}></div>
               </div>
-              <p className="text-[10px] text-rose-400 mt-1.5 font-medium">{formatUSD(Math.max(0, budgetFijos - fixed), false)} disponibles de {formatUSD(budgetFijos, false)}</p>
+              {hasIncomeBudget ? (
+                <p className="text-[10px] text-rose-400 mt-1.5 font-medium">
+                  {fixed > budgetFijos ? (
+                    <>Excedido en <PrivateAmount>{formatARS(fixed - budgetFijos, false)}</PrivateAmount> de <PrivateAmount>{formatARS(budgetFijos, false)}</PrivateAmount></>
+                  ) : (
+                    <><PrivateAmount>{formatARS(budgetFijos - fixed, false)}</PrivateAmount> disponibles de <PrivateAmount>{formatARS(budgetFijos, false)}</PrivateAmount></>
+                  )}
+                </p>
+              ) : (
+                <p className="text-[10px] text-slate-500 mt-1.5 font-medium">Cargá ingresos del mes para calcular presupuesto</p>
+              )}
             </div>
           </div>
 
@@ -524,10 +409,12 @@ export default function GastosClient() {
           <div className="rounded-2xl p-6 border card-hover flex flex-col justify-between" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(245,158,11,0.1)" }}><svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg></div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(245,158,11,0.1)" }}><svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg></div>
                 <span className="text-xs text-slate-500 font-medium">Gastos Variables</span>
               </div>
-              <p className="text-2xl font-bold text-white tnum">{formatUSD(variable, false)}</p>
+              <p className="text-2xl font-bold text-white tnum">
+                <PrivateAmount>{formatARS(variable, false)}</PrivateAmount>
+              </p>
               <p className="text-xs text-slate-500 mt-1">Incluye extras y ocio</p>
             </div>
             <div className="mt-5">
@@ -538,7 +425,17 @@ export default function GastosClient() {
               <div className="w-full h-2 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
                 <div className="h-2 rounded-full progress-bar" style={{ width: `${pctVariables}%`, background: "linear-gradient(90deg, #f59e0b, #d97706)" }}></div>
               </div>
-              <p className="text-[10px] text-emerald-400 mt-1.5 font-medium">{formatUSD(Math.max(0, budgetVariables - variable), false)} disponibles de {formatUSD(budgetVariables, false)}</p>
+              {hasIncomeBudget ? (
+                <p className={cn("text-[10px] mt-1.5 font-medium", variable > budgetVariables ? "text-rose-400" : "text-emerald-400")}>
+                  {variable > budgetVariables ? (
+                    <>Excedido en <PrivateAmount>{formatARS(variable - budgetVariables, false)}</PrivateAmount> de <PrivateAmount>{formatARS(budgetVariables, false)}</PrivateAmount></>
+                  ) : (
+                    <><PrivateAmount>{formatARS(budgetVariables - variable, false)}</PrivateAmount> disponibles de <PrivateAmount>{formatARS(budgetVariables, false)}</PrivateAmount></>
+                  )}
+                </p>
+              ) : (
+                <p className="text-[10px] text-slate-500 mt-1.5 font-medium">Cargá ingresos del mes para calcular presupuesto</p>
+              )}
             </div>
           </div>
 
@@ -546,7 +443,7 @@ export default function GastosClient() {
           <div className="rounded-2xl p-6 border lg:row-span-2 card-hover flex flex-col justify-between" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)", height: "100%" }}>
             <div className="flex-none">
               <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                 Calendario de Pagos
               </h3>
               {/* Mini Cal */}
@@ -649,7 +546,9 @@ export default function GastosClient() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-white tnum font-bold">{formatUSD(bill.amount, false)}</p>
+                        <p className="text-sm text-white tnum font-bold">
+                          <PrivateAmount>{formatARS(bill.amount, false)}</PrivateAmount>
+                        </p>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold mt-1 inline-block ${bill.statusClass}`}>{bill.status}</span>
                       </div>
                     </div>
@@ -660,51 +559,55 @@ export default function GastosClient() {
           </div>
 
           {/* Top 3 Gastos del Mes (Col 1, row 2) */}
-          <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="rounded-2xl p-6 border card-hover flex flex-col" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+              <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
               Top 3 Gastos del Mes
             </h3>
-            <div className="flex flex-col gap-3">
-              {displayTopExpenses.map((exp, idx) => {
-                const bgStyles = [
-                  "bg-indigo-500/10 text-indigo-400",
-                  "bg-emerald-500/10 text-emerald-400",
-                  "bg-sky-500/10 text-sky-400"
-                ];
-                const styleClass = bgStyles[idx] || "bg-slate-500/10 text-slate-400";
-                const catLabel = exp.category.replace(/_/g, " ");
-                const noteLabel = exp.note || catLabel;
-                const isClickeable = !!exp.raw;
-                return (
-                  <div 
-                    key={exp.id} 
-                    onClick={() => isClickeable && handleEditExpense(exp.raw!)}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors",
-                      isClickeable && "cursor-pointer hover:bg-white/[0.06] border-white/[0.08]"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${styleClass}`}>
-                        {idx + 1}
+            <div className="flex flex-col gap-3 flex-1">
+              {displayTopExpenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
+                  <p className="text-xs text-slate-500">No tenés gastos registrados este mes.</p>
+                </div>
+              ) : (
+                displayTopExpenses.map((exp, idx) => {
+                  const bgStyles = [
+                    "bg-indigo-500/10 text-indigo-400",
+                    "bg-emerald-500/10 text-emerald-400",
+                    "bg-sky-500/10 text-sky-400"
+                  ];
+                  const styleClass = bgStyles[idx] || "bg-slate-500/10 text-slate-400";
+                  const catLabel = exp.category.replace(/_/g, " ");
+                  const noteLabel = exp.note || catLabel;
+                  return (
+                    <div
+                      key={exp.id}
+                      onClick={() => handleEditExpense(exp.raw)}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors cursor-pointer hover:bg-white/[0.06] hover:border-white/[0.08]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${styleClass}`}>
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white capitalize truncate max-w-[140px]">{noteLabel}</p>
+                          <p className="text-[11px] text-slate-500 capitalize">{catLabel}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white capitalize truncate max-w-[140px]">{noteLabel}</p>
-                        <p className="text-[11px] text-slate-500 capitalize">{catLabel}</p>
-                      </div>
+                      <span className="text-base font-bold text-rose-400 tnum">
+                        <PrivateAmount>-{formatARS(exp.amount, false)}</PrivateAmount>
+                      </span>
                     </div>
-                    <span className="text-base font-bold text-rose-400 tnum">-{formatUSD(exp.amount, false)}</span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
           {/* Suscripciones Activas (Col 2, row 2) */}
           <div className="rounded-2xl p-6 border card-hover flex flex-col" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               Suscripciones Activas
             </h3>
             <div className="flex flex-col gap-3 flex-1">
@@ -733,7 +636,9 @@ export default function GastosClient() {
                           <p className="text-[11px] text-slate-500 capitalize">{sub.category}</p>
                         </div>
                       </div>
-                      <span className="text-base font-bold text-white tnum">{formatUSD(sub.amount, false)}</span>
+                      <span className="text-base font-bold text-white tnum">
+                        <PrivateAmount>{formatARS(sub.amount, false)}</PrivateAmount>
+                      </span>
                     </div>
                   );
                 })
@@ -745,57 +650,79 @@ export default function GastosClient() {
         {/* Distribution + Movimientos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in delay-2">
           {/* Distribución de Egresos */}
-          <div id="gastos-donut" className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+          <div id="gastos-donut" className="rounded-2xl p-6 border card-hover flex flex-col" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <h3 className="text-sm font-semibold text-white mb-4">Distribución de Egresos</h3>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <svg viewBox="0 0 160 160" className="w-36 h-36 flex-shrink-0">
-                {donutSegments.map((seg, idx) => (
-                  <circle
-                    key={idx}
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke={seg.strokeColor}
-                    strokeWidth="20"
-                    strokeDasharray={seg.strokeDasharray}
-                    strokeDashoffset={seg.strokeDashoffset}
-                    transform="rotate(-90 80 80)"
-                    className="transition-all duration-500 ease-out"
-                  />
-                ))}
-              </svg>
-              <div className="flex flex-col gap-3 flex-1 text-xs w-full">
-                {donutSegments.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between border-b border-white/[0.04] pb-2 last:border-b-0 last:pb-0">
-                    <div className="flex items-center gap-2.5">
-                      <span className={`w-3 h-3 rounded-full ${item.bgClass}`} style={{ boxShadow: `0 0 8px ${item.strokeColor}80` }} />
-                      <span className="text-slate-300 font-medium text-sm">{item.name}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      <span className="text-slate-500 tnum">{item.pct.toFixed(1)}%</span>
-                      <span className="text-white font-bold tnum">{formatUSD(item.amount, false)}</span>
-                    </div>
-                  </div>
-                ))}
+            {donutSegments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center flex-1 py-10 text-center gap-3">
+                <svg viewBox="0 0 160 160" className="w-28 h-28 opacity-25">
+                  <circle cx="80" cy="80" r="60" fill="none" stroke="#64748b" strokeWidth="18" />
+                </svg>
+                <p className="text-xs text-slate-500">Sin gastos registrados en el mes para graficar.</p>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <svg viewBox="0 0 160 160" className="w-36 h-36 flex-shrink-0">
+                  {donutSegments.map((seg, idx) => (
+                    <circle
+                      key={idx}
+                      cx="80"
+                      cy="80"
+                      r="60"
+                      fill="none"
+                      stroke={seg.strokeColor}
+                      strokeWidth="20"
+                      strokeDasharray={seg.strokeDasharray}
+                      strokeDashoffset={seg.strokeDashoffset}
+                      transform="rotate(-90 80 80)"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  ))}
+                </svg>
+                <div className="flex flex-col gap-3 flex-1 text-xs w-full">
+                  {donutSegments.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between border-b border-white/[0.04] pb-2 last:border-b-0 last:pb-0">
+                      <div className="flex items-center gap-2.5">
+                        <span className={`w-3 h-3 rounded-full ${item.bgClass}`} style={{ boxShadow: `0 0 8px ${item.strokeColor}80` }} />
+                        <span className="text-slate-300 font-medium text-sm">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-right">
+                        <span className="text-slate-500 tnum">{item.pct.toFixed(1)}%</span>
+                        <span className="text-white font-bold tnum">
+                          <PrivateAmount>{formatARS(item.amount, false)}</PrivateAmount>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Movimientos Recientes */}
-          <div className="rounded-2xl p-6 border card-hover" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <h3 className="text-sm font-semibold text-white mb-4">Movimientos Recientes</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-              {recentMovements.map((mov) => {
-                const isClickeable = !!mov.raw;
-                return (
-                  <div 
-                    key={mov.id} 
-                    onClick={() => isClickeable && handleEditExpense(mov.raw!)}
-                    className={cn(
-                      "flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0 transition-colors",
-                      isClickeable && "cursor-pointer hover:bg-white/[0.04] px-2 rounded-xl -mx-2"
-                    )}
+          <div className="rounded-2xl p-6 border card-hover flex flex-col" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">Movimientos del Mes</h3>
+              {recentMovements.length > 8 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllMovements((v) => !v)}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+                >
+                  {showAllMovements ? "Ver menos" : `Ver todos (${recentMovements.length})`}
+                </button>
+              )}
+            </div>
+            {recentMovements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center flex-1 py-10 text-center">
+                <p className="text-xs text-slate-500">No hay movimientos registrados este mes.</p>
+              </div>
+            ) : (
+              <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3", showAllMovements && "max-h-[380px] overflow-y-auto pr-1")}>
+                {(showAllMovements ? recentMovements : recentMovements.slice(0, 8)).map((mov) => (
+                  <div
+                    key={mov.id}
+                    onClick={() => handleEditExpense(mov.raw)}
+                    className="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0 transition-colors cursor-pointer hover:bg-white/[0.04] px-2 rounded-xl -mx-2"
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${mov.bgClass}`}>
                       {mov.iconSvg}
@@ -805,15 +732,17 @@ export default function GastosClient() {
                       <p className="text-[10px] text-slate-600">{mov.date}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xs text-rose-400 font-semibold tnum">-{formatUSD(mov.amount, false)}</p>
+                      <p className="text-xs text-rose-400 font-semibold tnum">
+                        <PrivateAmount>-{formatARS(mov.amount, false)}</PrivateAmount>
+                      </p>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${mov.statusClass}`}>
                         {mov.status}
                       </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

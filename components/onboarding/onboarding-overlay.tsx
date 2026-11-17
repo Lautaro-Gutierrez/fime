@@ -25,17 +25,21 @@ export function OnboardingOverlay() {
     skip,
   } = useOnboarding();
 
+  const isModal =
+    !currentStep || currentStep.type === "modal" || !currentStep.targetSelector;
+
   const [coords, setCoords] = useState<Coords | null>(null);
   const [tooltipPlacement, setTooltipPlacement] = useState<"top" | "bottom" | "left" | "right" | "center">("center");
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const effectiveCoords = isModal ? null : coords;
+  const effectivePlacement = isModal ? "center" : tooltipPlacement;
 
   // Recalcular las coordenadas del spotlight cuando cambia el paso
   useEffect(() => {
     if (!isActive || !currentStep) return;
 
     if (currentStep.type === "modal" || !currentStep.targetSelector) {
-      setCoords(null);
-      setTooltipPlacement("center");
       // Desplazar al tope cuando es un modal central
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -60,7 +64,7 @@ export function OnboardingOverlay() {
 
           // Decidir placement dinámico si se sale de la pantalla
           let placement = currentStep.placement || "bottom";
-          
+
           // Clampear placements si no hay espacio físico
           if (placement === "bottom" && rect.bottom + 200 > window.innerHeight) {
             placement = "top";
@@ -80,13 +84,14 @@ export function OnboardingOverlay() {
             `[Onboarding Diagnostic] El elemento para el selector "${currentStep.targetSelector}" del paso "${currentStep.id}" no fue encontrado en el DOM.`
           );
         }
-        // Fallback a modal si no encontramos el elemento target en el DOM
-        setCoords(null);
-        setTooltipPlacement("center");
+        setTimeout(() => {
+          setCoords(null);
+          setTooltipPlacement("center");
+        }, 0);
       }
     };
 
-    updateCoords();
+    const initTimer = setTimeout(updateCoords, 0);
     window.addEventListener("resize", updateCoords);
     window.addEventListener("scroll", updateCoords);
 
@@ -96,6 +101,7 @@ export function OnboardingOverlay() {
     return () => {
       window.removeEventListener("resize", updateCoords);
       window.removeEventListener("scroll", updateCoords);
+      clearTimeout(initTimer);
       clearTimeout(timer);
     };
   }, [isActive, currentStep, currentStepIndex]);
@@ -104,7 +110,7 @@ export function OnboardingOverlay() {
 
   // Lógica para posicionar el Tooltip
   const getTooltipStyle = () => {
-    if (tooltipPlacement === "center" || !coords) {
+    if (effectivePlacement === "center" || !effectiveCoords) {
       return {
         top: "50%",
         left: "50%",
@@ -118,25 +124,25 @@ export function OnboardingOverlay() {
       position: "absolute",
     };
 
-    switch (tooltipPlacement) {
+    switch (effectivePlacement) {
       case "top":
-        style.bottom = `${window.innerHeight - coords.top + gap}px`;
-        style.left = `${coords.left + coords.width / 2}px`;
+        style.bottom = `${window.innerHeight - effectiveCoords.top + gap}px`;
+        style.left = `${effectiveCoords.left + effectiveCoords.width / 2}px`;
         style.transform = "translateX(-50%)";
         break;
       case "bottom":
-        style.top = `${coords.top + coords.height + gap}px`;
-        style.left = `${coords.left + coords.width / 2}px`;
+        style.top = `${effectiveCoords.top + effectiveCoords.height + gap}px`;
+        style.left = `${effectiveCoords.left + effectiveCoords.width / 2}px`;
         style.transform = "translateX(-50%)";
         break;
       case "left":
-        style.right = `${window.innerWidth - coords.left + gap}px`;
-        style.top = `${coords.top + coords.height / 2}px`;
+        style.right = `${window.innerWidth - effectiveCoords.left + gap}px`;
+        style.top = `${effectiveCoords.top + effectiveCoords.height / 2}px`;
         style.transform = "translateY(-50%)";
         break;
       case "right":
-        style.left = `${coords.left + coords.width + gap}px`;
-        style.top = `${coords.top + coords.height / 2}px`;
+        style.left = `${effectiveCoords.left + effectiveCoords.width + gap}px`;
+        style.top = `${effectiveCoords.top + effectiveCoords.height / 2}px`;
         style.transform = "translateY(-50%)";
         break;
     }
@@ -150,17 +156,17 @@ export function OnboardingOverlay() {
       className="fixed inset-0 z-[100] overflow-y-auto overflow-x-hidden bg-black/40 pointer-events-auto h-dvh scrollbar-none"
     >
       {/* 1. SPOTLIGHT EFFECT (MÁSCARA) */}
-      {coords && (
+      {effectiveCoords && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed rounded-xl pointer-events-none z-40 transition-all duration-300"
           style={{
-            top: coords.top - 8,
-            left: coords.left - 8,
-            width: coords.width + 16,
-            height: coords.height + 16,
+            top: effectiveCoords.top - 8,
+            left: effectiveCoords.left - 8,
+            width: effectiveCoords.width + 16,
+            height: effectiveCoords.height + 16,
             boxShadow: "0 0 0 9999px rgba(3, 4, 8, 0.85)", // Deep background
             border: "1px solid rgba(255, 255, 255, 0.15)",
           }}
@@ -168,7 +174,7 @@ export function OnboardingOverlay() {
       )}
 
       {/* OVERLAY COMPLETO CUANDO ES MODAL */}
-      {!coords && (
+      {!effectiveCoords && (
         <div className="fixed inset-0 bg-[#030408]/85 z-40 backdrop-blur-xs" />
       )}
 
@@ -176,7 +182,7 @@ export function OnboardingOverlay() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep.id}
-          initial={{ opacity: 0, scale: 0.96, y: coords ? 0 : 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: effectiveCoords ? 0 : 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
@@ -185,7 +191,7 @@ export function OnboardingOverlay() {
             "z-[110] w-full max-w-sm rounded-2xl p-6",
             "border border-white/[0.08] bg-[#0A0F1D]/80 backdrop-blur-xl",
             "shadow-2xl shadow-black/80 ring-1 ring-white/[0.05]",
-            coords ? "mx-4 my-2" : ""
+            effectiveCoords ? "mx-4 my-2" : ""
           )}
         >
           {/* Botón de cerrar / saltar en la esquina */}

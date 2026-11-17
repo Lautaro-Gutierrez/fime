@@ -24,7 +24,25 @@ const CATEGORY_COLORS: Record<string, string> = {
   imprevistos: "#BE123C", // rose-700
 };
 
-function CustomNode({ x, y, width, height, index, payload, containerWidth }: any) {
+type SankeyNodeProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  index?: number;
+  payload?: { name: string };
+  containerWidth: number;
+};
+
+function CustomNode({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  index = 0,
+  payload = { name: "" },
+  containerWidth,
+}: SankeyNodeProps) {
   const isOut = x + width + 50 > containerWidth;
   const normalizedName = payload.name === "tarjeta_credit" ? "tarjeta_credito" : payload.name;
   const label = CATEGORIES_BY_ID[normalizedName as ExpenseCategory]?.short || normalizedName;
@@ -172,8 +190,10 @@ export function CashflowSankey() {
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0];
-                    // Se usa "as any" para evitar errores de tipado estrictos de recharts TooltipPayload
-                    const dataPayload = data.payload as any;
+                    const dataPayload = data.payload as {
+                      source?: { name?: string };
+                      target?: { name?: string };
+                    };
                     const value = data.value;
                     const name = data.name || `${dataPayload.source?.name} → ${dataPayload.target?.name}`;
                     const normalizedName = name === "tarjeta_credit" ? "tarjeta_credito" : name;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -64,27 +63,20 @@ export function useSaveInvestorProfile() {
 
       if (historyError) throw historyError;
 
-      // 2. Update user preferences with the active profile
+      // 2. Upsert user preferences with the active profile
       const completedAt = new Date().toISOString();
       const { error: prefsError } = await supabase
         .from("user_preferences")
-        .update({
-          investor_profile: payload.result,
-          investor_profile_completed_at: completedAt,
-        })
-        .eq("user_id", user.id);
-
-      if (prefsError) {
-        // Fallback lazy insert if user preferences record doesn't exist yet
-        const { error: insertError } = await supabase
-          .from("user_preferences")
-          .insert({
+        .upsert(
+          {
             user_id: user.id,
             investor_profile: payload.result,
             investor_profile_completed_at: completedAt,
-          });
-        if (insertError) throw insertError;
-      }
+          },
+          { onConflict: "user_id" },
+        );
+
+      if (prefsError) throw prefsError;
 
       return { result: payload.result, completedAt };
     },
@@ -94,8 +86,8 @@ export function useSaveInvestorProfile() {
       queryClient.invalidateQueries({ queryKey: PROFILE_TESTS_KEY });
       toast.success("Perfil de inversor actualizado correctamente");
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al guardar el perfil de inversor");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al guardar el perfil de inversor");
     },
   });
 }

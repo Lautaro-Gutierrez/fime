@@ -1,21 +1,16 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/layout/shell";
 import { ModuleInsightsPanel } from "@/components/module-insights-panel";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
-  Trophy,
-  Target,
-  Flag,
   Trash2,
   Pencil,
   ArrowLeft,
   Sparkles,
-  AlertTriangle,
-  Zap,
   Loader2,
   Save,
 } from "lucide-react";
@@ -46,7 +41,7 @@ import {
 } from "@/lib/goals/progress";
 import { GOALS, GOALS_BY_ID, SOURCE_TYPE_LABELS } from "@/lib/goals";
 import type { GoalConfig, GoalCurrency, SourceTypeId } from "@/lib/goals";
-import type { GoalType, QuestType } from "@/types/database";
+import type { QuestType } from "@/types/database";
 import { CATEGORIES } from "@/lib/categories";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
 import { cn } from "@/lib/utils";
@@ -278,6 +273,7 @@ export default function MetasClient() {
             <h1 className="text-3xl font-bold text-white tracking-tight">Metas y Objetivos</h1>
             {/* Botón superior - minimalista de la app */}
             <button
+              id="metas-quick-add"
               onClick={() => setCreateOpen(true)}
               className="flex items-center gap-2 border border-white/[0.1] hover:bg-white/[0.05] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
             >
@@ -428,7 +424,7 @@ export default function MetasClient() {
 // ─── COMPONENTE: TARJETA INDIVIDUAL (GOAL CARD) ────────────────
 interface GoalCardProps {
   goal: Goal;
-  progress: any;
+  progress: GoalProgress;
   onEdit: (g: Goal) => void;
   onDelete: (g: Goal) => void;
   onQuickAdd: (g: Goal, delta: number) => void;
@@ -530,7 +526,7 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
         {showQuickAdd ? (
           <div className="flex flex-col gap-2">
             <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider text-center">Abonar a meta</span>
-            <div id="metas-quick-add" className="flex gap-1.5">
+            <div className="flex gap-1.5">
               {quickAmounts.map((amt) => (
                 <button
                   key={amt}
@@ -544,7 +540,7 @@ function GoalCard({ goal, progress, onEdit, onDelete, onQuickAdd }: GoalCardProp
           </div>
         ) : (
           <div className="text-[11px] text-slate-400 flex flex-col gap-1.5">
-            {progress.pace?.perMonth > 0 && (
+            {progress.pace && progress.pace.perMonth > 0 && (
               <div className="flex items-center justify-between">
                 <span>Ritmo Requerido</span>
                 <span className="font-mono font-medium text-white/70">
@@ -878,12 +874,13 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
   const [form, setForm] = useState<FormState | null>(null);
   const createGoal = useCreateGoal();
 
-  useEffect(() => {
-    if (!open) {
+  function handleOpenChange(nextOpen: boolean) {
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
       setSelectedType(null);
       setForm(null);
     }
-  }, [open]);
+  }
 
   function handleSelectType(cfg: GoalConfig) {
     setSelectedType(cfg);
@@ -940,7 +937,7 @@ function NewGoalDialog({ holdings = [], open, onOpenChange }: NewGoalDialogProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px] overflow-hidden">
         <AnimatePresence mode="wait">
           {!selectedType ? (
@@ -1084,35 +1081,48 @@ interface EditGoalDialogProps {
 }
 
 function EditGoalDialog({ goal, onClose, holdings = [] }: EditGoalDialogProps) {
-  const [form, setForm] = useState<FormState | null>(null);
+  return (
+    <Dialog open={!!goal} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px] overflow-hidden">
+        {goal && (
+          <EditGoalForm
+            key={`${goal.id}-${goal.updated_at}`}
+            goal={goal}
+            onClose={onClose}
+            holdings={holdings}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditGoalForm({
+  goal,
+  onClose,
+  holdings = [],
+}: {
+  goal: Goal;
+  onClose: () => void;
+  holdings?: ValuedHolding[];
+}) {
+  const [form, setForm] = useState<FormState>(() => ({
+    name: goal.name,
+    target: String(goal.target_amount),
+    currency: goal.currency,
+    quest_type: goal.quest_type,
+    source_type: (goal.source_type as FormState["source_type"]) || "manual",
+    source_ref: goal.source_ref,
+    linked_asset_keys: goal.linked_asset_keys || [],
+    current: String(goal.current_amount || ""),
+    deadline: goal.deadline || "",
+    note: goal.note || "",
+  }));
   const updateGoal = useUpdateGoal();
 
-  useEffect(() => {
-    if (goal) {
-      const cfg = GOALS_BY_ID[goal.goal_type];
-      setForm({
-        name: goal.name,
-        target: String(goal.target_amount),
-        currency: goal.currency,
-        quest_type: goal.quest_type,
-        source_type: (goal.source_type as FormState["source_type"]) || "manual",
-        source_ref: goal.source_ref,
-        linked_asset_keys: goal.linked_asset_keys || [],
-        current: String(goal.current_amount || ""),
-        deadline: goal.deadline || "",
-        note: goal.note || "",
-      });
-    } else {
-      setForm(null);
-    }
-  }, [goal]);
-
-  if (!goal || !form) return null;
   const cfg = GOALS_BY_ID[goal.goal_type];
 
   async function submit() {
-    if (!goal || !form) return;
-
     if (!form.name.trim()) {
       toast.error("Ponele un nombre a la meta");
       return;
@@ -1162,8 +1172,6 @@ function EditGoalDialog({ goal, onClose, holdings = [] }: EditGoalDialogProps) {
   }
 
   return (
-    <Dialog open={!!goal} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px] overflow-hidden">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -1192,7 +1200,7 @@ function EditGoalDialog({ goal, onClose, holdings = [] }: EditGoalDialogProps) {
           <GoalFormBody
             type={cfg}
             form={form}
-            setForm={setForm as React.Dispatch<React.SetStateAction<FormState>>}
+            setForm={setForm}
             holdings={holdings}
           />
 
@@ -1211,7 +1219,5 @@ function EditGoalDialog({ goal, onClose, holdings = [] }: EditGoalDialogProps) {
             </Button>
           </div>
         </motion.div>
-      </DialogContent>
-    </Dialog>
   );
 }

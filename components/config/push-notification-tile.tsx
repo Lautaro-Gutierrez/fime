@@ -12,20 +12,16 @@ export function PushNotificationTile({ className }: { className?: string }) {
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    if ("Notification" in window && "serviceWorker" in navigator) {
-      setPermission(Notification.permission);
-      
-      navigator.serviceWorker.ready
-        .then((reg) => {
-          return reg.pushManager.getSubscription();
-        })
-        .then((sub) => {
-          setSubscribed(!!sub);
-        })
-        .catch((err) => {
-          console.warn("Error al verificar la suscripción del Service Worker:", err);
-        });
-    }
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.ready
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => {
+        setPermission(Notification.permission);
+        setSubscribed(!!sub);
+      })
+      .catch((err) => {
+        console.warn("Error al verificar la suscripción del Service Worker:", err);
+      });
   }, []);
 
   async function handleToggle() {

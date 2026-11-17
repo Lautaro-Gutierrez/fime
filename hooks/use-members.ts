@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -119,7 +119,7 @@ export function useCreateMember() {
           throw error;
         }
         return data as unknown as Member;
-      } catch (err) {
+      } catch {
         const newMember: Member = {
           id: crypto.randomUUID(),
           user_id: user.id,
@@ -134,8 +134,8 @@ export function useCreateMember() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEMBERS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al crear el miembro");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al crear el miembro");
     },
   });
 }
@@ -164,7 +164,7 @@ export function useDeleteMember() {
         const current = getLocalMembers();
         saveLocalMembers(current.filter(m => m.id !== id));
         return id;
-      } catch (err) {
+      } catch {
         const current = getLocalMembers();
         saveLocalMembers(current.filter(m => m.id !== id));
         return id;
@@ -173,8 +173,8 @@ export function useDeleteMember() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEMBERS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al eliminar el miembro");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al eliminar el miembro");
     },
   });
 }

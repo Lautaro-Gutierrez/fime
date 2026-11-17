@@ -10,7 +10,10 @@ import { useGoals } from "@/hooks/use-goals";
 import { useInvestments } from "@/hooks/use-investments";
 import { usePrefsContext } from "@/components/providers/preferences-provider";
 import { useUpdatePreferences } from "@/hooks/use-preferences";
-import { formatUSD } from "@/lib/format";
+import { firstOfMonth, formatARS, formatUSD, toISODate } from "@/lib/format";
+import { txCashflowUsd, usdValueOfTx } from "@/lib/portfolio/holdings";
+import { TX_TYPE_LABELS } from "@/lib/assets";
+import { GOALS_BY_ID } from "@/lib/goals";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Line, ResponsiveContainer, YAxis, Area, AreaChart, XAxis, CartesianGrid, Tooltip } from "recharts";
@@ -62,9 +65,15 @@ export default function DashboardClient() {
   const [selectedPortfolioId, setSelectedPortfolioId] = useState<string>("ALL");
   const { data: portfolios = [] } = usePortfolios();
   const portfolio = usePortfolio(selectedPortfolioId);
-  const currentMonth = useMemo(() => new Date(), []);
+  const currentMonth = useMemo(() => firstOfMonth(new Date()), []);
+  const prevMonth = useMemo(
+    () => new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1),
+    [currentMonth],
+  );
   const incomesQ = useIncomes(currentMonth);
   const expensesQ = useExpenses(currentMonth);
+  const prevIncomesQ = useIncomes(prevMonth);
+  const prevExpensesQ = useExpenses(prevMonth);
   const goalsQ = useGoals();
   const investmentsQ = useInvestments();
 
@@ -83,8 +92,34 @@ export default function DashboardClient() {
     }, 0);
   }, [expensesQ.data, fxMep]);
 
+  const prevTotalIncomesUsd = useMemo(() => {
+    return (prevIncomesQ.data ?? []).reduce((acc, inc) => {
+      return acc + (inc.currency === "USD" ? inc.amount : inc.amount / fxMep);
+    }, 0);
+  }, [prevIncomesQ.data, fxMep]);
+
+  const prevTotalExpensesUsd = useMemo(() => {
+    return (prevExpensesQ.data ?? []).reduce((acc, exp) => {
+      return acc + (exp.currency === "USD" ? exp.amount : exp.amount / fxMep);
+    }, 0);
+  }, [prevExpensesQ.data, fxMep]);
+
   const freeCashFlow = totalIncomesUsd - totalExpensesUsd;
+  const prevFreeCashFlow = prevTotalIncomesUsd - prevTotalExpensesUsd;
   const savingsRate = totalIncomesUsd > 0 ? (freeCashFlow / totalIncomesUsd) * 100 : 0;
+
+  const freeCashFlowDeltaPct = useMemo(() => {
+    if ((prevIncomesQ.data?.length ?? 0) === 0 && (prevExpensesQ.data?.length ?? 0) === 0) {
+      return null;
+    }
+    if (Math.abs(prevFreeCashFlow) < 0.01) return null;
+    return ((freeCashFlow - prevFreeCashFlow) / Math.abs(prevFreeCashFlow)) * 100;
+  }, [freeCashFlow, prevFreeCashFlow, prevIncomesQ.data, prevExpensesQ.data]);
+
+  const expensesDeltaPct = useMemo(() => {
+    if (prevTotalExpensesUsd <= 0) return null;
+    return ((totalExpensesUsd - prevTotalExpensesUsd) / prevTotalExpensesUsd) * 100;
+  }, [totalExpensesUsd, prevTotalExpensesUsd]);
 
   const pnlPct = useMemo(() => {
     const series = portfolio.returnSeries;
@@ -92,13 +127,40 @@ export default function DashboardClient() {
     return series[series.length - 1].portfolio_pct;
   }, [portfolio.returnSeries]);
 
+  const currentMonthStartISO = useMemo(() => toISODate(currentMonth), [currentMonth]);
+
+  const prevMonthEndSnap = useMemo(() => {
+    const prior = portfolio.snapshots.filter((s) => s.date < currentMonthStartISO);
+    return prior.length > 0 ? prior[prior.length - 1] : null;
+  }, [portfolio.snapshots, currentMonthStartISO]);
+
   const patrimonioPctChange = useMemo(() => {
-    if (!portfolio.snapshots || portfolio.snapshots.length < 2) return 0;
-    const latest = portfolio.snapshots[portfolio.snapshots.length - 1].total_usd;
-    const prev = portfolio.snapshots[portfolio.snapshots.length - 2].total_usd;
-    if (prev === 0) return 0;
-    return ((latest - prev) / prev) * 100;
-  }, [portfolio.snapshots]);
+    if (!prevMonthEndSnap || prevMonthEndSnap.total_usd <= 0) return null;
+    return ((portfolio.totals.total_usd - prevMonthEndSnap.total_usd) / prevMonthEndSnap.total_usd) * 100;
+  }, [prevMonthEndSnap, portfolio.totals.total_usd]);
+
+  const portfolioMonthGain = useMemo(() => {
+    if (prevMonthEndSnap) {
+      const monthCashflowUsd = (investmentsQ.data ?? [])
+        .filter(
+          (tx) =>
+            tx.date >= currentMonthStartISO &&
+            (selectedPortfolioId === "ALL" || tx.portfolio_id === selectedPortfolioId),
+        )
+        .reduce((s, tx) => s + txCashflowUsd(tx), 0);
+      return {
+        usd: portfolio.totals.total_usd - prevMonthEndSnap.total_usd - monthCashflowUsd,
+        label: "este mes",
+      };
+    }
+    return {
+      usd:
+        portfolio.totals.unrealized_pnl_pct !== null
+          ? portfolio.totals.total_usd - portfolio.totals.cost_basis_usd
+          : 0,
+      label: "en tenencia",
+    };
+  }, [prevMonthEndSnap, investmentsQ.data, currentMonthStartISO, selectedPortfolioId, portfolio.totals.total_usd, portfolio.totals.cost_basis_usd, portfolio.totals.unrealized_pnl_pct]);
 
   /* ───── Return Series Chart Data ───── */
   const chartData = useMemo(() => {
@@ -146,13 +208,15 @@ export default function DashboardClient() {
     const expenses = (expensesQ.data ?? []).map(e => ({
       id: e.id, type: "expense" as const, date: e.date, created_at: e.created_at,
       amount: e.amount, currency: e.currency, category: e.category,
+      isOutflow: true,
       label: e.note || e.category,
     }));
     const investments = (investmentsQ.data ?? []).map(i => ({
       id: i.id, type: "investment" as const, date: i.date, created_at: i.created_at,
-      amount: (i.quantity * (i.price_usd || 0)) + i.fees_usd, currency: "USD",
+      amount: usdValueOfTx(i), currency: "USD" as const,
       category: i.asset_type,
-      label: `${i.tx_type === "buy" ? "Compra" : "Venta"} ${i.ticker || i.asset_type}`,
+      isOutflow: i.tx_type === "sell" || i.tx_type === "withdraw",
+      label: `${TX_TYPE_LABELS[i.tx_type]} ${i.ticker || i.asset_type}`,
     }));
     return [...expenses, ...investments]
       .sort((a, b) => {
@@ -253,7 +317,7 @@ export default function DashboardClient() {
   const isEmptyUser = !isLoading && 
     totalIncomesUsd === 0 && 
     totalExpensesUsd === 0 && 
-    (portfolio.totals.total_usd === 0 || portfolio.isLoading) && 
+    portfolio.totals.total_usd === 0 && 
     (goalsQ.data?.length ?? 0) === 0;
 
   return (
@@ -302,14 +366,18 @@ export default function DashboardClient() {
                       <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">
                         {isStealthMode ? "••••••" : formatUSD(portfolio.totals.total_usd, false)}
                       </span>
-                      <span className={`flex items-center gap-1 text-sm font-semibold ${patrimonioPctChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                        {patrimonioPctChange >= 0 ? (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M5 15l7-7 7 7"/></svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 9l-7 7-7-7"/></svg>
-                        )}
-                        {isStealthMode ? "•••" : `${patrimonioPctChange >= 0 ? "+" : ""}${patrimonioPctChange.toFixed(1)}%`} <span className="text-slate-500 font-normal">vs mes anterior</span>
-                      </span>
+                      {patrimonioPctChange !== null ? (
+                        <span className={`flex items-center gap-1 text-sm font-semibold ${patrimonioPctChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                          {patrimonioPctChange >= 0 ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M5 15l7-7 7 7"/></svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+                          )}
+                          {isStealthMode ? "•••" : `${patrimonioPctChange >= 0 ? "+" : ""}${patrimonioPctChange.toFixed(1)}%`} <span className="text-slate-500 font-normal">vs mes anterior</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-500 font-medium">Sin historial mes ant.</span>
+                      )}
                     </>
                   )}
                 </div>
@@ -350,7 +418,13 @@ export default function DashboardClient() {
                   <p className={`text-2xl font-bold tnum ${freeCashFlow >= 0 ? "text-white" : "text-rose-400"}`}>
                     {isStealthMode ? "••••••" : `${freeCashFlow >= 0 ? "+" : ""}${formatUSD(freeCashFlow, false)}`}
                   </p>
-                  <p className="text-xs text-emerald-400 mt-1 font-medium">↑ 12% vs anterior</p>
+                  {freeCashFlowDeltaPct !== null ? (
+                    <p className={`text-xs mt-1 font-medium ${freeCashFlowDeltaPct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      {freeCashFlowDeltaPct >= 0 ? "↑" : "↓"} {Math.abs(Math.round(freeCashFlowDeltaPct))}% vs anterior
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-500 mt-1 font-medium">Sin datos mes ant.</p>
+                  )}
                 </>
               )}
             </div>
@@ -369,7 +443,13 @@ export default function DashboardClient() {
                   <p className="text-2xl font-bold text-white tnum">
                     {isStealthMode ? "••••••" : formatUSD(totalExpensesUsd, false)}
                   </p>
-                  <p className="text-xs text-rose-400 mt-1 font-medium">↑ 3% vs anterior</p>
+                  {expensesDeltaPct !== null ? (
+                    <p className={`text-xs mt-1 font-medium ${expensesDeltaPct > 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                      {expensesDeltaPct >= 0 ? "↑" : "↓"} {Math.abs(Math.round(expensesDeltaPct))}% vs anterior
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-500 mt-1 font-medium">Sin datos mes ant.</p>
+                  )}
                 </>
               )}
             </div>
@@ -388,7 +468,11 @@ export default function DashboardClient() {
                   <p className={`text-2xl font-bold tnum ${pnlPct >= 0 ? "text-white" : "text-rose-400"}`}>
                     {isStealthMode ? "••••••" : `${pnlPct > 0 ? "+" : ""}${pnlPct.toFixed(1)}%`}
                   </p>
-                  <p className="text-xs text-violet-400 mt-1 font-medium">+$250 este mes</p>
+                  <p className={`text-xs mt-1 font-medium ${portfolioMonthGain.usd >= 0 ? "text-violet-400" : "text-rose-400"}`}>
+                    {isStealthMode
+                      ? "••••••"
+                      : `${portfolioMonthGain.usd >= 0 ? "+" : ""}${formatUSD(portfolioMonthGain.usd, false)} ${portfolioMonthGain.label}`}
+                  </p>
                 </>
               )}
             </div>
@@ -430,7 +514,13 @@ export default function DashboardClient() {
                     const prog = rawCtx!.goalProgresses.get(goal.id);
                     const pct = prog ? Math.min(100, Math.max(0, prog.pct)) : 0;
                     const offset = 201.06 - (pct / 100) * 201.06;
-                    
+                    const isPct = GOALS_BY_ID[goal.goal_type]?.isPercentage;
+                    const fmtGoalVal = (v: number) => {
+                      if (isStealthMode) return "••••";
+                      if (isPct) return `${v.toFixed(1)}%`;
+                      return goal.currency === "USD" ? formatUSD(v, false) : formatARS(v, false);
+                    };
+
                     return (
                       <div key={goal.id} className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 flex flex-col items-center text-center card-hover">
                         <div className="relative w-20 h-20 mb-3">
@@ -450,10 +540,10 @@ export default function DashboardClient() {
                         </div>
                         <p className="text-sm text-white font-semibold leading-tight truncate w-full">{goal.name}</p>
                         <p className="text-xs text-slate-300 mt-1 tnum truncate w-full">
-                          {formatUSD(prog?.current || 0, false)} / {formatUSD(goal.target_amount, false)}
+                          {fmtGoalVal(prog?.current || 0)} / {fmtGoalVal(goal.target_amount)}
                         </p>
                         <p className="text-xs text-amber-400 font-medium tnum mt-0.5 truncate w-full">
-                          {formatUSD(Math.max(0, goal.target_amount - (prog?.current || 0)), false)} restantes
+                          {isStealthMode ? "••••" : fmtGoalVal(Math.max(0, goal.target_amount - (prog?.current || 0)))} restantes
                         </p>
                       </div>
                     );
@@ -600,18 +690,17 @@ export default function DashboardClient() {
                   const isInvestment = item.type === "investment";
                   
                   let iconBg = "rgba(16,185,129,0.1)";
-                  let iconColor = "text-emerald-400";
                   let IconSvg = <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>;
 
                   if (isExpense) {
                     iconBg = "rgba(244,63,94,0.1)";
-                    iconColor = "text-rose-400";
                     IconSvg = <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>;
                   } else if (isInvestment) {
                     iconBg = "rgba(139,92,246,0.1)";
-                    iconColor = "text-violet-400";
                     IconSvg = <svg className="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M2 20l5-5 4 4 11-14"/></svg>;
                   }
+
+                  const formattedAmt = item.currency === "ARS" ? formatARS(item.amount, false) : formatUSD(item.amount, false);
 
                   return (
                     <div key={`${item.type}-${item.id}`} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
@@ -624,8 +713,8 @@ export default function DashboardClient() {
                           <p className="text-xs text-slate-500">{format(parseISO(item.date), "dd MMM yyyy", { locale: es })}</p>
                         </div>
                       </div>
-                      <span className={`text-sm font-semibold tnum shrink-0 ${isExpense ? "text-rose-400" : "text-emerald-400"}`}>
-                        {isStealthMode ? "••••" : `${isExpense ? "-" : "+"}${formatUSD(item.amount, false)}`}
+                      <span className={`text-sm font-semibold tnum shrink-0 ${item.isOutflow ? "text-rose-400" : "text-emerald-400"}`}>
+                        {isStealthMode ? "••••••" : `${item.isOutflow ? "-" : "+"}${formattedAmt}`}
                       </span>
                     </div>
                   );

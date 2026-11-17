@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -40,20 +39,21 @@ export function useTransferAsset() {
       });
 
       if (error) throw error;
+
+      // Limpiar snapshots históricos de ambos portafolios para evitar saltos artificiales en TWR
+      await supabase
+        .from("portfolio_snapshots")
+        .delete()
+        .eq("user_id", user.id)
+        .in("portfolio_id", [sourcePortfolioId, targetPortfolioId]);
+
       return data as { investments_moved: number; initial_positions_moved: number };
     },
     onSuccess: (data, variables) => {
-      // Invalidar las queries principales de operaciones
+      // Invalidar las queries principales de operaciones y snapshots (incluye vista ALL)
       queryClient.invalidateQueries({ queryKey: ["investments"] });
       queryClient.invalidateQueries({ queryKey: ["initial_positions"] });
-      
-      // Invalidar los snapshots de ambos portfolios involucrados
-      queryClient.invalidateQueries({ 
-        queryKey: ["portfolio_snapshots", variables.sourcePortfolioId] 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: ["portfolio_snapshots", variables.targetPortfolioId] 
-      });
+      queryClient.invalidateQueries({ queryKey: ["portfolio_snapshots"] });
 
       // El total de ops movidas para feedback en UI
       const totalOps = (data?.investments_moved || 0) + (data?.initial_positions_moved || 0);

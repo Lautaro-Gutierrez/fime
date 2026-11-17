@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { Theme, Density, AccentColor } from "@/types/database";
@@ -125,8 +125,9 @@ export function useUpdatePreferences() {
         if (updateError) {
           if (updateError.message.includes("custom_tags") || updateError.message.includes("column") || updateError.message.includes("schema cache")) {
             if (patch.custom_tags) saveLocalCustomTags(patch.custom_tags);
-            const fallbackPatch = { ...patch } as any;
-            delete fallbackPatch.custom_tags;
+            const fallbackPatch = Object.fromEntries(
+              Object.entries(patch).filter(([k]) => k !== "custom_tags"),
+            ) as Omit<PreferencesUpdate, "custom_tags">;
             const { data: fbUpdated, error: fbUpdateError } = await supabase
               .from("user_preferences")
               .update(fallbackPatch)
@@ -166,11 +167,13 @@ export function useUpdatePreferences() {
           result.custom_tags = getLocalCustomTags();
         }
         return result;
-      } catch (err: any) {
-        if (err.message && (err.message.includes("custom_tags") || err.message.includes("column") || err.message.includes("schema cache"))) {
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("custom_tags") || msg.includes("column") || msg.includes("schema cache")) {
           if (patch.custom_tags) saveLocalCustomTags(patch.custom_tags);
-          const fallbackPatch = { ...patch } as any;
-          delete fallbackPatch.custom_tags;
+          const fallbackPatch = Object.fromEntries(
+            Object.entries(patch).filter(([k]) => k !== "custom_tags"),
+          ) as Omit<PreferencesUpdate, "custom_tags">;
           
           const { data: fbData, error: fbError } = await supabase
             .from("user_preferences")
@@ -203,8 +206,8 @@ export function useUpdatePreferences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PREFS_KEY });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Error al guardar las preferencias");
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Error al guardar las preferencias");
     },
   });
 }

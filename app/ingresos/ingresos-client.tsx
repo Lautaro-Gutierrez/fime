@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Sliders, CircleDollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +11,7 @@ const QuickAddIncome = dynamic(() => import("@/components/ingresos/quick-add").t
 const EditIncomeDialog = dynamic(() => import("@/components/ingresos/edit-income-dialog").then((mod) => mod.EditIncomeDialog), { ssr: false });
 import { useIncomes, type Income } from "@/hooks/use-incomes";
 import { useExpenses, sumExpensesByType } from "@/hooks/use-expenses";
+import { useUserId } from "@/components/providers/user-provider";
 import { createClient } from "@/lib/supabase/client";
 import {
   firstOfMonth,
@@ -122,7 +122,9 @@ export default function IngresosClient() {
           ) {
             return parsed;
           }
-        } catch (e) {}
+        } catch {
+          // Ignorar JSON corrupto en localStorage
+        }
       }
     }
     return null;
@@ -137,82 +139,19 @@ export default function IngresosClient() {
     }
   }, [globalDist]);
 
+  const userId = useUserId();
   const { data: incomes = [], isLoading } = useIncomes(month);
   const { data: expenses = [] } = useExpenses(month);
 
   const realExpenses = useMemo(() => sumExpensesByType(expenses), [expenses]);
-  const hasData = incomes.length > 0;
-
-  // Derive dynamic expenses limits
-  const fixedExpensesAmt = useMemo(() => {
-    return hasData ? realExpenses.fixed : 1000000;
-  }, [hasData, realExpenses.fixed]);
-
-  const variableExpensesAmt = useMemo(() => {
-    return hasData ? realExpenses.variable : 909070;
-  }, [hasData, realExpenses.variable]);
-
-  // Fallback mock incomes for visual demonstration matching prototype total of $6,000,000
-  const mockIncomes = useMemo<Income[]>(() => {
-    const monthYearStr = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
-    return [
-      {
-        id: "mock-1",
-        amount: 3800000,
-        amount_ars: 3800000,
-        currency: "ARS",
-        category: "sueldo",
-        source: "Sueldo YPF",
-        date: `${monthYearStr}-02`,
-        note: "Nómina mensual",
-        distribution: null,
-        created_at: "",
-        user_id: "",
-        fx_rate: null,
-      },
-      {
-        id: "mock-2",
-        amount: 1500000,
-        amount_ars: 1500000,
-        currency: "ARS",
-        category: "dividendos",
-        source: "Rendimientos Inversiones",
-        date: `${monthYearStr}-02`,
-        note: "Rentabilidades trimestrales",
-        distribution: null,
-        created_at: "",
-        user_id: "",
-        fx_rate: null,
-      },
-      {
-        id: "mock-3",
-        amount: 700000,
-        amount_ars: 700000,
-        currency: "ARS",
-        category: "venta",
-        source: "Venta particular",
-        date: `${monthYearStr}-02`,
-        note: "Venta sillón",
-        distribution: null,
-        created_at: "",
-        user_id: "",
-        fx_rate: null,
-      },
-    ] as unknown as Income[];
-  }, [month]);
-
-  const activeIncomes = hasData ? incomes : mockIncomes;
+  const fixedExpensesAmt = realExpenses.fixed;
+  const variableExpensesAmt = realExpenses.variable;
 
   const totalIncomes = useMemo(() => {
-    return activeIncomes.reduce((s, i) => s + Number(i.amount_ars), 0);
-  }, [activeIncomes]);
+    return incomes.reduce((s, i) => s + Number(i.amount_ars), 0);
+  }, [incomes]);
 
-  const totalExpenses = useMemo(() => {
-    if (hasData) {
-      return realExpenses.total;
-    }
-    return 1909070; // Fallback mock expenses
-  }, [hasData, realExpenses.total]);
+  const totalExpenses = realExpenses.total;
 
   // Dynamic distribution configuration: fixed_pct and variable_pct are derived from actual/mock expenses.
   // invest_pct and save_pct are configured by the user (or split 62.5% / 37.5% of the remainder).
@@ -243,15 +182,13 @@ export default function IngresosClient() {
   const [tempInvest, setTempInvest] = useState<number | "">(activeDist.invest_pct);
   const [tempSave, setTempSave] = useState<number | "">(activeDist.save_pct);
 
-  // Sync temporary variables when modal opens
-  useEffect(() => {
-    if (openConfig) {
-      setTempFixed(activeDist.fixed_pct);
-      setTempVariable(activeDist.variable_pct);
-      setTempInvest(activeDist.invest_pct);
-      setTempSave(activeDist.save_pct);
-    }
-  }, [openConfig, activeDist]);
+  const handleOpenConfigModal = () => {
+    setTempFixed(activeDist.fixed_pct);
+    setTempVariable(activeDist.variable_pct);
+    setTempInvest(activeDist.invest_pct);
+    setTempSave(activeDist.save_pct);
+    setOpenConfig(true);
+  };
 
   const maxAllowed = Math.max(0, 100 - tempFixed - tempVariable);
   const fillInvestPct = maxAllowed > 0 ? (Number(tempInvest || 0) / maxAllowed) * 100 : 0;
@@ -312,7 +249,8 @@ export default function IngresosClient() {
   );
 
   const { data: previousTotal = null } = useQuery({
-    queryKey: ["incomes-total", monthKey(previousMonth)],
+    queryKey: ["incomes-total", userId, monthKey(previousMonth)],
+    enabled: Boolean(userId),
     queryFn: async () => {
       const supabase = createClient();
       const from = toISODate(firstOfMonth(previousMonth));
@@ -331,11 +269,11 @@ export default function IngresosClient() {
   });
 
   const deltaStr = useMemo(() => {
-    if (!hasData) return "+8% vs mes anterior";
-    if (previousTotal === null || previousTotal === 0) return "Nuevo este mes";
+    if (previousTotal === null) return "Cargando comparativa...";
+    if (previousTotal === 0) return totalIncomes > 0 ? "Nuevo este mes" : "Sin registros";
     const pct = Math.round(((totalIncomes - previousTotal) / previousTotal) * 100);
     return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
-  }, [hasData, totalIncomes, previousTotal]);
+  }, [totalIncomes, previousTotal]);
 
   // Dynamic distribution: fijos and variables display the exact expense amounts, while investments and savings split the remainder
   const barValues = useMemo(() => {
@@ -379,8 +317,8 @@ export default function IngresosClient() {
 
   // Grouping list items by localized date, e.g. "2 De Junio"
   const groupedIncomes = useMemo(() => {
-    const groups: Record<string, typeof activeIncomes> = {};
-    activeIncomes.forEach((inc) => {
+    const groups: Record<string, typeof incomes> = {};
+    incomes.forEach((inc) => {
       const d = fromISODate(inc.date);
       const day = d.getDate();
       const monthNames = [
@@ -406,7 +344,7 @@ export default function IngresosClient() {
       const dateB = fromISODate(b.items[0].date).getTime();
       return dateB - dateA;
     });
-  }, [activeIncomes]);
+  }, [incomes]);
 
   return (
     <Shell>
@@ -502,7 +440,7 @@ export default function IngresosClient() {
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Distribución Teórica</h3>
               <button
-                onClick={() => setOpenConfig(true)}
+                onClick={handleOpenConfigModal}
                 className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/10 hover:text-white cursor-pointer"
                 title="Configurar distribución global"
               >
@@ -523,9 +461,9 @@ export default function IngresosClient() {
                   <text x="5" y="130" fill="#64748b" fontSize="9" fontFamily="Inter">{formatAxisLabel(topAxisVal * 1 / 3)}</text>
                   <text x="5" y="180" fill="#64748b" fontSize="9" fontFamily="Inter">$0</text>
                   {/* Grid lines */}
-                  <line x1="40" y1="25" x2="370" y2="25" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
-                  <line x1="40" y1="75" x2="370" y2="75" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
-                  <line x1="40" y1="125" x2="370" y2="125" stroke="rgba(255,255,255,0.04)" strokeWidth="1" stroke-dasharray="4"/>
+                  <line x1="40" y1="25" x2="370" y2="25" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4"/>
+                  <line x1="40" y1="75" x2="370" y2="75" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4"/>
+                  <line x1="40" y1="125" x2="370" y2="125" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4"/>
                   <line x1="40" y1="175" x2="370" y2="175" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
                   
                   {/* Bars */}
@@ -557,7 +495,11 @@ export default function IngresosClient() {
           <div className="rounded-2xl p-6 border bg-[#1F2229] border-white/[0.06] transition-all duration-300 flex flex-col min-h-[300px]">
             <h3 className="text-sm font-semibold text-white mb-4">Movimientos</h3>
             <div className="flex flex-col gap-5 overflow-y-auto flex-1 max-h-[350px] pr-1">
-              {groupedIncomes.length === 0 ? (
+              {isLoading ? (
+                <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+                  Cargando...
+                </div>
+              ) : groupedIncomes.length === 0 ? (
                 <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
                   Sin movimientos cargados
                 </div>
@@ -576,22 +518,12 @@ export default function IngresosClient() {
                         const CatIcon = catConfig?.icon || CircleDollarSign;
                         const style = INCOME_CATEGORY_STYLES[item.category];
                         const isUsdOriginal = item.currency === "USD";
-                        const isMock = item.id.startsWith("mock-");
 
                         return (
                           <div
                             key={item.id}
-                            onClick={() => {
-                              if (!isMock) {
-                                setEditing(item as Income);
-                              } else {
-                                toast.info("Este es un ingreso de prueba. Registrá un nuevo ingreso para poder editarlo.");
-                              }
-                            }}
-                            className={cn(
-                              "flex items-center justify-between py-2 transition-all rounded-xl px-2 -mx-2",
-                              !isMock ? "cursor-pointer hover:bg-white/[0.04]" : "opacity-80"
-                            )}
+                            onClick={() => setEditing(item)}
+                            className="flex items-center justify-between py-2 transition-all rounded-xl px-2 -mx-2 cursor-pointer hover:bg-white/[0.04]"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={cn(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,26 +18,43 @@ interface EditPortfolioDialogProps {
 }
 
 export function EditPortfolioDialog({ portfolio, open, onOpenChange }: EditPortfolioDialogProps) {
-  const update = useUpdatePortfolio();
-  
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("indigo");
-  const [icon, setIcon] = useState("briefcase");
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Portfolio</DialogTitle>
+        </DialogHeader>
 
-  useEffect(() => {
-    if (portfolio) {
-      setName(portfolio.name);
-      setColor(portfolio.color);
-      setIcon(portfolio.icon);
-    }
-  }, [portfolio]);
+        {open && portfolio && (
+          <EditPortfolioForm
+            key={portfolio.id}
+            portfolio={portfolio}
+            onOpenChange={onOpenChange}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditPortfolioForm({
+  portfolio,
+  onOpenChange,
+}: {
+  portfolio: Portfolio;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const update = useUpdatePortfolio();
+  const [name, setName] = useState(portfolio.name);
+  const [color, setColor] = useState(portfolio.color);
+  const [icon, setIcon] = useState(portfolio.icon);
 
   const isPending = update.isPending;
-  const isDefault = portfolio?.is_default;
+  const isDefault = portfolio.is_default;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!portfolio || !name.trim()) return;
+    if (!name.trim()) return;
 
     try {
       await update.mutateAsync({
@@ -50,8 +67,12 @@ export function EditPortfolioDialog({ portfolio, open, onOpenChange }: EditPortf
       });
       toast.success("Portfolio actualizado");
       onOpenChange(false);
-    } catch (err: any) {
-      if (err.code === "23505") {
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? (err as { code?: string }).code
+          : undefined;
+      if (code === "23505") {
         toast.error("Ya existe un portfolio con ese nombre.");
       } else {
         toast.error("Error al actualizar el portfolio");
@@ -60,13 +81,7 @@ export function EditPortfolioDialog({ portfolio, open, onOpenChange }: EditPortf
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Editar Portfolio</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-6">
           <div className="space-y-2">
             <Label>Nombre</Label>
             <Input
@@ -138,7 +153,5 @@ export function EditPortfolioDialog({ portfolio, open, onOpenChange }: EditPortf
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
   );
 }

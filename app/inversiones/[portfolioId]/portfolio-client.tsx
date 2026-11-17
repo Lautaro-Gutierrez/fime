@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, use } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState, use } from "react";
 import { Shell } from "@/components/layout/shell";
 import { ModuleInsightsPanel } from "@/components/module-insights-panel";
-import { useOnboarding } from "@/components/onboarding/onboarding-provider";
+import { PrivateAmount } from "@/components/ui/private-amount";
 
 // Portfolios
 import { PortfolioSelector } from "@/components/inversiones/portfolio-selector";
@@ -25,7 +24,7 @@ const TransferAssetDialog = dynamic(() => import("@/components/portfolio/transfe
 import { usePortfolio } from "@/hooks/use-portfolio";
 import type { ValuedHolding } from "@/lib/portfolio/holdings";
 
-import { formatUSD } from "@/lib/format";
+import { formatARS, formatUSD } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import type { FxRates } from "@/lib/prices/types";
 
@@ -76,12 +75,10 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
     totals,
     returnSeries,
     isLoading: isLoadingPortfolioData,
-    isFetchingPrices,
-    refetchPrices,
     resetHistory,
   } = usePortfolio(portfolioId);
 
-  const { data: investments = [], isLoading: isLoadingInvestments } = useInvestments();
+  const { data: investments = [] } = useInvestments();
 
   // Filtramos por portfolio en el historial
   const filteredInvestments = useMemo(() => {
@@ -107,10 +104,22 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
 
   const newTxBtn = (
     <button className="flex items-center gap-2 bg-gradient-to-r from-[#d946ef] to-[#06b6d4] hover:opacity-90 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-fuchsia-500/20 border-0">
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M12 4v16m8-8H4"/></svg>
       Nueva Operación
     </button>
   );
+
+  const liveQuotedHoldings = useMemo(() => {
+    return holdings
+      .filter(
+        (h) =>
+          Boolean(h.ticker) &&
+          h.current_price_usd !== null &&
+          h.asset_type !== "usd_cash" &&
+          h.asset_type !== "time_deposit",
+      )
+      .slice(0, 5);
+  }, [holdings]);
 
   return (
     <Shell>
@@ -129,6 +138,8 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
                 holdingsCount={holdings.length}
                 isLoading={isLoadingPortfolios}
               />
+
+              <InitialPositionsDialog />
               
               <NewTransactionDialog 
                 defaultPortfolioId={portfolioId === "ALL" ? undefined : portfolioId} 
@@ -161,38 +172,50 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
         <div className="flex overflow-x-auto hide-scrollbar gap-3 mb-6 animate-fade-in delay-1 pb-1">
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <span className="text-[11px] text-slate-400 font-medium">Oficial</span>
-            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.oficial, false) : "—"}</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatARS(fx.oficial, false) : "—"}</span>
           </div>
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <span className="text-[11px] text-slate-400 font-medium">MEP</span>
-            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.mep, false) : "—"}</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatARS(fx.mep, false) : "—"}</span>
           </div>
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <span className="text-[11px] text-slate-400 font-medium">CCL</span>
-            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.ccl, false) : "—"}</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatARS(fx.ccl, false) : "—"}</span>
           </div>
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
             <span className="text-[11px] text-slate-400 font-medium">Blue</span>
-            <span className="text-xs text-white font-bold tnum">{fx ? formatUSD(fx.blue, false) : "—"}</span>
+            <span className="text-xs text-white font-bold tnum">{fx ? formatARS(fx.blue, false) : "—"}</span>
           </div>
-          
-          <div className="w-px h-6 bg-white/[0.08] mx-1 self-center flex-shrink-0"></div>
-          
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[11px] text-indigo-400 font-bold">AAPL</span>
-            <span className="text-xs text-white font-bold tnum">$215.30</span>
-            <span className="text-[10px] text-emerald-400 font-semibold">+1.5%</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[11px] text-rose-400 font-bold">SPY</span>
-            <span className="text-xs text-white font-bold tnum">$540.25</span>
-            <span className="text-[10px] text-emerald-400 font-semibold">+0.8%</span>
-          </div>
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0" style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[11px] text-amber-400 font-bold">TSLA</span>
-            <span className="text-xs text-white font-bold tnum">$195.50</span>
-            <span className="text-[10px] text-rose-400 font-semibold">-2.1%</span>
-          </div>
+
+          {liveQuotedHoldings.length > 0 && (
+            <>
+              <div className="w-px h-6 bg-white/[0.08] mx-1 self-center flex-shrink-0" />
+              {liveQuotedHoldings.map((h) => (
+                <div
+                  key={h.key}
+                  className="flex items-center gap-2.5 px-4 py-2 rounded-xl border flex-shrink-0"
+                  style={{ background: "#1F2229", borderColor: "rgba(255,255,255,0.06)" }}
+                >
+                  <span className="text-[11px] text-indigo-400 font-bold">
+                    {h.ticker?.toUpperCase()}
+                  </span>
+                  <span className="text-xs text-white font-bold tnum">
+                    {formatUSD(h.current_price_usd!, true)}
+                  </span>
+                  {h.change_24h_pct !== null && (
+                    <span
+                      className={`text-[10px] font-semibold ${
+                        h.change_24h_pct >= 0 ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {h.change_24h_pct >= 0 ? "+" : ""}
+                      {h.change_24h_pct.toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
         </div>
         
         {/* Portfolio Value Card */}
@@ -212,7 +235,9 @@ function InversionesContent({ portfolioId }: { portfolioId: string }) {
           <div className="relative z-10">
             <p className="text-xs text-slate-400 mb-2 font-medium">Valor del Portfolio</p>
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">{formatUSD(totals.total_usd)}</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tnum">
+                <PrivateAmount>{formatUSD(totals.total_usd)}</PrivateAmount>
+              </span>
               {totals.unrealized_pnl_pct !== null && totals.unrealized_pnl_pct !== 0 && (
                 <span className={`font-bold text-lg tnum ${totals.unrealized_pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {totals.unrealized_pnl_pct > 0 ? "+" : ""}{totals.unrealized_pnl_pct.toFixed(2)}%

@@ -1,6 +1,7 @@
 import type { InsightRule, SmartInsight } from "../types";
 import { getDaysInMonth, subMonths } from "date-fns";
 import { CATEGORIES_BY_ID } from "@/lib/categories";
+import { monthKey } from "@/lib/format";
 
 export const gastosRules: InsightRule[] = [
   // 1. gastos-daily-pace
@@ -22,7 +23,7 @@ export const gastosRules: InsightRule[] = [
 
       if (ratio > 1.3) {
         return {
-          id: `gastos-daily-pace-crit-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-daily-pace-crit-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-daily-pace",
           module: "gastos",
           category: "warning",
@@ -36,7 +37,7 @@ export const gastosRules: InsightRule[] = [
 
       if (ratio > 1.1) {
         return {
-          id: `gastos-daily-pace-warn-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-daily-pace-warn-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-daily-pace",
           module: "gastos",
           category: "warning",
@@ -75,7 +76,7 @@ export const gastosRules: InsightRule[] = [
           const increasePct = Math.round(((amount / prevAmount) - 1) * 100);
 
           return {
-            id: `gastos-cat-spike-${cat}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `gastos-cat-spike-${cat}-${monthKey(ctx.currentMonth)}`,
             ruleId: "gastos-category-spike",
             module: "gastos",
             category: "warning",
@@ -107,7 +108,7 @@ export const gastosRules: InsightRule[] = [
       // Límite del plan aprobado: 60%
       if (ratio > 60) {
         return {
-          id: `gastos-fixed-ratio-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-fixed-ratio-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-fixed-ratio",
           module: "gastos",
           category: "warning",
@@ -135,7 +136,7 @@ export const gastosRules: InsightRule[] = [
       // Si gasta más de $15,000 ARS en suscripciones
       if (subExpense > 15000) {
         return {
-          id: `gastos-sub-review-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-sub-review-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-subscription-review",
           module: "gastos",
           category: "tip",
@@ -175,7 +176,7 @@ export const gastosRules: InsightRule[] = [
       if (fixedExpense > fixedBudget + 5000) {
         const diff = fixedExpense - fixedBudget;
         return {
-          id: `gastos-budget-exceed-fixed-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-budget-exceed-fixed-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-budget-exceeded",
           module: "gastos",
           category: "warning",
@@ -190,7 +191,7 @@ export const gastosRules: InsightRule[] = [
       if (variableExpense > variableBudget + 5000) {
         const diff = variableExpense - variableBudget;
         return {
-          id: `gastos-budget-exceed-var-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-budget-exceed-var-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-budget-exceeded",
           module: "gastos",
           category: "warning",
@@ -225,7 +226,7 @@ export const gastosRules: InsightRule[] = [
           const catName = catConfig ? catConfig.label : cat;
 
           return {
-            id: `gastos-concentration-${cat}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `gastos-concentration-${cat}-${monthKey(ctx.currentMonth)}`,
             ruleId: "gastos-category-concentration",
             module: "gastos",
             category: "tip",
@@ -253,7 +254,7 @@ export const gastosRules: InsightRule[] = [
       const expensePct = (totalExpense / totalIncome) * 100;
       if (expensePct < 40 && ctx.dayOfMonth >= 15) {
         return {
-          id: `gastos-savings-progress-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-savings-progress-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-savings-progress",
           module: "gastos",
           category: "achievement",
@@ -284,7 +285,7 @@ export const gastosRules: InsightRule[] = [
       const ratio = dailyPace / prevDailyPace;
       if (ratio < 0.9 && ctx.dayOfMonth >= 10) {
         return {
-          id: `gastos-favorable-trend-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-favorable-trend-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-favorable-trend",
           module: "gastos",
           category: "achievement",
@@ -319,7 +320,7 @@ export const gastosRules: InsightRule[] = [
       const variablePct = (variableExpense / variableBudget) * 100;
       if (variablePct < 30 && ctx.dayOfMonth >= 15) {
         return {
-          id: `gastos-var-efficiency-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-var-efficiency-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-variable-efficiency",
           module: "gastos",
           category: "tip",
@@ -347,7 +348,7 @@ export const gastosRules: InsightRule[] = [
 
       if (prevProrated > 0 && totalExpense < prevProrated * 0.9) {
         return {
-          id: `gastos-month-improvement-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-month-improvement-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-month-improvement",
           module: "gastos",
           category: "achievement",
@@ -372,7 +373,7 @@ export const gastosRules: InsightRule[] = [
 
       if (unexpected > 20000) {
         return {
-          id: `gastos-unexpected-spike-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-unexpected-spike-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-unexpected-spike",
           module: "gastos",
           category: "warning",
@@ -401,7 +402,7 @@ export const gastosRules: InsightRule[] = [
       const pct = Math.round((cardExpenses / total) * 100);
       if (pct > 50) {
         return {
-          id: `gastos-cc-heavy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-cc-heavy-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-credit-card-heavy",
           module: "gastos",
           category: "tip",
@@ -425,7 +426,7 @@ export const gastosRules: InsightRule[] = [
       const hasVariable = ctx.expenses.some((e) => e.type === "variable");
       if (!hasVariable && ctx.expenses.length > 0) {
         return {
-          id: `gastos-no-variable-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-no-variable-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-no-variable-expenses",
           module: "gastos",
           category: "reminder",
@@ -461,7 +462,7 @@ export const gastosRules: InsightRule[] = [
       const pct = Math.round((variableExpense / variableBudget) * 100);
       if (pct < 60 && variableExpense > 0) {
         return {
-          id: `gastos-var-good-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-var-good-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-variable-good-month",
           module: "gastos",
           category: "achievement",
@@ -490,7 +491,7 @@ export const gastosRules: InsightRule[] = [
       const pct = Math.round((foodExpense / total) * 100);
       if (foodExpense > 30000 && pct > 30) {
         return {
-          id: `gastos-food-high-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-food-high-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-food-high",
           module: "gastos",
           category: "tip",
@@ -520,7 +521,7 @@ export const gastosRules: InsightRule[] = [
       const pct = Math.round((totalExpense / totalIncome) * 100);
       if (pct > 90) {
         return {
-          id: `gastos-eom-tight-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-eom-tight-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-end-of-month-tight",
           module: "gastos",
           category: "warning",
@@ -551,7 +552,7 @@ export const gastosRules: InsightRule[] = [
 
       if (prevDailyAvg > 0 && currentDailyAvg < prevDailyAvg * 0.8) {
         return {
-          id: `gastos-first-week-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-first-week-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-first-week-pace",
           module: "gastos",
           category: "tip",
@@ -580,7 +581,7 @@ export const gastosRules: InsightRule[] = [
       const pct = Math.round((fixedExpense / totalIncome) * 100);
       if (fixedExpense > 0 && pct < 45) {
         return {
-          id: `gastos-fixed-healthy-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+          id: `gastos-fixed-healthy-${monthKey(ctx.currentMonth)}`,
           ruleId: "gastos-fixed-healthy",
           module: "gastos",
           category: "achievement",
@@ -617,7 +618,7 @@ export const gastosRules: InsightRule[] = [
           const dropPct = Math.round((1 - currentAmount / prevAmount) * 100);
 
           return {
-            id: `gastos-cat-drop-${cat}-${ctx.currentMonth.toISOString().slice(0, 7)}`,
+            id: `gastos-cat-drop-${cat}-${monthKey(ctx.currentMonth)}`,
             ruleId: "gastos-category-drop",
             module: "gastos",
             category: "achievement",

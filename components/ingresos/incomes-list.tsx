@@ -215,7 +215,7 @@ const IncomeRow = memo(function IncomeRow({
         });
       },
       onError: (err) => {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : "Error al borrar el ingreso");
       },
     });
   }

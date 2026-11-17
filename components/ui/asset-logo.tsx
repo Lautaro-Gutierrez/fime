@@ -11,7 +11,8 @@ import {
   LineChart, 
   Globe2, 
   Landmark,
-  ScrollText
+  ScrollText,
+  type LucideIcon,
 } from "lucide-react";
 import { AssetType } from "@/types/database";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,7 @@ type Props = {
   className?: string;
 };
 
-const GENERIC_ICONS: Record<string, any> = {
+const GENERIC_ICONS: Record<string, LucideIcon> = {
   usd_cash: Banknote,
   time_deposit: PiggyBank,
   crypto: Bitcoin,

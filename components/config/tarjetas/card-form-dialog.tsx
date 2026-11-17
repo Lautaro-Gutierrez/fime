@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Archive, CreditCard as CreditCardIcon, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -68,17 +68,35 @@ type Props = {
 };
 
 export function CardFormDialog({ open, onOpenChange, card }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px]">
+        {open && (
+          <CardFormInner
+            key={card?.id ?? "new"}
+            card={card}
+            onOpenChange={onOpenChange}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CardFormInner({
+  card,
+  onOpenChange,
+}: {
+  card?: CreditCard | null;
+  onOpenChange: (open: boolean) => void;
+}) {
   const isEdit = !!card;
-  const [form, setForm] = useState<FormState>(DEFAULT_FORM);
+  const [form, setForm] = useState<FormState>(() =>
+    card ? formFromCard(card) : DEFAULT_FORM,
+  );
   const createCard = useCreateCreditCard();
   const updateCard = useUpdateCreditCard();
   const archiveCard = useArchiveCreditCard();
-
-  useEffect(() => {
-    if (open) {
-      setForm(card ? formFromCard(card) : DEFAULT_FORM);
-    }
-  }, [open, card]);
 
   const closingDayNum = Number(form.closing_day);
   const dueDayNum = Number(form.due_day);
@@ -147,8 +165,6 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
   const isPending = createCard.isPending || updateCard.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden border border-white/[0.06] bg-[#1F2229] p-0 rounded-[24px]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -348,8 +364,6 @@ export function CardFormDialog({ open, onOpenChange, card }: Props) {
             </div>
           </div>
         </motion.div>
-      </DialogContent>
-    </Dialog>
   );
 }
 

@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useOnboarding } from "./onboarding-provider";
-import { getTourSteps, type OnboardingStep } from "./tours";
+import { getTourSteps } from "./tours";
 import { useRouter, usePathname } from "next/navigation";
 import { Settings, Play, RefreshCw, X, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const TOURS = [
   { id: "dashboard", name: "Dashboard (Inicio)", route: "/" },
@@ -21,7 +20,10 @@ export function OnboardingHUD() {
   if (process.env.NODE_ENV !== "development") {
     return null;
   }
+  return <OnboardingHUDInner />;
+}
 
+function OnboardingHUDInner() {
   const { startTour, restartAll } = useOnboarding();
   const router = useRouter();
   const pathname = usePathname();

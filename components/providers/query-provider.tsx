@@ -35,7 +35,10 @@ export function QueryProvider({ children }: { children: ReactNode }) {
 
   const [client] = useState(() => {
     const handleGlobalError = (error: unknown) => {
-      const err = error as any;
+      const err =
+        typeof error === "object" && error !== null
+          ? (error as { status?: number; code?: string; message?: string })
+          : {};
       // Verificar si es un error de autenticación/token expirado
       if (
         err?.status === 401 ||

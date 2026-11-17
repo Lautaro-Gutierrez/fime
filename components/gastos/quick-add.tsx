@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, CalendarDays, StickyNote, Sparkles, CreditCard as CreditCardIcon, ArrowLeft, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { CATEGORIES } from "@/lib/categories";
 import type { ExpenseCategory, ExpenseType } from "@/types/database";
 import {
+  fromISODate,
   isFutureMonth,
   lastOfMonth,
   toISODate,
@@ -23,6 +24,7 @@ import {
 import { useCreateExpense, useUpdateExpense, useDeleteExpense, type Expense } from "@/hooks/use-expenses";
 import { useCreditCards } from "@/hooks/use-credit-cards";
 import { useMembers } from "@/hooks/use-members";
+import { usePreferences } from "@/hooks/use-preferences";
 import { colorFromHex } from "@/lib/credit-cards";
 import { cn } from "@/lib/utils";
 
@@ -92,17 +94,74 @@ export function QuickAdd({
     }
   };
 
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<ExpenseCategory | "suscripciones" | "">("");
-  const [type, setType] = useState<ExpenseType>("variable");
-  const [date, setDate] = useState(toISODate(new Date()));
-  const [note, setNote] = useState("");
-  const [showExtras, setShowExtras] = useState(false);
-  const [pickingCard, setPickingCard] = useState(false);
-  const [cardId, setCardId] = useState<string | null>(null);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {customTrigger && !isControlled && (
+        <DialogTrigger render={customTrigger as React.ReactElement} />
+      )}
+      {!customTrigger && !isControlled && (
+        <DialogTrigger
+          render={
+            <Button
+              id="gastos-quick-add"
+              size="lg"
+              className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
+            >
+              <Plus className="size-4" />
+              Nuevo gasto
+            </Button>
+          }
+        />
+      )}
 
-  const [assignedTo, setAssignedTo] = useState<string | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
+      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0">
+        {open && (
+          <QuickAddForm
+            key={expenseToEdit ? `edit-${expenseToEdit.id}-${expenseToEdit.updated_at}` : "create"}
+            expenseToEdit={expenseToEdit}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function QuickAddForm({
+  expenseToEdit,
+  onClose,
+}: {
+  expenseToEdit?: Expense | null;
+  onClose: () => void;
+}) {
+  const setOpen = (o: boolean) => {
+    if (!o) onClose();
+  };
+
+  const todayISO = toISODate(new Date());
+  const [amount, setAmount] = useState(expenseToEdit ? String(expenseToEdit.amount) : "");
+  const [category, setCategory] = useState<ExpenseCategory | "suscripciones" | "">(
+    expenseToEdit
+      ? expenseToEdit.is_subscription
+        ? "suscripciones"
+        : expenseToEdit.category
+      : "",
+  );
+  const [type, setType] = useState<ExpenseType>(expenseToEdit?.type ?? "variable");
+  const [date, setDate] = useState(expenseToEdit?.date ?? todayISO);
+  const [note, setNote] = useState(expenseToEdit?.note ?? "");
+  const [showExtras, setShowExtras] = useState(
+    expenseToEdit
+      ? !!expenseToEdit.note ||
+          expenseToEdit.date !== todayISO ||
+          (expenseToEdit.tags ? expenseToEdit.tags.length > 0 : false)
+      : false,
+  );
+  const [pickingCard, setPickingCard] = useState(false);
+  const [cardId, setCardId] = useState<string | null>(expenseToEdit?.card_id ?? null);
+
+  const [assignedTo, setAssignedTo] = useState<string | null>(expenseToEdit?.assigned_to ?? null);
+  const [tags, setTags] = useState<string[]>(expenseToEdit?.tags ?? []);
   const [tagInput, setTagInput] = useState("");
 
   const createExpense = useCreateExpense();
@@ -110,43 +169,8 @@ export function QuickAdd({
   const deleteExpense = useDeleteExpense();
   const { data: cards = [] } = useCreditCards();
   const { data: members = [] } = useMembers();
-
-  // Sincronizar datos al abrir en modo edición o creación
-  useEffect(() => {
-    if (open) {
-      if (expenseToEdit) {
-        setAmount(String(expenseToEdit.amount));
-        setType(expenseToEdit.type);
-        setDate(expenseToEdit.date);
-        setNote(expenseToEdit.note ?? "");
-        setCardId(expenseToEdit.card_id);
-        setAssignedTo(expenseToEdit.assigned_to ?? null);
-        setTags(expenseToEdit.tags ?? []);
-        setTagInput("");
-        
-        if (expenseToEdit.is_subscription) {
-          setCategory("suscripciones");
-        } else {
-          setCategory(expenseToEdit.category);
-        }
-        
-        setShowExtras(!!expenseToEdit.note || expenseToEdit.date !== toISODate(new Date()) || (expenseToEdit.tags ? expenseToEdit.tags.length > 0 : false));
-        setPickingCard(false);
-      } else {
-        setAmount("");
-        setCategory("");
-        setType("variable");
-        setDate(toISODate(new Date()));
-        setNote("");
-        setShowExtras(false);
-        setPickingCard(false);
-        setCardId(null);
-        setAssignedTo(null);
-        setTags([]);
-        setTagInput("");
-      }
-    }
-  }, [open, expenseToEdit]);
+  const { data: prefs } = usePreferences();
+  const customTags = prefs?.custom_tags ?? [];
 
   const handleAddTagPill = (val: string) => {
     const clean = val.trim().replace(/,/g, "");
@@ -177,7 +201,7 @@ export function QuickAdd({
 
   function handleDateChange(value: string) {
     if (!value) return;
-    const picked = new Date(value);
+    const picked = fromISODate(value);
     if (isFutureMonth(picked)) {
       toast.error("Solo se pueden cargar gastos hasta fin del mes en curso.");
       return;
@@ -276,27 +300,8 @@ export function QuickAdd({
   const isToday = date === toISODate(new Date());
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {customTrigger && !isControlled && (
-        <DialogTrigger render={customTrigger as React.ReactElement} />
-      )}
-      {!customTrigger && !isControlled && (
-        <DialogTrigger
-          render={
-            <Button
-              id="gastos-quick-add"
-              size="lg"
-              className="h-11 gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 text-foreground transition-all hover:bg-white/[0.10]"
-            >
-              <Plus className="size-4" />
-              Nuevo gasto
-            </Button>
-          }
-        />
-      )}
-
-      <DialogContent className="max-w-md overflow-hidden bg-[#1F2229] border border-white/[0.06] rounded-[24px] p-0">
-        <div className="relative flex flex-col gap-5 p-6">
+    <>
+      <div className="relative flex flex-col gap-5 p-6">
           <div className="relative flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-theme-500/15 ring-1 ring-theme-500/30">
               {expenseToEdit ? (
@@ -430,6 +435,35 @@ export function QuickAdd({
                       className="flex-1 min-w-[120px] h-7 border-0 bg-transparent p-0 text-sm text-white focus:outline-none focus:ring-0 focus-visible:ring-0 placeholder:text-slate-500"
                     />
                   </div>
+                  {customTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 border-t border-white/[0.05] pt-2">
+                      {customTags.map((ct) => {
+                        const cleanTag = ct.replace(/^#/, "");
+                        const selected = tags.includes(cleanTag);
+                        return (
+                          <button
+                            key={cleanTag}
+                            type="button"
+                            onClick={() =>
+                              setTags(
+                                selected
+                                  ? tags.filter((t) => t !== cleanTag)
+                                  : [...tags, cleanTag],
+                              )
+                            }
+                            className={cn(
+                              "rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+                              selected
+                                ? "border-theme-500/40 bg-theme-500/20 text-theme-300"
+                                : "border-white/[0.06] bg-white/[0.03] text-slate-400 hover:border-white/15 hover:text-white",
+                            )}
+                          >
+                            #{cleanTag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -702,7 +736,6 @@ export function QuickAdd({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </>
   );
 }
